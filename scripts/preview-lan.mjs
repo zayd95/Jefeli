@@ -69,6 +69,34 @@ async function portInUse(port) {
 }
 
 /**
+ * Who listens on a port (macOS / Linux, via lsof + ps). Walks up the parent processes to tell
+ * whether it belongs to an earlier Jëfëli preview that is still running, so the message can say
+ * exactly what to stop. Returns null when the tools are missing (Windows) or nothing is found.
+ */
+function portOwner(port) {
+  const ls = spawnSync('lsof', ['-nP', `-iTCP:${port}`, '-sTCP:LISTEN', '-t'], { encoding: 'utf8' });
+  const pid = Number((ls.stdout ?? '').split('\n').find(Boolean));
+  if (ls.error || !pid) return null;
+  const info = (p) => {
+    const r = spawnSync('ps', ['-o', 'ppid=', '-o', 'command=', '-p', String(p)], { encoding: 'utf8' });
+    const m = (r.stdout ?? '').trim().match(/^(\d+)\s+([\s\S]*)$/);
+    return m ? { ppid: Number(m[1]), command: m[2] } : null;
+  };
+  const own = info(pid);
+  let launcher = null;
+  for (let p = pid, i = 0; p > 1 && i < 6; i += 1) {
+    const it = info(p);
+    if (!it) break;
+    if (it.command.includes('preview-lan.mjs')) {
+      launcher = p;
+      break;
+    }
+    p = it.ppid;
+  }
+  return { pid, command: own?.command ?? '?', launcher };
+}
+
+/**
  * Every Supabase CLI project uses the same default ports, so another local project (or an old
  * dev server) makes `supabase start` fail with a bare Docker error. Explain it before starting.
  */
@@ -92,8 +120,18 @@ async function preflight() {
       problems.push(`port ${port} : utilisé par un autre programme`);
     }
   }
+  const previews = new Set();
   for (const port of [APP_PORT, WEB_PORT]) {
-    if (await portInUse(port)) problems.push(`port ${port} : utilisé par un autre programme (un serveur de développement ?)`);
+    if (!(await portInUse(port))) continue;
+    const owner = portOwner(port);
+    if (owner?.launcher) {
+      previews.add(owner.launcher);
+      problems.push(`port ${port} : un aperçu Jëfëli lancé plus tôt tourne encore (PID ${owner.launcher})`);
+    } else if (owner) {
+      problems.push(`port ${port} : utilisé par un autre programme, PID ${owner.pid} (« ${owner.command.slice(0, 70)} »)`);
+    } else {
+      problems.push(`port ${port} : utilisé par un autre programme (un serveur de développement ?)`);
+    }
   }
   if (!problems.length) return;
   const hints = [];
@@ -103,10 +141,18 @@ async function preflight() {
       '    pnpm exec supabase stop --all',
     );
   }
-  if (problems.some((p) => p.includes('autre programme'))) {
-    hints.push(`Pour voir quel programme occupe un port (macOS / Linux) :  lsof -nP -iTCP:<port> -sTCP:LISTEN`);
+  if (previews.size) {
+    hints.push(
+      'Arrêtez l’aperçu précédent : Ctrl+C dans la fenêtre du terminal où il tourne, ou :',
+      `    kill ${[...previews].join(' ')}`,
+    );
   }
-  fail(`Ports déjà occupés :\n  - ${problems.join('\n  - ')}\n\n${hints.join('\n')}\nPuis relancez « pnpm preview:lan ».`);
+  if (problems.some((p) => p.includes('autre programme'))) {
+    hints.push('Arrêtez ce programme s’il ne sert plus (Ctrl+C dans sa fenêtre, ou kill <PID>).');
+    hints.push('Pour voir quel programme occupe un port (macOS / Linux) :  lsof -nP -iTCP:<port> -sTCP:LISTEN');
+  }
+  const again = process.env.npm_lifecycle_event ? `pnpm ${process.env.npm_lifecycle_event}` : 'pnpm preview:lan';
+  fail(`Ports déjà occupés :\n  - ${problems.join('\n  - ')}\n\n${hints.join('\n')}\nPuis relancez « ${again} ».`);
 }
 
 function run(cmd, cmdArgs, opts = {}) {
