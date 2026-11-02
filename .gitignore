@@ -1,0 +1,34 @@
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+out/
+coverage/
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+!.env.example
+# Expo
+.expo/
+web-build/
+apps/mobile/ios/
+apps/mobile/android/
+expo-env.d.ts
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+supabase/functions/.env
+# Test artifacts
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/.auth/

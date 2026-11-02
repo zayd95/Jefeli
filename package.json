@@ -1,0 +1,25 @@
+{
+  "name": "jefeli",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Jëfëli — le réseau social du commerce sénégalais",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "mobile": "pnpm --filter @jefeli/mobile start",
+    "web": "pnpm --filter @jefeli/web dev",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "test:integration": "pnpm --filter @jefeli/integration-tests test",
+    "test:e2e": "pnpm --filter @jefeli/e2e test",
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "devDependencies": {
+    "supabase": "2.122.0"
+  }
+}
