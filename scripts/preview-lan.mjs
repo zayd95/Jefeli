@@ -216,6 +216,10 @@ async function main() {
 
   log('Local Supabase (API only)…');
   run('pnpm', ['exec', 'supabase', 'start', '-x', 'studio,postgres-meta,mailpit']);
+  // `supabase start` reuses an existing local database as is: apply migrations added since the
+  // last run (non-destructive; data is kept). Without this, a `git pull` that brings a new
+  // migration leaves the app talking to an outdated schema.
+  run('pnpm', ['exec', 'supabase', 'migration', 'up', '--local']);
   const status = spawnSync('pnpm', ['exec', 'supabase', 'status', '-o', 'json'], { cwd: ROOT, encoding: 'utf8', shell });
   const json = status.stdout.slice(status.stdout.indexOf('{'));
   const keys = JSON.parse(json);
