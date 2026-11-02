@@ -1,42 +1,85 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
-    "version": "1.0.0",
+    "name": "Jëfëli",
+    "slug": "jefeli",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
-    "userInterfaceStyle": "automatic",
+    "scheme": "jefeli",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F5F1",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "sn.jefeli.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Jëfëli utilise la caméra pour prendre des photos et vidéos de vos articles, statuts et lives.",
+        "NSPhotoLibraryUsageDescription": "Jëfëli accède à vos photos pour publier des articles, des statuts et des publications.",
+        "NSMicrophoneUsageDescription": "Jëfëli utilise le micro pour les messages vocaux, les vidéos et les lives.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "sn.jefeli.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#10252C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": ["CAMERA", "RECORD_AUDIO"],
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "server",
-      "favicon": "./assets/images/favicon.png"
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "Jëfëli",
+      "shortName": "Jëfëli",
+      "lang": "fr",
+      "themeColor": "#F6F5F1",
+      "backgroundColor": "#F6F5F1"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F6F5F1",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 160
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Jëfëli accède à vos photos pour publier des articles, des statuts et des publications.",
+          "cameraPermission": "Jëfëli utilise la caméra pour prendre des photos et vidéos de vos articles, statuts et lives.",
+          "microphonePermission": "Jëfëli utilise le micro pour enregistrer le son de vos vidéos."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Jëfëli utilise le micro pour les messages vocaux."
+        }
+      ],
+      "expo-video",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#10252C"
+        }
+      ],
+      "expo-sharing",
+      "expo-font"
     ],
     "experiments": {
-      "typedRoutes": true,
+      "typedRoutes": false,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {}
     }
   }
 }

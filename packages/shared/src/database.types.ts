@@ -1249,6 +1249,12 @@ isOneToOne: false
 "delete_comment":
 { Args: { "p_comment_id": string }; Returns: undefined
                            },
+"delete_post":
+{ Args: { "p_post_id": string }; Returns: undefined
+                           },
+"delete_story":
+{ Args: { "p_story_id": string }; Returns: undefined
+                           },
 "expire_stale_offers":
 { Args: Record<PropertyKey, never>; Returns: number
                            },

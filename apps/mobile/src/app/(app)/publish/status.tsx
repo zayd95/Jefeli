@@ -1,0 +1,170 @@
+import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience } from '@jefeli/shared';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import { Camera, ImagePlus, ShoppingBag, X } from 'lucide-react-native';
+import { useRef, useState } from 'react';
+import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+
+import { OptionRow, UploadOverlay } from '@/components/Composer';
+import { VideoPlayerInline } from '@/components/Media';
+import { Button, Chip, colors, fonts, IconButton, Screen, spacing, Text, useToast } from '@/design';
+import { fetchSellerProducts } from '@/lib/api/products';
+import { getSettings } from '@/lib/api/profiles';
+import { createStory } from '@/lib/api/stories';
+import { useAuth } from '@/lib/auth';
+import { pickMedia, uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
+
+export default function NewStatus() {
+  const { userId } = useAuth();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const [media, setMedia] = useState<LocalMedia | null>(null);
+  const [caption, setCaption] = useState('');
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const abort = useRef<AbortController | null>(null);
+
+  const settings = useQuery({ queryKey: ['settings', userId], queryFn: () => getSettings(userId ?? ''), enabled: !!userId });
+  const products = useQuery({ queryKey: ['my-active-products', userId], queryFn: () => fetchSellerProducts(userId ?? '', { onlyActive: true }), enabled: !!userId });
+  const effectiveAudience = (audience ?? (settings.data?.default_status_audience as Audience | undefined) ?? 'followers') as Audience;
+
+  async function choose(camera: boolean) {
+    try {
+      const picked = await pickMedia({ allowVideo: true, camera });
+      if (picked?.[0]) setMedia(picked[0]);
+    } catch (e) {
+      toast(uploadErrorMessage(e), 'error');
+    }
+  }
+
+  async function publish() {
+    if (!userId || !media) return;
+    if (media.kind === 'video' && media.durationMs && media.durationMs > 60_000) {
+      toast('Un statut vidéo dure 60 secondes maximum.', 'error');
+      return;
+    }
+    abort.current = new AbortController();
+    setUploading(true);
+    try {
+      const [up] = await uploadMediaBatch(userId, [{ ...media, file: media.file ?? null }], {
+        bucket: 'private-media',
+        folder: 'stories',
+        onProgress: setProgress,
+        signal: abort.current.signal,
+      });
+      if (!up) throw new Error('upload');
+      await createStory({
+        media_kind: up.kind,
+        path: up.path,
+        poster_path: up.poster_path,
+        width: up.width,
+        height: up.height,
+        duration_ms: up.duration_ms,
+        caption: caption.trim(),
+        audience: effectiveAudience,
+        product_id: productId,
+      });
+      qc.invalidateQueries({ queryKey: ['story-rail'] });
+      qc.invalidateQueries({ queryKey: ['active-stories', userId] });
+      toast('Statut publié pour 24 h', 'success');
+      router.back();
+    } catch (e) {
+      toast(e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e), 'error');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  if (!media) {
+    return (
+      <Screen edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <Text variant="title">Votre statut</Text>
+          <IconButton icon={X} label="Fermer" onPress={() => router.back()} />
+        </View>
+        <View style={styles.pickArea}>
+          <Text tone="secondary" align="center" style={{ maxWidth: 300 }}>
+            Une photo ou une vidéo (60 s max), visible 24 h. Vous pourrez la garder sur votre profil en l’ajoutant à une sélection.
+          </Text>
+          <View style={{ gap: spacing.md, alignSelf: 'stretch' }}>
+            {Platform.OS !== 'web' ? <Button label="Prendre une photo ou une vidéo" icon={Camera} variant="cta" size="lg" onPress={() => choose(true)} /> : null}
+            <Button label="Choisir dans la galerie" icon={ImagePlus} variant="outline" size="lg" onPress={() => choose(false)} />
+          </View>
+        </View>
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen edges={['top', 'bottom']} background={colors.ink} keyboard>
+      <View style={styles.previewWrap}>
+        <View style={styles.preview}>
+          {media.kind === 'image' ? (
+            <Image source={{ uri: media.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
+          ) : (
+            <VideoPlayerInline uri={media.uri} autoPlay />
+          )}
+          <View style={styles.previewTop}>
+            <IconButton icon={X} label="Changer de média" color={colors.white} variant="overlay" onPress={() => setMedia(null)} />
+          </View>
+          <View style={styles.captionWrap}>
+            <TextInput
+              value={caption}
+              onChangeText={setCaption}
+              placeholder="Ajouter une légende…"
+              placeholderTextColor="rgba(255,255,255,0.7)"
+              maxLength={200}
+              style={styles.caption}
+              accessibilityLabel="Légende du statut"
+            />
+          </View>
+        </View>
+      </View>
+      <ScrollView style={styles.panel} contentContainerStyle={{ gap: spacing.md, padding: spacing.lg }} keyboardShouldPersistTaps="handled">
+        <Text variant="callout" weight="600" color={colors.white}>
+          Visible par
+        </Text>
+        <OptionRow<Audience>
+          value={effectiveAudience}
+          onChange={setAudience}
+          options={(['public', 'followers', 'friends'] as Audience[]).map((k) => ({ key: k, label: AUDIENCE_LABELS[k] }))}
+        />
+        {(products.data ?? []).length > 0 ? (
+          <>
+            <Text variant="callout" weight="600" color={colors.white}>
+              Lier un article (facultatif)
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+              {(products.data ?? []).map((p) => (
+                <Chip
+                  key={p.id}
+                  icon={ShoppingBag}
+                  label={`${p.title.slice(0, 22)}${p.price_xof !== null ? ` · ${formatXOF(p.price_xof, { compact: true })}` : ''}`}
+                  selected={productId === p.id}
+                  onPress={() => setProductId(productId === p.id ? null : p.id)}
+                  style={productId === p.id ? { backgroundColor: colors.action } : { backgroundColor: 'rgba(255,255,255,0.12)' }}
+                />
+              ))}
+            </ScrollView>
+          </>
+        ) : null}
+        <Button label="Publier le statut" variant="cta" size="lg" onPress={publish} />
+      </ScrollView>
+      <UploadOverlay visible={uploading} progress={progress} label="Envoi du statut…" onCancel={() => abort.current?.abort()} />
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.sm, paddingTop: spacing.sm },
+  pickArea: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.xl },
+  previewWrap: { flex: 1, padding: spacing.sm },
+  preview: { flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: '#000' },
+  previewTop: { position: 'absolute', top: spacing.sm, right: spacing.sm },
+  captionWrap: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: spacing.lg },
+  caption: { fontFamily: fonts.semibold, fontSize: 17, color: colors.white, backgroundColor: 'rgba(16,37,44,0.45)', borderRadius: 12, paddingHorizontal: spacing.md, paddingVertical: 10 },
+  panel: { maxHeight: 300, flexGrow: 0 },
+});

@@ -1,0 +1,315 @@
+/**
+ * Media pipeline: pick -> compress -> upload with progress, retry with backoff, cancel.
+ *
+ * Uploads go straight to Supabase Storage under `{userId}/...` (storage RLS enforces the
+ * folder). The database later verifies the object exists AND belongs to the caller before
+ * it can be referenced by a post, listing, status or message.
+ */
+import * as Crypto from 'expo-crypto';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
+import * as VideoThumbnails from 'expo-video-thumbnails';
+import { Platform } from 'react-native';
+
+import { env } from './env';
+import { supabase } from './supabase';
+
+export type MediaKind = 'image' | 'video';
+
+export interface LocalMedia {
+  uri: string;
+  kind: MediaKind;
+  width: number;
+  height: number;
+  durationMs?: number | null;
+  mimeType: string;
+  fileSize?: number | null;
+  /** Web only: the original File from the picker. */
+  file?: Blob | null;
+}
+
+export interface UploadedMedia {
+  kind: MediaKind;
+  path: string;
+  poster_path?: string | null;
+  width: number;
+  height: number;
+  duration_ms?: number | null;
+}
+
+export class UploadError extends Error {
+  constructor(
+    message: string,
+    public readonly code: 'too_large' | 'network' | 'server' | 'canceled' | 'unsupported' | 'permission',
+  ) {
+    super(message);
+  }
+}
+
+export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+export const MAX_VIDEO_SECONDS = 60;
+const MAX_IMAGE_EDGE = 1600;
+
+// ---------------------------------------------------------------------------
+// Picking
+// ---------------------------------------------------------------------------
+
+export async function pickMedia(opts: {
+  allowVideo?: boolean;
+  multiple?: boolean;
+  limit?: number;
+  camera?: boolean;
+}): Promise<LocalMedia[] | null> {
+  const mediaTypes: ImagePicker.MediaType[] = opts.allowVideo ? ['images', 'videos'] : ['images'];
+  const common: ImagePicker.ImagePickerOptions = {
+    mediaTypes,
+    quality: 0.85,
+    videoMaxDuration: MAX_VIDEO_SECONDS,
+    videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
+    allowsMultipleSelection: !opts.camera && !!opts.multiple,
+    selectionLimit: opts.limit ?? 10,
+    exif: false,
+  };
+
+  if (opts.camera) {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) throw new UploadError('camera_denied', 'permission');
+  } else if (Platform.OS !== 'web') {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) throw new UploadError('library_denied', 'permission');
+  }
+
+  const res = opts.camera ? await ImagePicker.launchCameraAsync(common) : await ImagePicker.launchImageLibraryAsync(common);
+  if (res.canceled) return null;
+
+  return res.assets.map((a) => {
+    const kind: MediaKind = a.type === 'video' ? 'video' : 'image';
+    return {
+      uri: a.uri,
+      kind,
+      width: a.width || 1080,
+      height: a.height || 1080,
+      durationMs: a.duration ?? null,
+      mimeType: a.mimeType ?? (kind === 'video' ? 'video/mp4' : 'image/jpeg'),
+      fileSize: a.fileSize ?? null,
+      file: a.file ?? null,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Compression (images re-encoded to JPEG, longest edge <= 1600px)
+// ---------------------------------------------------------------------------
+
+export async function compressImage(media: LocalMedia): Promise<LocalMedia> {
+  if (media.kind !== 'image') return media;
+  try {
+    const longest = Math.max(media.width, media.height);
+    const ctx = ImageManipulator.manipulate(media.uri);
+    if (longest > MAX_IMAGE_EDGE) {
+      if (media.width >= media.height) ctx.resize({ width: MAX_IMAGE_EDGE });
+      else ctx.resize({ height: MAX_IMAGE_EDGE });
+    }
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({ compress: 0.78, format: SaveFormat.JPEG });
+    return { ...media, uri: out.uri, width: out.width, height: out.height, mimeType: 'image/jpeg', file: null, fileSize: null };
+  } catch {
+    // Compression is an optimisation; fall back to the original file.
+    return media;
+  }
+}
+
+async function videoPoster(media: LocalMedia): Promise<LocalMedia | null> {
+  if (media.kind !== 'video' || Platform.OS === 'web') return null;
+  try {
+    const thumb = await VideoThumbnails.getThumbnailAsync(media.uri, { time: 400, quality: 0.7 });
+    return { uri: thumb.uri, kind: 'image', width: thumb.width, height: thumb.height, mimeType: 'image/jpeg' };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Upload (XHR for progress + abort; retries on network/5xx)
+// ---------------------------------------------------------------------------
+
+function extFor(mime: string): string {
+  if (mime.includes('png')) return 'png';
+  if (mime.includes('webp')) return 'webp';
+  if (mime.includes('quicktime')) return 'mov';
+  if (mime.includes('webm')) return mime.startsWith('audio') ? 'webm' : 'webm';
+  if (mime.includes('mp4') && mime.startsWith('audio')) return 'm4a';
+  if (mime.includes('m4a') || mime.includes('aac')) return 'm4a';
+  if (mime.includes('mpeg')) return 'mp3';
+  if (mime.includes('ogg')) return 'ogg';
+  if (mime.startsWith('video')) return 'mp4';
+  return 'jpg';
+}
+
+export function newObjectPath(userId: string, folder: string, mime: string): string {
+  return `${userId}/${folder}/${Crypto.randomUUID()}.${extFor(mime)}`;
+}
+
+interface UploadArgs {
+  bucket: 'avatars' | 'public-media' | 'private-media';
+  path: string;
+  uri: string;
+  mimeType: string;
+  file?: Blob | null;
+  onProgress?: (fraction: number) => void;
+  signal?: AbortSignal;
+}
+
+async function bodyFor(args: UploadArgs): Promise<Blob | FormData> {
+  if (Platform.OS === 'web') {
+    if (args.file) return args.file;
+    const res = await fetch(args.uri);
+    return await res.blob();
+  }
+  // React Native streams the file from disk when given { uri, name, type } in FormData.
+  const form = new FormData();
+  form.append('cacheControl', '31536000');
+  form.append('', { uri: args.uri, name: args.path.split('/').pop() ?? 'file', type: args.mimeType } as unknown as Blob);
+  return form;
+}
+
+function uploadOnce(args: UploadArgs, token: string, body: Blob | FormData): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const url = `${env.supabaseUrl}/storage/v1/object/${args.bucket}/${args.path.split('/').map(encodeURIComponent).join('/')}`;
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.setRequestHeader('apikey', env.supabaseKey);
+    xhr.setRequestHeader('x-upsert', 'false');
+    if (!(body instanceof FormData)) {
+      xhr.setRequestHeader('Content-Type', args.mimeType);
+      xhr.setRequestHeader('cache-control', 'max-age=31536000');
+    }
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && args.onProgress) args.onProgress(e.loaded / e.total);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else if (xhr.status === 413) reject(new UploadError('too_large', 'too_large'));
+      else if (xhr.status >= 500) reject(new UploadError(`server_${xhr.status}`, 'server'));
+      else if (xhr.status === 415 || xhr.status === 400) reject(new UploadError(xhr.responseText || 'unsupported', 'unsupported'));
+      else reject(new UploadError(xhr.responseText || `http_${xhr.status}`, 'server'));
+    };
+    xhr.onerror = () => reject(new UploadError('network', 'network'));
+    xhr.ontimeout = () => reject(new UploadError('network', 'network'));
+    xhr.timeout = 5 * 60 * 1000;
+    if (args.signal) {
+      if (args.signal.aborted) {
+        reject(new UploadError('canceled', 'canceled'));
+        return;
+      }
+      args.signal.addEventListener('abort', () => {
+        xhr.abort();
+        reject(new UploadError('canceled', 'canceled'));
+      });
+    }
+    xhr.send(body);
+  });
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function uploadWithRetry(args: UploadArgs, attempts = 4): Promise<void> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new UploadError('not_authenticated', 'permission');
+    try {
+      const body = await bodyFor(args);
+      await uploadOnce(args, token, body);
+      return;
+    } catch (e) {
+      lastErr = e;
+      if (e instanceof UploadError && (e.code === 'canceled' || e.code === 'too_large' || e.code === 'unsupported')) throw e;
+      if (i < attempts - 1) await sleep(1000 * 2 ** i);
+    }
+  }
+  throw lastErr;
+}
+
+/**
+ * Compress + upload a batch of media; reports aggregate progress (0..1).
+ * Videos also get a poster frame (native only).
+ */
+export async function uploadMediaBatch(
+  userId: string,
+  items: LocalMedia[],
+  opts: { bucket: 'public-media' | 'private-media'; folder: string; onProgress?: (f: number) => void; signal?: AbortSignal },
+): Promise<UploadedMedia[]> {
+  const prepared = await Promise.all(items.map((m) => compressImage(m)));
+  for (const m of prepared) {
+    if (m.fileSize && m.fileSize > MAX_UPLOAD_BYTES) throw new UploadError('too_large', 'too_large');
+    if (m.kind === 'video' && m.durationMs && m.durationMs > (MAX_VIDEO_SECONDS + 1) * 1000) {
+      throw new UploadError('too_long', 'too_large');
+    }
+  }
+  const fractions = prepared.map(() => 0);
+  const report = () => opts.onProgress?.(fractions.reduce((a, b) => a + b, 0) / Math.max(1, fractions.length));
+
+  const results: UploadedMedia[] = [];
+  for (let i = 0; i < prepared.length; i++) {
+    const m = prepared[i] as LocalMedia;
+    const path = newObjectPath(userId, opts.folder, m.mimeType);
+    let posterPath: string | null = null;
+    const poster = await videoPoster(m);
+    if (poster) {
+      posterPath = newObjectPath(userId, opts.folder, 'image/jpeg');
+      await uploadWithRetry({ bucket: opts.bucket, path: posterPath, uri: poster.uri, mimeType: 'image/jpeg', signal: opts.signal });
+    }
+    await uploadWithRetry({
+      bucket: opts.bucket,
+      path,
+      uri: m.uri,
+      mimeType: m.mimeType,
+      file: m.file,
+      signal: opts.signal,
+      onProgress: (f) => {
+        fractions[i] = f;
+        report();
+      },
+    });
+    fractions[i] = 1;
+    report();
+    results.push({
+      kind: m.kind,
+      path,
+      poster_path: posterPath,
+      width: Math.round(m.width),
+      height: Math.round(m.height),
+      duration_ms: m.durationMs ? Math.round(m.durationMs) : null,
+    });
+  }
+  return results;
+}
+
+export function uploadErrorMessage(e: unknown): string {
+  if (e instanceof UploadError) {
+    switch (e.code) {
+      case 'too_large':
+        return e.message === 'too_long'
+          ? `Vidéo trop longue : ${MAX_VIDEO_SECONDS} secondes maximum.`
+          : 'Fichier trop volumineux (50 Mo maximum).';
+      case 'network':
+        return 'Envoi interrompu : connexion instable. Votre brouillon est conservé, réessayez.';
+      case 'canceled':
+        return 'Envoi annulé. Votre brouillon est conservé.';
+      case 'unsupported':
+        return 'Format de fichier non pris en charge.';
+      case 'permission':
+        return e.message === 'camera_denied'
+          ? 'Accès à la caméra refusé. Autorisez-le dans les réglages du téléphone.'
+          : e.message === 'library_denied'
+            ? 'Accès aux photos refusé. Autorisez-le dans les réglages du téléphone.'
+            : 'Connectez-vous pour envoyer des fichiers.';
+      default:
+        return 'L’envoi a échoué. Réessayez.';
+    }
+  }
+  return 'L’envoi a échoué. Réessayez.';
+}
