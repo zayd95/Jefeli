@@ -8,6 +8,7 @@ import { ScrollView, View } from 'react-native';
 import { Button, Card, colors, EmptyState, Field, Header, Screen, spacing, Text, useToast } from '@/design';
 import { liveFunction, type LiveProviderStatus } from '@/lib/api/live';
 import { isLiveSdkAvailable } from '@/lib/live';
+import { goBack } from '@/lib/nav';
 
 /**
  * Go Live: the server creates the session + provider call and returns a host token.
@@ -29,7 +30,7 @@ export default function HostLive() {
     return (
       <Screen edges={['top', 'bottom']}>
         <Header title="Passer en direct" />
-        <EmptyState icon={Radio} title="Direct indisponible" body={reason} actionLabel="Retour" onAction={() => router.back()} />
+        <EmptyState icon={Radio} title="Direct indisponible" body={reason} actionLabel="Retour" onAction={() => goBack()} />
       </Screen>
     );
   }

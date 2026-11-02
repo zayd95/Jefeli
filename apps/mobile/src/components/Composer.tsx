@@ -1,10 +1,9 @@
 import { Image } from 'expo-image';
 import { Camera, ImagePlus, Play, X } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button, colors, ProgressBar, radius, spacing, Text, useToast } from '@/design';
 import { pickMedia, uploadErrorMessage, type LocalMedia } from '@/lib/upload';
-import { Platform } from 'react-native';
 
 export function MediaPickerStrip({
   media,
@@ -114,25 +113,37 @@ export function UploadOverlay({ visible, progress, label, onCancel }: { visible:
   );
 }
 
-export function OptionRow<T extends string>({ options, value, onChange }: { options: { key: T; label: string; hint?: string }[]; value: T; onChange: (v: T) => void }) {
+export function OptionRow<T extends string>({
+  options,
+  value,
+  onChange,
+  tone = 'light',
+}: {
+  options: { key: T; label: string; hint?: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  tone?: 'light' | 'dark';
+}) {
+  const dark = tone === 'dark';
   return (
     <View style={styles.optionRow}>
       {options.map((o) => {
         const on = o.key === value;
+        const fg = dark ? (on ? colors.ink : colors.white) : on ? colors.white : colors.ink;
         return (
           <Pressable
             key={o.key}
             onPress={() => onChange(o.key)}
-            style={[styles.option, on && styles.optionOn]}
+            style={[styles.option, on && styles.optionOn, dark && styles.optionDark, dark && on && styles.optionDarkOn]}
             accessibilityRole="radio"
             accessibilityState={{ selected: on }}
             accessibilityLabel={o.label}
           >
-            <Text variant="callout" weight="700" color={on ? colors.white : colors.ink} align="center">
+            <Text variant="callout" weight="700" color={fg} align="center">
               {o.label}
             </Text>
             {o.hint ? (
-              <Text variant="micro" weight="500" color={on ? '#CFE3DD' : colors.textSecondary} align="center">
+              <Text variant="micro" weight="500" color={dark ? fg : on ? '#CFE3DD' : colors.textSecondary} align="center">
                 {o.hint}
               </Text>
             ) : null}
@@ -165,4 +176,6 @@ const styles = StyleSheet.create({
   optionRow: { flexDirection: 'row', gap: spacing.sm },
   option: { flex: 1, minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
   optionOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  optionDark: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.35)' },
+  optionDarkOn: { backgroundColor: colors.action, borderColor: colors.action },
 });

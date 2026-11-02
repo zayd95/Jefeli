@@ -1,8 +1,8 @@
 import { timeAgo, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { FileX, Send } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { FileX, Flag, Send, Trash2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +11,6 @@ import { Avatar, Button, colors, EmptyState, Field, fonts, Header, Screen, Sheet
 import { addComment, deleteComment, editPost, fetchComments, fetchPost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import type { CommentRow } from '@/lib/types';
-import { Flag, Trash2 } from 'lucide-react-native';
 
 export default function PostScreen() {
   const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
@@ -23,15 +22,14 @@ export default function PostScreen() {
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
   const [selected, setSelected] = useState<CommentRow | null>(null);
   const [editing, setEditing] = useState(edit === '1');
-  const [editBody, setEditBody] = useState('');
+  const [editDraft, setEditDraft] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   const post = useQuery({ queryKey: ['post', id], queryFn: () => fetchPost(userId, id ?? '') });
   const comments = useQuery({ queryKey: ['comments', id], queryFn: () => fetchComments(id ?? '') });
 
-  useEffect(() => {
-    if (post.data && editing && !editBody) setEditBody(post.data.body);
-  }, [post.data, editing, editBody]);
+  const editBody = editDraft ?? post.data?.body ?? '';
+  const setEditBody = setEditDraft;
 
   async function send() {
     const body = text.trim();

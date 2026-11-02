@@ -17,6 +17,7 @@ import { useMediaUrl } from '@/lib/media';
 import type { ProfileLite, StoryRow } from '@/lib/types';
 
 import { Thumb } from './Media';
+import { goBack } from '@/lib/nav';
 
 const IMAGE_MS = 5500;
 
@@ -36,20 +37,24 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   const [highlightTitle, setHighlightTitle] = useState('Nouveautés');
   const story = stories[index];
   const isOwner = story?.author_id === userId;
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef(0);
   const elapsedBefore = useRef(0);
 
-  const close = useCallback(() => (router.canGoBack() ? router.back() : router.replace('/')), []);
+  const close = useCallback(() => goBack(), []);
   const next = useCallback(() => {
-    if (index < stories.length - 1) setIndex((i) => i + 1);
-    else close();
+    if (index < stories.length - 1) {
+      setProgress(0);
+      setIndex((i) => i + 1);
+    } else close();
   }, [index, stories.length, close]);
-  const prev = () => setIndex((i) => Math.max(0, i - 1));
+  const prev = () => {
+    setProgress(0);
+    setIndex((i) => Math.max(0, i - 1));
+  };
 
   const duration = story?.media_kind === 'video' ? Math.min(60_000, Math.max(3000, story.duration_ms ?? 15_000)) : IMAGE_MS;
 
   useEffect(() => {
-    setProgress(0);
     elapsedBefore.current = 0;
     startedAt.current = Date.now();
     if (story && userId && !isOwner) markStoryViewed(userId, story.id).then(() => qc.invalidateQueries({ queryKey: ['story-rail'] })).catch(() => {});
@@ -295,6 +300,8 @@ function StoryVideo({ uri, muted, paused }: { uri: string; muted: boolean; pause
     p.play();
   });
   useEffect(() => {
+    // expo-video's documented API mutates the player instance.
+    // eslint-disable-next-line react-hooks/immutability
     player.muted = muted;
   }, [muted, player]);
   useEffect(() => {

@@ -3,7 +3,7 @@
  * skeletons, empty/error states, progress bar, section headers.
  */
 import { BadgeCheck, CircleAlert, RefreshCw, type LucideIcon } from 'lucide-react-native';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Button } from './Button';
@@ -40,13 +40,16 @@ export function Chip({
   onPress,
   icon: Icon,
   style,
+  tone = 'light',
 }: {
   label: string;
   selected?: boolean;
   onPress?: () => void;
   icon?: LucideIcon;
   style?: StyleProp<ViewStyle>;
+  tone?: 'light' | 'dark';
 }) {
+  const fg = tone === 'dark' ? (selected ? colors.ink : colors.white) : selected ? colors.white : colors.textSecondary;
   return (
     <Pressable
       onPress={onPress}
@@ -61,8 +64,8 @@ export function Chip({
         style,
       ]}
     >
-      {Icon ? <Icon size={15} color={selected ? colors.white : colors.textSecondary} strokeWidth={2.2} /> : null}
-      <Text variant="callout" weight={selected ? '700' : '500'} color={selected ? colors.white : colors.textSecondary}>
+      {Icon ? <Icon size={15} color={fg} strokeWidth={2.2} /> : null}
+      <Text variant="callout" weight={selected ? '700' : '500'} color={fg}>
         {label}
       </Text>
     </Pressable>
@@ -142,7 +145,7 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
 }
 
 export function Skeleton({ width, height, radius: r = radius.sm, style }: { width?: number | `${number}%`; height: number; radius?: number; style?: StyleProp<ViewStyle> }) {
-  const opacity = useRef(new Animated.Value(0.55)).current;
+  const [opacity] = useState(() => new Animated.Value(0.55));
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([

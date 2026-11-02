@@ -1,24 +1,45 @@
 import { toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { Button, Field, Header, Screen, spacing, Text, useToast } from '@/design';
 import { fetchBoutique, updateBoutique } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { goBack } from '@/lib/nav';
 
 export default function BoutiqueEdit() {
   const { userId } = useAuth();
+  const q = useQuery({ queryKey: ['boutique', userId], queryFn: () => fetchBoutique(userId ?? '') });
+  if (q.isPending) return <Screen><Header title="Ma boutique" /></Screen>;
+  if (!q.data) return <NoBoutique />;
+  return <BoutiqueForm key={q.data.updated_at} initial={q.data} />;
+}
+
+function NoBoutique() {
+  return (
+    <Screen edges={['top', 'bottom']}>
+      <Header title="Ma boutique" />
+      <Text tone="secondary" style={{ padding: spacing.lg }}>
+        Votre boutique sera créée automatiquement avec votre premier article.
+      </Text>
+      <Button label="Ajouter un article" variant="cta" onPress={() => router.replace('/publish/listing')} style={{ margin: spacing.lg }} />
+    </Screen>
+  );
+}
+
+function BoutiqueForm({ initial }: { initial: { description: string; pickup_notes: string; delivery_notes: string; payment_notes: string } }) {
+  const { userId } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
-  const q = useQuery({ queryKey: ['boutique', userId], queryFn: () => fetchBoutique(userId ?? '') });
-  const [form, setForm] = useState({ description: '', pickup_notes: '', delivery_notes: '', payment_notes: '' });
+  const [form, setForm] = useState({
+    description: initial.description,
+    pickup_notes: initial.pickup_notes,
+    delivery_notes: initial.delivery_notes,
+    payment_notes: initial.payment_notes,
+  });
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (q.data) setForm({ description: q.data.description, pickup_notes: q.data.pickup_notes, delivery_notes: q.data.delivery_notes, payment_notes: q.data.payment_notes });
-  }, [q.data]);
 
   async function save() {
     setSaving(true);
@@ -26,24 +47,12 @@ export default function BoutiqueEdit() {
       await updateBoutique(userId ?? '', form);
       qc.invalidateQueries({ queryKey: ['boutique', userId] });
       toast('Boutique mise à jour', 'success');
-      router.back();
+      goBack();
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
       setSaving(false);
     }
-  }
-
-  if (!q.isPending && !q.data) {
-    return (
-      <Screen edges={['top', 'bottom']}>
-        <Header title="Ma boutique" />
-        <Text tone="secondary" style={{ padding: spacing.lg }}>
-          Votre boutique sera créée automatiquement avec votre premier article.
-        </Text>
-        <Button label="Ajouter un article" variant="cta" onPress={() => router.replace('/publish/listing')} style={{ margin: spacing.lg }} />
-      </Screen>
-    );
   }
 
   return (

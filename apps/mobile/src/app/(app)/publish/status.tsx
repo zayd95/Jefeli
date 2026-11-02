@@ -1,10 +1,9 @@
 import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
 import { Camera, ImagePlus, ShoppingBag, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { OptionRow, UploadOverlay } from '@/components/Composer';
 import { VideoPlayerInline } from '@/components/Media';
@@ -14,6 +13,7 @@ import { getSettings } from '@/lib/api/profiles';
 import { createStory } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { pickMedia, uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
+import { goBack } from '@/lib/nav';
 
 export default function NewStatus() {
   const { userId } = useAuth();
@@ -70,7 +70,7 @@ export default function NewStatus() {
       qc.invalidateQueries({ queryKey: ['story-rail'] });
       qc.invalidateQueries({ queryKey: ['active-stories', userId] });
       toast('Statut publié pour 24 h', 'success');
-      router.back();
+      goBack();
     } catch (e) {
       toast(e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e), 'error');
     } finally {
@@ -83,7 +83,7 @@ export default function NewStatus() {
       <Screen edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Text variant="title">Votre statut</Text>
-          <IconButton icon={X} label="Fermer" onPress={() => router.back()} />
+          <IconButton icon={X} label="Fermer" onPress={() => goBack()} />
         </View>
         <View style={styles.pickArea}>
           <Text tone="secondary" align="center" style={{ maxWidth: 300 }}>
@@ -128,6 +128,7 @@ export default function NewStatus() {
           Visible par
         </Text>
         <OptionRow<Audience>
+          tone="dark"
           value={effectiveAudience}
           onChange={setAudience}
           options={(['public', 'followers', 'friends'] as Audience[]).map((k) => ({ key: k, label: AUDIENCE_LABELS[k] }))}
@@ -144,6 +145,7 @@ export default function NewStatus() {
                   icon={ShoppingBag}
                   label={`${p.title.slice(0, 22)}${p.price_xof !== null ? ` · ${formatXOF(p.price_xof, { compact: true })}` : ''}`}
                   selected={productId === p.id}
+                  tone="dark"
                   onPress={() => setProductId(productId === p.id ? null : p.id)}
                   style={productId === p.id ? { backgroundColor: colors.action } : { backgroundColor: 'rgba(255,255,255,0.12)' }}
                 />

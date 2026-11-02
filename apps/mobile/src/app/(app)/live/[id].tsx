@@ -26,6 +26,7 @@ import { useAuth } from '@/lib/auth';
 import { isLiveSdkAvailable } from '@/lib/live';
 import { useLiveRealtime } from '@/lib/realtime';
 import { shareLinks } from '@/lib/share';
+import { goBack } from '@/lib/nav';
 
 const LiveVideo = lazy(() => import('@/components/live/StreamLive').then((m) => ({ default: m.LiveVideo })));
 
@@ -62,7 +63,7 @@ export default function LiveScreen() {
 
   const onEnded = useCallback(() => {
     if (isHost && s) liveFunction('end', { sessionId: s.id }).catch(() => {});
-    router.back();
+    goBack();
   }, [isHost, s]);
 
   async function send() {
@@ -81,7 +82,7 @@ export default function LiveScreen() {
     return (
       <Screen edges={['top', 'bottom']}>
         {session.isPending ? null : <EmptyState icon={Radio} title="Live introuvable" body="Il est peut-être terminé ou n’est pas visible pour vous." />}
-        <Button label="Fermer" variant="outline" onPress={() => router.back()} style={{ margin: spacing.xl }} />
+        <Button label="Fermer" variant="outline" onPress={() => goBack()} style={{ margin: spacing.xl }} />
       </Screen>
     );
   }
@@ -132,7 +133,7 @@ export default function LiveScreen() {
           ) : null}
           <View style={{ flex: 1 }} />
           <IconButton icon={Share2} label="Partager le live" color={colors.white} onPress={() => shareLinks.live(s.id, s.host?.display_name ?? '')} />
-          <IconButton icon={X} label="Quitter" color={colors.white} onPress={() => router.back()} />
+          <IconButton icon={X} label="Quitter" color={colors.white} onPress={() => goBack()} />
         </View>
         <Pressable style={styles.host} onPress={() => s.host && router.push(`/u/${s.host.handle}`)}>
           <Avatar path={s.host?.avatar_path} name={s.host?.display_name ?? '?'} size={34} />

@@ -37,6 +37,8 @@ export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { u
       <Pressable
         style={styles.mute}
         onPress={() => {
+          // expo-video's documented API mutates the player instance.
+          // eslint-disable-next-line react-hooks/immutability
           player.muted = !muted;
           setMuted(!muted);
         }}

@@ -24,6 +24,7 @@ import { deleteListing, fetchProduct, isProductSaved, setListingStatus, setProdu
 import { useAuth } from '@/lib/auth';
 import { shareLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -251,7 +252,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           await deleteListing(product.id);
           qc.invalidateQueries({ queryKey: ['seller-products', product.seller_id] });
           qc.invalidateQueries({ queryKey: ['me'] });
-          router.back();
+          goBack();
         }}
       />
     </Screen>

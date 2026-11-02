@@ -1,5 +1,4 @@
 import { HANDLE_PATTERN, normalizeHandle, toFrenchError } from '@jefeli/shared';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 
@@ -8,6 +7,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import { Button, Field, Header, Screen, spacing, Text, Toggle, useToast } from '@/design';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
+import { goBack } from '@/lib/nav';
 
 export default function EditProfile() {
   const { userId, profile, refreshProfile } = useAuth();
@@ -20,15 +20,17 @@ export default function EditProfile() {
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [isPrivate, setIsPrivate] = useState(profile?.is_private ?? false);
   const [merchant, setMerchant] = useState(profile?.is_merchant ?? false);
-  const [handleOk, setHandleOk] = useState(true);
+  const [remote, setRemote] = useState<{ handle: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const valid = HANDLE_PATTERN.test(handle);
+  const unchanged = handle === profile?.handle;
   useEffect(() => {
-    if (!HANDLE_PATTERN.test(handle)) return setHandleOk(false);
-    if (handle === profile?.handle) return setHandleOk(true);
-    const t = setTimeout(() => isHandleAvailable(handle, userId ?? '').then(setHandleOk).catch(() => setHandleOk(true)), 350);
+    if (!valid || unchanged) return;
+    const t = setTimeout(() => isHandleAvailable(handle, userId ?? '').then((ok) => setRemote({ handle, ok })).catch(() => setRemote({ handle, ok: true })), 350);
     return () => clearTimeout(t);
-  }, [handle, profile?.handle, userId]);
+  }, [handle, valid, unchanged, userId]);
+  const handleOk = valid && (unchanged || (remote?.handle === handle ? remote.ok : true));
 
   async function save() {
     if (!userId) return;
@@ -46,7 +48,7 @@ export default function EditProfile() {
       });
       await refreshProfile();
       toast('Profil mis à jour', 'success');
-      router.back();
+      goBack();
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {

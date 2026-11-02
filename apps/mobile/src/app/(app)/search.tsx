@@ -11,6 +11,7 @@ import { Avatar, Chip, colors, EmptyState, ErrorState, IconButton, Screen, Searc
 import { browseProducts } from '@/lib/api/products';
 import { searchProfiles } from '@/lib/api/profiles';
 import type { ProductCard } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 type Scope = 'products' | 'people';
 
@@ -48,7 +49,7 @@ export default function Search() {
   return (
     <Screen keyboard>
       <View style={styles.bar}>
-        <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => router.back()} />
+        <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => goBack()} />
         <View style={{ flex: 1 }}>
           <SearchBar value={text} onChangeText={setText} autoFocus placeholder="Robe wax, iPhone, Médina…" />
         </View>

@@ -1,11 +1,12 @@
 import { REPORT_REASONS, toFrenchError, type ReportReason } from '@jefeli/shared';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { CheckCircle2, Circle } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button, colors, Field, Header, Screen, spacing, Text, useToast } from '@/design';
 import { reportContent, type ReportTarget } from '@/lib/api/safety';
+import { goBack } from '@/lib/nav';
 
 const TARGET_LABELS: Partial<Record<ReportTarget, string>> = {
   profile: 'ce compte',
@@ -47,7 +48,7 @@ export default function Report() {
         <Text tone="secondary">
           L’équipe de modération va l’examiner. Vous serez notifié(e) de la décision. Si vous vous sentez en danger, bloquez ce compte et contactez les autorités.
         </Text>
-        <Button label="Fermer" variant="cta" onPress={() => router.back()} />
+        <Button label="Fermer" variant="cta" onPress={() => goBack()} />
       </Screen>
     );
   }

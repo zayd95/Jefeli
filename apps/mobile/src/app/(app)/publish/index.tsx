@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, IconButton, radius, Screen, spacing, Text } from '@/design';
 import { liveFunction, type LiveProviderStatus } from '@/lib/api/live';
 import { useFlag } from '@/lib/flags';
+import { goBack } from '@/lib/nav';
 
 export default function PublishChooser() {
   const liveFlag = useFlag('live_streaming');
@@ -36,7 +37,7 @@ export default function PublishChooser() {
     <Screen edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text variant="title">Publier</Text>
-        <IconButton icon={X} label="Fermer" onPress={() => router.back()} />
+        <IconButton icon={X} label="Fermer" onPress={() => goBack()} />
       </View>
       <View style={{ padding: spacing.lg, gap: spacing.md }}>
         {options.map(({ icon: Icon, title, body, href, disabled }) => (

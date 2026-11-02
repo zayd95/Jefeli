@@ -24,23 +24,24 @@ export default function Onboarding() {
   const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
   const [merchant, setMerchant] = useState(profile?.is_merchant ?? false);
   const [adult, setAdult] = useState(!!profile?.adult_confirmed_at);
-  const [handleState, setHandleState] = useState<'idle' | 'checking' | 'ok' | 'taken' | 'invalid'>('idle');
+  const [remote, setRemote] = useState<{ handle: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity });
 
+  const syncState: 'idle' | 'invalid' | null = !handle ? 'idle' : !HANDLE_PATTERN.test(handle) ? 'invalid' : null;
   useEffect(() => {
-    if (!handle) return setHandleState('idle');
-    if (!HANDLE_PATTERN.test(handle)) return setHandleState('invalid');
-    setHandleState('checking');
+    if (syncState) return;
     const t = setTimeout(() => {
       isHandleAvailable(handle, userId ?? '')
-        .then((ok) => setHandleState(ok ? 'ok' : 'taken'))
-        .catch(() => setHandleState('idle'));
+        .then((ok) => setRemote({ handle, ok }))
+        .catch(() => setRemote(null));
     }, 350);
     return () => clearTimeout(t);
-  }, [handle, userId]);
+  }, [handle, userId, syncState]);
+  const handleState: 'idle' | 'checking' | 'ok' | 'taken' | 'invalid' =
+    syncState ?? (remote?.handle === handle ? (remote.ok ? 'ok' : 'taken') : 'checking');
 
   const canNext = [
     name.trim().length >= 2 && handleState === 'ok' && adult,

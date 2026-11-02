@@ -51,11 +51,12 @@ export function OfferCard({
   const qc = useQueryClient();
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
+  const [now] = useState(() => Date.now());
   const snapshot = offer.snapshot as { product: ProductSnapshot; offered_product: ProductSnapshot };
   const iAmBuyer = offer.buyer_id === me;
   const fromMe = offer.proposer_id === me;
   const status = offer.status as OfferStatus;
-  const expired = status === 'pending' && new Date(offer.expires_at) <= new Date();
+  const expired = status === 'pending' && new Date(offer.expires_at).getTime() <= now;
 
   async function run(key: string, fn: () => Promise<unknown>, ok: string) {
     setBusy(key);
@@ -135,7 +136,7 @@ export function OfferCard({
       ) : null}
       {status === 'pending' && !expired && fromMe ? (
         <Text variant="caption" tone="secondary">
-          En attente de réponse · expire dans {Math.max(1, Math.round((new Date(offer.expires_at).getTime() - Date.now()) / 3_600_000))} h
+          En attente de réponse · expire dans {Math.max(1, Math.round((new Date(offer.expires_at).getTime() - now) / 3_600_000))} h
         </Text>
       ) : null}
       {agreement ? (

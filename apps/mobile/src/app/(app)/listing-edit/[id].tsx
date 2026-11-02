@@ -9,44 +9,46 @@ import {
   type ListingMode,
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { OptionRow } from '@/components/Composer';
 import { Button, Chip, colors, Field, Header, Screen, Skeleton, spacing, Text, useToast } from '@/design';
 import { fetchProduct, updateListing } from '@/lib/api/products';
+import type { ProductCard } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 export default function ListingEdit() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const q = useQuery({ queryKey: ['product', id], queryFn: () => fetchProduct(id ?? '') });
+  if (q.isPending || !q.data) {
+    return (
+      <Screen>
+        <Header title="Modifier l’article" />
+        <Skeleton height={200} style={{ margin: spacing.lg }} />
+      </Screen>
+    );
+  }
+  return <ListingForm key={q.data.updated_at} id={id ?? ''} p={q.data} />;
+}
+
+function ListingForm({ id, p }: { id: string; p: ProductCard }) {
   const qc = useQueryClient();
   const toast = useToast();
-  const q = useQuery({ queryKey: ['product', id], queryFn: () => fetchProduct(id ?? '') });
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [mode, setMode] = useState<ListingMode>('sale');
-  const [condition, setCondition] = useState<ItemCondition>('new');
-  const [quantity, setQuantity] = useState('1');
-  const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [title, setTitle] = useState(p.title);
+  const [description, setDescription] = useState(p.description);
+  const [price, setPrice] = useState(p.price_xof !== null ? formatAmountInput(String(p.price_xof)) : '');
+  const [mode, setMode] = useState<ListingMode>(p.listing_mode);
+  const [condition, setCondition] = useState<ItemCondition>(p.condition);
+  const [quantity, setQuantity] = useState(String(p.quantity));
+  const [deliveryNotes, setDeliveryNotes] = useState(p.delivery_notes);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const p = q.data;
-    if (!p) return;
-    setTitle(p.title);
-    setDescription(p.description);
-    setPrice(p.price_xof !== null ? formatAmountInput(String(p.price_xof)) : '');
-    setMode(p.listing_mode);
-    setCondition(p.condition);
-    setQuantity(String(p.quantity));
-    setDeliveryNotes(p.delivery_notes);
-  }, [q.data]);
 
   async function save() {
     setSaving(true);
     try {
-      await updateListing(id ?? '', {
+      await updateListing(id, {
         title: title.trim(),
         description: description.trim(),
         price_xof: parseXOF(price),
@@ -58,21 +60,12 @@ export default function ListingEdit() {
       qc.invalidateQueries({ queryKey: ['product', id] });
       qc.invalidateQueries({ queryKey: ['seller-products'] });
       toast('Article mis à jour', 'success');
-      router.back();
+      goBack();
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
       setSaving(false);
     }
-  }
-
-  if (q.isPending) {
-    return (
-      <Screen>
-        <Header title="Modifier l’article" />
-        <Skeleton height={200} style={{ margin: spacing.lg }} />
-      </Screen>
-    );
   }
 
   return (

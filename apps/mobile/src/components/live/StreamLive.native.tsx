@@ -35,6 +35,8 @@ export function LiveVideo({ apiKey, token, user, callType, callId, role, onEnded
     let cancelled = false;
     const c = StreamVideoClient.getOrCreateInstance({ apiKey, user, token });
     const theCall = c.call(callType, callId);
+    // Syncing React state with an external SDK client created in this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setClient(c);
     theCall
       .join({ create: false })

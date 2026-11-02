@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { CircleDashed } from 'lucide-react-native';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -8,6 +8,7 @@ import { Button, colors, EmptyState, Screen, spacing } from '@/design';
 import { getProfile } from '@/lib/api/profiles';
 import { supabase, unwrap } from '@/lib/supabase';
 import type { StoryRow } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 async function fetchHighlight(id: string): Promise<{ owner_id: string; stories: StoryRow[] } | null> {
   const row = unwrap(
@@ -34,7 +35,7 @@ export default function HighlightScreen() {
     return (
       <Screen edges={['top', 'bottom']}>
         <EmptyState icon={CircleDashed} title="Sélection vide" body="Ces statuts ne sont plus disponibles ou ne vous sont pas partagés." />
-        <Button label="Fermer" variant="outline" onPress={() => router.back()} style={{ margin: spacing.xl }} />
+        <Button label="Fermer" variant="outline" onPress={() => goBack()} style={{ margin: spacing.xl }} />
       </Screen>
     );
   }

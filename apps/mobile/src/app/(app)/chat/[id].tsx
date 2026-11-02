@@ -30,6 +30,7 @@ import { useFlag } from '@/lib/flags';
 import { useConversationRealtime } from '@/lib/realtime';
 import { compressImage, newObjectPath, pickMedia, uploadErrorMessage, uploadWithRetry, UploadError } from '@/lib/upload';
 import type { MessageRow } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,9 +63,10 @@ export default function ChatScreen() {
   }, [id, me, qc]);
 
   useConversationRealtime(id, markRead);
+  const latestMessageId = messages.data?.pages[0]?.[0]?.id;
   useEffect(() => {
     markRead();
-  }, [markRead, messages.data?.pages[0]?.[0]?.id]);
+  }, [markRead, latestMessageId]);
 
   const other = conv.data?.members.find((m) => m.user_id !== me);
   const mine = conv.data?.members.find((m) => m.user_id === me);
@@ -138,7 +140,7 @@ export default function ChatScreen() {
     <Screen edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.peerBar}>
-          <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => (router.canGoBack() ? router.back() : router.replace('/messages'))} />
+          <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => goBack('/messages')} />
           <Pressable
             style={styles.peer}
             onPress={() => other?.profile && router.push(`/u/${other.profile.handle}`)}
@@ -232,7 +234,7 @@ export default function ChatScreen() {
             setMenu(false);
             await hideConversation(me, id ?? '');
             qc.invalidateQueries({ queryKey: ['conversations'] });
-            router.back();
+            goBack();
           }}
         />
         {other ? (
@@ -256,7 +258,7 @@ export default function ChatScreen() {
                     await block(me, other.user_id);
                     qc.invalidateQueries();
                     toast(`${otherName} est bloqué(e)`, 'success');
-                    router.back();
+                    goBack();
                   } catch (e) {
                     toast(toFrenchError(e), 'error');
                   }

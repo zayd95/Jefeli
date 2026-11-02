@@ -2,7 +2,7 @@ import { formatAmountInput, formatXOF, parseXOF, PLATFORM_DISCLAIMER, toFrenchEr
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeftRight, Check, PackagePlus } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { OptionRow } from '@/components/Composer';
@@ -12,6 +12,7 @@ import { counterOffer, fetchOffer, makeOffer } from '@/lib/api/offers';
 import { fetchProduct, fetchSellerProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import type { ProductCard } from '@/lib/types';
+import { goBack } from '@/lib/nav';
 
 /**
  * Make a price offer or a barter proposal on a listing — or counter an existing offer
@@ -35,17 +36,14 @@ export default function OfferComposer() {
   });
 
   const [amount, setAmount] = useState('');
-  const [offered, setOffered] = useState<string | null>(null);
-  const [payer, setPayer] = useState<'buyer' | 'seller'>('buyer');
+  const [offeredChoice, setOffered] = useState<string | null>(null);
+  const [payerChoice, setPayer] = useState<'buyer' | 'seller' | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (original.data) {
-      setOffered(original.data.offered_product_id);
-      if (original.data.cash_payer) setPayer(original.data.cash_payer as 'buyer' | 'seller');
-    }
-  }, [original.data]);
+  // Counter-offers start from the previous terms; explicit choices override them.
+  const offered = offeredChoice ?? original.data?.offered_product_id ?? null;
+  const payer: 'buyer' | 'seller' = payerChoice ?? ((original.data?.cash_payer as 'buyer' | 'seller' | null) ?? 'buyer');
 
   const p = product.data;
   const value = parseXOF(amount);
@@ -69,7 +67,7 @@ export default function OfferComposer() {
       qc.invalidateQueries({ queryKey: ['conversations'] });
       toast(counter ? 'Contre-proposition envoyée' : kind === 'price' ? 'Offre envoyée' : 'Proposition d’échange envoyée', 'success');
       if (created) router.replace(`/chat/${created.conversation_id}`);
-      else router.back();
+      else goBack();
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {

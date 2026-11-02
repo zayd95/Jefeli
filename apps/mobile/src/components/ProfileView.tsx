@@ -65,6 +65,7 @@ import { gridItemWidth, ListingCard } from './ListingCard';
 import { Thumb } from './Media';
 import { PostCard } from './PostCard';
 import { ProfileName } from './ProfileName';
+import { goBack } from '@/lib/nav';
 
 type Tab = 'fil' | 'statuts' | 'live' | 'boutique' | 'avis';
 const TABS: { key: Tab; label: string }[] = [
@@ -107,7 +108,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const lives = useQuery({ queryKey: ['host-lives', profile.id], queryFn: () => fetchLiveByHost(profile.id), enabled: !locked && tab === 'live' });
   const reviews = useQuery({ queryKey: ['reviews', profile.id], queryFn: () => fetchReviews(profile.id), enabled: !locked && tab === 'avis' });
 
-  const productList = products.data ?? [];
+  const productList = useMemo(() => products.data ?? [], [products.data]);
   const available = productList.filter((p) => p.status === 'active' || p.status === 'reserved');
   const isLiveNow = (lives.data ?? []).some((l) => l.status === 'live');
 
@@ -198,7 +199,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         {isOwnTab ? (
           <View style={{ width: 44 }} />
         ) : (
-          <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+          <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => goBack()} />
         )}
         <Text variant="headline" weight="700">
           {isSelf ? 'Mon profil' : 'Profil'}
