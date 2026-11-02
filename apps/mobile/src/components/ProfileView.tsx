@@ -218,7 +218,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         <View style={styles.avatarWrap}>
           <Pressable
             disabled={!(stories.data?.length ?? 0)}
-            onPress={() => router.push(`/status/${profile.id}`)}
+            onPress={() => router.push(`/statut/${profile.id}`)}
             accessibilityLabel={stories.data?.length ? 'Voir ses statuts' : undefined}
             style={[styles.avatarRing, (stories.data?.length ?? 0) > 0 && { borderColor: isLiveNow ? colors.live : colors.accentDeep }]}
           >
@@ -297,7 +297,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                 keyExtractor={(i) => i.id}
                 renderItem={({ item }) =>
                   item.active ? (
-                    <StoryRing path={item.path} name={profile.display_name} label={item.title} onPress={() => router.push(`/status/${profile.id}`)} />
+                    <StoryRing path={item.path} name={profile.display_name} label={item.title} onPress={() => router.push(`/statut/${profile.id}`)} />
                   ) : (
                     <HighlightBubble id={item.id} title={item.title} coverPath={(item as { cover?: { poster_path: string | null; storage_path: string; media_kind: string } }).cover} />
                   )
@@ -548,7 +548,7 @@ function BoutiqueInfo({ boutique, isSelf }: { boutique: { description: string; p
 function StatusesTab({ isSelf, storiesCount, highlights, profileId }: { isSelf: boolean; storiesCount: number; highlights: { id: string; title: string; items: unknown[] }[]; profileId: string }) {
   return (
     <View style={{ padding: spacing.lg, gap: spacing.md }}>
-      {storiesCount > 0 ? <Button label={`Voir ${storiesCount} statut${storiesCount > 1 ? 's' : ''} en cours`} variant="soft" onPress={() => router.push(`/status/${profileId}`)} /> : null}
+      {storiesCount > 0 ? <Button label={`Voir ${storiesCount} statut${storiesCount > 1 ? 's' : ''} en cours`} variant="soft" onPress={() => router.push(`/statut/${profileId}`)} /> : null}
       {highlights.length === 0 ? (
         <Text tone="secondary" variant="callout">
           {isSelf ? 'Vos statuts disparaissent après 24 h. Ajoutez-les à une sélection pour les garder sur votre profil.' : 'Aucune sélection de statuts.'}

@@ -5,7 +5,7 @@ import {
   shareUrls, publicStorageUrl, timeLeft,
 } from '../src';
 
-const NN = ' ';
+const NN = '\u00A0';
 
 describe('XOF formatting', () => {
   it('formats integers with narrow no-break spaces and F CFA', () => {

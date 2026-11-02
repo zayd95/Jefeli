@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "description": "Jëfëli — le réseau social du commerce sénégalais",
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "mobile": "pnpm --filter @jefeli/mobile start",
     "web": "pnpm --filter @jefeli/web dev",
@@ -20,6 +22,8 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "sharp": "~0.34.5",
     "supabase": "2.122.0"
   }
 }

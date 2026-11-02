@@ -25,7 +25,7 @@ function targetFor(n: NotificationItem): string | null {
     case 'live_session':
       return `/live/${n.entity_id}`;
     case 'story':
-      return n.actor ? `/status/${n.actor.id}` : null;
+      return n.actor ? `/statut/${n.actor.id}` : null;
     case 'friend_request':
       return '/friends';
     case 'moderation_action':

@@ -3,7 +3,7 @@
  * XOF has no minor unit: amounts are integers of francs CFA.
  */
 
-const NNBSP = ' '; // narrow no-break space used by fr-SN for thousands
+const NNBSP = '\u00A0'; // regular no-break space (U+202F renders cramped in Inter)
 
 /** 25000 -> "25 000 F CFA" (compact: "25 000 F"). Never uses decimals. */
 export function formatXOF(amount: number | null | undefined, opts: { compact?: boolean } = {}): string {

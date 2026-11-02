@@ -20,7 +20,7 @@ export function StoryRail() {
         label={mine ? 'Mon statut' : 'Votre statut'}
         seen={!mine}
         addBadge={!mine}
-        onPress={() => (mine ? router.push(`/status/${userId}`) : router.push('/publish/status'))}
+        onPress={() => (mine ? router.push(`/statut/${userId}`) : router.push('/publish/status'))}
       />
       {rail.isPending
         ? [0, 1, 2, 3].map((i) => (
@@ -37,7 +37,7 @@ export function StoryRail() {
                 name={r.author.display_name}
                 label={r.author.display_name.split(' ')[0] ?? r.author.display_name}
                 seen={!r.has_unseen}
-                onPress={() => router.push(`/status/${r.author_id}`)}
+                onPress={() => router.push(`/statut/${r.author_id}`)}
               />
             ) : null,
           )}

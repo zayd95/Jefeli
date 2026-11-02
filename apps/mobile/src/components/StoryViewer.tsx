@@ -1,6 +1,7 @@
 import { formatXOF, timeAgo, timeLeft, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Bookmark, Eye, Flag, Heart, MoreHorizontal, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
@@ -106,8 +107,8 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
         ) : mediaUri ? (
           <Image source={{ uri: mediaUri }} style={StyleSheet.absoluteFill} contentFit="cover" placeholder={posterUri ? { uri: posterUri } : undefined} />
         ) : null}
-        <View style={styles.shadeTop} pointerEvents="none" />
-        <View style={styles.shadeBottom} pointerEvents="none" />
+        <LinearGradient colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0)']} style={styles.shadeTop} pointerEvents="none" />
+        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} style={styles.shadeBottom} pointerEvents="none" />
       </View>
 
       <View style={styles.tapZones}>
@@ -305,8 +306,8 @@ function StoryVideo({ uri, muted, paused }: { uri: string; muted: boolean; pause
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
-  shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, backgroundColor: 'rgba(0,0,0,0.28)' },
-  shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, backgroundColor: 'rgba(0,0,0,0.25)' },
+  shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 180 },
+  shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 },
   tapZones: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row' },
   overlay: { flex: 1 },
   bars: { flexDirection: 'row', gap: 4, paddingHorizontal: spacing.sm, paddingTop: spacing.sm },

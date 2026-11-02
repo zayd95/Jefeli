@@ -9,7 +9,7 @@ export default function AppLayout() {
       <Stack.Screen name="publish" options={{ presentation: 'modal' }} />
       <Stack.Screen name="offer/[productId]" options={{ presentation: 'modal' }} />
       <Stack.Screen name="report" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="status/[userId]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+      <Stack.Screen name="statut/[userId]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       <Stack.Screen name="highlight/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       <Stack.Screen name="live/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       <Stack.Screen name="live/host" options={{ presentation: 'fullScreenModal' }} />

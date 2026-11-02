@@ -229,7 +229,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
             {canOffer || canTrade ? (
               <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                 {canOffer ? <Button label="Faire une offre" variant="outline" style={{ flex: 1 }} onPress={() => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'price' } })} /> : null}
-                {canTrade ? <Button label="Proposer un échange" variant="outline" icon={Repeat} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'barter' } })} /> : null}
+                {canTrade ? <Button label="Proposer un troc" variant="outline" accessibilityLabel="Proposer un échange (troc)" style={{ flex: 1 }} onPress={() => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'barter' } })} /> : null}
               </View>
             ) : null}
           </View>

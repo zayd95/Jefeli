@@ -32,3 +32,6 @@ supabase/functions/.env
 tests/e2e/test-results/
 tests/e2e/playwright-report/
 tests/e2e/.auth/
+supabase/functions/.local/
+*.tsbuildinfo
+apps/web/scripts/.fixtures.local.json
