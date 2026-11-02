@@ -10,7 +10,13 @@ Before and after screenshots at three phone sizes are in `docs/evidence/feed-pas
   can change it: tap ▲ to vote for, tap it again to withdraw, or tap ▼ to switch.
 - **Only the positive count is public** ("4"). A downvote is private feedback: only the member who
   cast it can see it. It never appears as a negative score and it is not readable through the API.
-  It only lowers how often similar content is shown (see the ranking below).
+  **A downvote only personalises the voter's own feed**: that post sinks for them, and that
+  author's other posts a little. It changes nothing for anyone else, so coordinated accounts
+  cannot suppress another seller (owner decision after the review, migration
+  `20261104000100_feed_votes_personal.sql`).
+- **Suspended accounts:** their upvotes stop counting while the account is suspended. They
+  leave the public count and therefore the ranking. The vote rows are kept for audit and count
+  again if the account is reactivated.
 - **Authors cannot vote on their own publications.** They see their count without buttons.
 - Votes are about a publication, **not a product review and not a seller rating**. Reviews remain
   limited to completed agreements (`agreements` → `reviews`). Votes are never added up on a
@@ -63,8 +69,8 @@ Each post gets a score, and a discreet reason is shown in the card's meta line:
 | You follow the author / you are friends / it's your post | +3 / +3 / +1 |
 | Same city as you | +1.5 |
 | A tagged product matches your interests | +1 |
-| Community | +0.5·ln(1+upvotes) + 0.35·ln(1+comments) |
-| Private downvotes | 0 to −2, based on the share of downvotes and damped (one downvote barely matters) |
+| Community | +0.5·ln(1+upvotes from active members) + 0.35·ln(1+comments) |
+| Your own downvotes (your feed only) | −4 on a post you voted down; −0.5 per other post of that author you voted down (max −1.5) |
 | Fair chance | account under 30 days: up to +0.8, fading over time; 3 posts or fewer: +0.4 |
 | Request waiting for answers | *Je cherche* / *Votre avis ?* under 3 days old with fewer than 3 comments: +0.8 |
 | Recency | −1 for every 18 hours of age |
@@ -149,7 +155,9 @@ select round(avg(upvote_count), 2) as avg_upvotes, round(avg(comment_count), 2) 
        round(100.0 * avg((comment_count > 0)::int), 1) as pct_with_comment
 from real_posts;
 
--- 5. Private downvotes: overall share, and posts worth a moderation look (never shown in the app)
+-- 5. Private downvotes: overall share, and heavily downvoted posts. For analysis only: downvotes
+--    never trigger moderation (reports and the existing safety tools do), and the app never
+--    shows them
 select round(100.0 * avg((v.value = -1)::int), 1) as pct_downvotes,
        count(*) filter (where v.updated_at > v.created_at + interval '1 second') as vote_switches
 from post_votes v join real_posts p on p.id = v.post_id;
@@ -193,11 +201,14 @@ select (select count(*) from reports where created_at >= '2026-11-10') * 100.0 /
 - **Votes or comments concentrated on a few established sellers:** query 6 shows a high share.
 
 ## Known limits
-- Downvotes still count after the voter's account is **suspended**. Moderation can hide the post;
-  suspended accounts can't add new votes.
+- Upvotes remain a shared signal: a group could still try to lift a post with upvotes. This is
+  limited by one vote per member, active accounts only, 200 changes per hour, and suspension,
+  which removes the votes' effect.
 - A member's **feed position can still hint** at the effect of votes, as in any ranked feed. Only
   the order and a public reason are exposed.
-- **No impression or click tracking.** Adding it would need an owner decision on privacy and
-  consent.
+- **No impression or click tracking**, by owner decision for the first real-user test. The
+  database metrics above are enough.
+- **Heavily downvoted posts are not sent to moderation automatically**, by owner decision.
+  Moderation relies on actual reports.
 - **All of this was checked in browser renders**, not on physical devices (see
   `RELEASE_STATUS.md`).

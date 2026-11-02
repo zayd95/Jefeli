@@ -159,6 +159,27 @@ module and no new navigation. The details, ranking table and playtest metrics ar
   - before/after screenshots in `docs/evidence/feed-pass/`.
   All of these are browser renders.
 
+### Feed pass review (owner decisions)
+- New migration `20261104000100_feed_votes_personal.sql`:
+  - **Suspended accounts:** upvotes count from active members only. A suspension or
+    reactivation recounts the affected posts, and the vote rows are kept for audit.
+  - **Downvotes are personal:** a post the viewer voted down gets −4 in that viewer's feed, and
+    that author's other posts −0.5 each (max −1.5). The global penalty and
+    `private.post_vote_penalty` are removed.
+  - **Visitors:** `get_feed` now reads the viewer's own votes, so logged-out visitors needed
+    SELECT on `post_votes`. The suite caught this as a regression (the public feed returned
+    "permission denied"). The fix grants SELECT to anon with no anon RLS policy, so visitors
+    read zero rows; this is the same pattern as `mutes` and `story_views`.
+- Confirmed by inspection, with nothing to change: there is no analytics code, and votes never
+  write reports or moderation state.
+- **Tests:** integration **199/199**, on the upgraded database and after a fresh
+  `db reset`. New tests cover:
+  - no global effect, with three viewers including visitors;
+  - a downvote brigade of 6 that changes nothing for others;
+  - personal author down-weighting;
+  - suspension → recount → reactivation.
+  E2E: community 5/5, journey 11/11, screens 3/3. `pnpm check` passes.
+
 ## Commands that were run (latest results)
 
 | Command | Result |

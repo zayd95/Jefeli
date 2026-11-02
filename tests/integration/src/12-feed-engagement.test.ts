@@ -325,7 +325,10 @@ describe('Votes — downvotes stay private', () => {
     expect(must(await author.client.from('post_votes').select('*').eq('post_id', postId))).toEqual([]);
     expect(must(await other.client.from('post_votes').select('*').eq('post_id', postId))).toEqual([]);
     expect(must(await other.client.from('post_votes').select('*').eq('user_id', critic.id))).toEqual([]);
-    expectPermissionDenied(await anonClient().from('post_votes').select('*'));
+    // Visitors may query the table (the public feed reads the viewer's own votes) but RLS has no
+    // policy for them: they always get zero rows.
+    expect(must(await anonClient().from('post_votes').select('*'))).toEqual([]);
+    expect(must(await anonClient().from('post_votes').select('*').eq('post_id', postId))).toEqual([]);
   });
 
   it('posts expose the public upvote count only, never a downvote figure', async () => {
@@ -336,7 +339,7 @@ describe('Votes — downvotes stay private', () => {
     }
   });
 
-  it('the private downvote penalty helper is not reachable through the Data API', async () => {
+  it('no downvote helper is reachable through the Data API (the global penalty was removed)', async () => {
     for (const client of [other.client, author.client, anonClient()]) {
       const viaPublic = await client.rpc('post_vote_penalty', { p_post_id: postId });
       expect(viaPublic.error, 'post_vote_penalty must not exist in the public API').toBeTruthy();
@@ -362,7 +365,7 @@ describe('Votes — downvotes stay private', () => {
     expect(privileges).toEqual([
       'anon:DELETE=false',
       'anon:INSERT=false',
-      'anon:SELECT=false',
+      'anon:SELECT=true', // zero rows: no RLS policy for anon
       'anon:UPDATE=false',
       'authenticated:DELETE=false',
       'authenticated:INSERT=false',
@@ -675,38 +678,97 @@ describe('Feed ranking v2 (get_feed for_you)', () => {
     authors = Object.fromEntries(labels.map((l, i) => [l, users[i]!]));
   });
 
-  it('upvotes lift a post; private downvotes sink an otherwise equivalent post', async () => {
+  it('upvotes lift a post; downvotes change nothing for other viewers (owner decision)', async () => {
+    // Without any downvote effect the expected order is up > mixed (3 upvotes each, mixed one
+    // minute older) > down > none (no upvotes, down one minute newer). The previous global
+    // penalty would have pushed `down` below `none` and `mixed` down the feed for everyone.
     const at = minutesAgo(120);
     const up = await textPost(authors.up!, 'Mes nouvelles sandales en cuir');
     const none = await textPost(authors.none!, 'Mes nouveaux paniers tressés');
     const down = await textPost(authors.down!, 'Mes nouveaux bijoux');
     const mixed = await textPost(authors.mixed!, 'Mes nouveaux sacs');
-    for (const id of [up, none, down, mixed]) await setPostCreatedAt(id, at);
+    await setPostCreatedAt(up, at);
+    await setPostCreatedAt(mixed, new Date(at.getTime() - 60_000));
+    await setPostCreatedAt(down, new Date(at.getTime() + 60_000));
+    await setPostCreatedAt(none, at);
     for (const v of voters.slice(0, 3)) {
       await voteOk(v, up, 1);
       await voteOk(v, mixed, 1);
       await voteOk(v, down, -1);
     }
     for (const v of voters.slice(3)) await voteOk(v, mixed, -1);
-    // Publicly, the downvoted post and the untouched one look the same.
     expect((await voteTruth(down)).upvotes).toBe(0);
-    expect((await voteTruth(none)).upvotes).toBe(0);
     expect((await voteTruth(mixed)).upvotes).toBe(3);
 
-    const rows = await feedRows(Z.client);
-    expect(rankedOrder(rows, [down, none, up])).toEqual([up, none, down]);
-    expect(rowOf(rows, up).reason).toBe('popular');
-    expect(rowOf(rows, none).reason).toBe('new_seller');
-    expect(rowOf(rows, down).reason).toBe('new_seller');
-    // « popular » depends on public upvotes only (3 here), so the label cannot hint at the
-    // private downvotes; those only move the post down in the order.
-    expect(rowOf(rows, mixed).reason).toBe('popular');
-    expect(positionOf(rows, mixed)).toBeGreaterThan(positionOf(rows, up));
-    expect(positionOf(rows, mixed)).toBeLessThan(positionOf(rows, down));
+    for (const viewer of [Z.client, Y.client, anonClient()]) {
+      const rows = await feedRows(viewer);
+      expect(rankedOrder(rows, [none, down, mixed, up])).toEqual([up, mixed, down, none]);
+      expect(rowOf(rows, up).reason).toBe('popular');
+      expect(rowOf(rows, mixed).reason).toBe('popular');
+      expect(rowOf(rows, down).reason).toBe(rowOf(rows, none).reason);
+    }
 
-    // Logged-out visitors get the same relative order.
-    const anonRows = await feedRows(anonClient());
-    expect(rankedOrder(anonRows, [down, none, up])).toEqual([up, none, down]);
+    // The voters' own feeds are personalised: what they voted down sinks for them.
+    const v0 = await feedRows(voters[0]!.client);
+    expect(positionOf(v0, down)).toBeGreaterThan(positionOf(v0, none));
+    const v3 = await feedRows(voters[3]!.client);
+    expect(positionOf(v3, mixed)).toBeGreaterThan(positionOf(v3, none));
+    expect(positionOf(v3, mixed)).toBeGreaterThan(positionOf(v3, down));
+  });
+
+  it('coordinated downvotes cannot suppress a seller for anyone else', async () => {
+    const [seller, rival] = await createUsers('rank-target', 'rank-reference');
+    const brigade = await createUsers('brig-1', 'brig-2', 'brig-3', 'brig-4', 'brig-5', 'brig-6');
+    const target = await textPost(seller!, 'Mes nouvelles chaussures');
+    const reference = await textPost(rival!, 'Mes nouveaux sacs');
+    await setPostCreatedAt(reference, minutesAgo(31));
+    await setPostCreatedAt(target, minutesAgo(30)); // one minute newer: ranks first by default
+
+    const before = await feedRows(Z.client);
+    expect(rankedOrder(before, [reference, target])).toEqual([target, reference]);
+    for (const b of brigade) await voteOk(b, target, -1);
+
+    for (const viewer of [Z.client, Y.client, anonClient()]) {
+      expect(rankedOrder(await feedRows(viewer), [reference, target])).toEqual([target, reference]);
+    }
+    expect((await voteTruth(target)).upvotes).toBe(0);
+    // Each brigade member only changed their own feed.
+    expect(rankedOrder(await feedRows(brigade[0]!.client), [reference, target])).toEqual([reference, target]);
+  });
+
+  it("a downvote also lowers that author's other posts a little, in the voter's feed only", async () => {
+    const [x, q, viewer] = await createUsers('rank-author-x', 'rank-author-q', 'rank-personal');
+    const p1 = await textPost(x!, 'Première publication de X');
+    const p2 = await textPost(x!, 'Deuxième publication de X');
+    const q1 = await textPost(q!, 'Publication de Q');
+    await setPostCreatedAt(p1, minutesAgo(10));
+    await setPostCreatedAt(p2, minutesAgo(2));
+    await setPostCreatedAt(q1, minutesAgo(3)); // one minute older than p2
+
+    await voteOk(viewer!, p1, -1);
+    expect(rankedOrder(await feedRows(viewer!.client), [p2, q1])).toEqual([q1, p2]);
+    expect(rankedOrder(await feedRows(Z.client), [q1, p2])).toEqual([p2, q1]);
+  });
+
+  it('suspended members’ upvotes stop counting while suspended; the votes are kept for audit', async () => {
+    const [author, s1, s2, s3] = await createUsers('susp-author', 'susp-1', 'susp-2', 'susp-3');
+    const post = await textPost(author!, 'Publication soutenue');
+    for (const v of [s1!, s2!, s3!]) await voteOk(v, post, 1);
+    expect((await voteTruth(post)).upvotes).toBe(3);
+    expect(rowOf(await feedRows(Z.client), post).reason).toBe('popular');
+
+    must(await adminClient.from('profiles').update({ status: 'suspended' }).eq('id', s1!.id));
+    const suspended = await voteTruth(post);
+    expect(suspended.upvotes).toBe(2);
+    expect(suspended.rows.map((r) => r.user_id).sort()).toEqual([s1!.id, s2!.id, s3!.id].sort());
+    expect(suspended.rows.every((r) => r.value === 1)).toBe(true);
+    // The public count, and therefore the ranking signal, no longer includes the suspended vote.
+    expect((must(await Z.client.from('posts').select('upvote_count').eq('id', post).single()) as any).upvote_count).toBe(2);
+    expect(rowOf(await feedRows(Z.client), post).reason).not.toBe('popular');
+
+    must(await adminClient.from('profiles').update({ status: 'active' }).eq('id', s1!.id));
+    expect((await voteTruth(post)).upvotes).toBe(3);
+    expect(rowOf(await feedRows(Z.client), post).reason).toBe('popular');
   });
 
   it('author diversity: a prolific author cannot fill the top of the feed', async () => {
@@ -852,7 +914,7 @@ describe('export_my_data includes the member’s own votes', () => {
 // ---------------------------------------------------------------------------------------
 
 describe('private.* functions executable by anon/authenticated', () => {
-  it('are exactly the helpers RLS policies and get_feed need (allowlist)', () => {
+  it('are exactly the helpers RLS policies need (allowlist)', () => {
     // New private functions get EXECUTE for PUBLIC by default. Every one must be revoked unless
     // a policy (or a security invoker function such as get_feed) calls it. A trigger function
     // left executable (private.notify_post_upvote) was caught by this check.
@@ -882,7 +944,6 @@ describe('private.* functions executable by anon/authenticated', () => {
       'is_member(p_conversation_id uuid)',
       'is_staff()',
       'normalize_text(t text)',
-      'post_vote_penalty(p_post_id uuid)',
     ]);
   });
 });

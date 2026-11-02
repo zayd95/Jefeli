@@ -13,10 +13,11 @@ feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`
 - After the playtest, run the 8 metric queries in `docs/FEED_ENGAGEMENT.md` on the staging
   database. Ask the playtesters the questions listed there, especially whether ▲/▼ is clearly
   different from a review and whether downvoting felt safe.
-- Decisions for the owner:
-  - whether to count downvotes from suspended accounts;
-  - whether to add opt-in impression analytics (nothing is tracked today);
-  - whether frequently downvoted posts should feed the moderation queue.
+- Owner decisions (applied in `…20261104000100_feed_votes_personal.sql`):
+  - suspended accounts' upvotes stop counting while suspended, and the rows are kept;
+  - downvotes personalise the voter's feed only;
+  - no view/click analytics for now;
+  - no automatic moderation from downvotes.
 
 ## Owner (blocking for Gate B)
 

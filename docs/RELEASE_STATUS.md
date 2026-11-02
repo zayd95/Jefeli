@@ -37,7 +37,7 @@ executed here.
 | LIVE-02 | Provider auth + moderation | **PASS** (server side, fake credentials) · **BLOCKED_EXTERNAL** (real provider) | integration `11-edge-functions`: tokens signed for the caller only, ≤ 1 h; blocked viewer gets 404; non-host cannot end; bad webhook signature/API key rejected; only signed events set EN DIRECT, viewer counts and end. Integration `09`: comment/pin/mute rules |
 | SAF-01 | Report, block, admin queue | **PASS** | E2E `SAF-01` (report → moderator hides it in `/admin` → listing unavailable → block → profile hidden); integration `08` |
 | SAF-02 | No fake badge; reviews only after a completed agreement | **PASS** | integration `01`, `07`, `08` (verification only via admin RPC; review refused before both confirmations) |
-| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **196/196** (162 before the feed pass). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
+| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **199/199** (162 before the feed pass). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
 | DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart PASS | Reload persistence PASS. Upload retry/backoff, cancel, local drafts and French permission-denied messages are implemented but NOT_TESTED under real network loss or denied OS permissions |
 | DEV-02 | Real iOS/Android captures, safe areas, keyboard | **BLOCKED_EXTERNAL** (devices) · web renders PASS | `docs/evidence/e2e/screens/{iphone-se,iphone-15-pro-max,pixel-7}` (16 screens each, browser renders, no overflow). Real safe areas and keyboard behaviour need devices |
 | REL-01 | Clean install / migrate / test | **PASS** | Locally: `supabase db reset` → seed → `pnpm check` → integration → E2E. GitHub Actions on PR #1 (head `f18c9dd`): both jobs green, with the typecheck/lint/unit/web build plus all 162 integration tests on a fresh Supabase stack ([run 41378067524](https://github.com/zayd95/Jefeli/actions/runs/41378067524)) |
@@ -55,6 +55,9 @@ executed here.
 | FEED-06 | Explainable ranking: votes, recency, locality, relationships, author/type diversity, new members, unanswered requests | **PASS** | integration (upvotes lift and downvotes sink equivalent posts; a prolific author cannot fill the top; `needs_answers`; muted/blocked/hidden/deleted absent). DÉMO feed inspected by hand |
 | FEED-07 | Varied DÉMO content set | **PASS** | `pnpm seed`: 10 DÉMO accounts, 12 publications across the 4 intents, 12 comments, 24 votes, 3 conversations (one with a barter offer), all created through the real APIs |
 | FEED-08 | Mobile sizes, before/after | **PASS** (browser renders) | `docs/evidence/feed-pass/{before,after}/{iphone-se,iphone-15,pixel-7}` |
+| FEED-09 | Review: downvotes personalise the voter's feed only (no global suppression) | **PASS** | migration `…20261104000100_feed_votes_personal.sql`. Integration: other viewers and visitors get the same order however many members downvote (a brigade of 6 changes nothing); the voter's own feed sinks the post and lightly lowers that author's other posts |
+| FEED-10 | Review: suspended accounts' upvotes don't count while suspended; rows kept for audit | **PASS** | integration: count 3 → 2 on suspension, rows still 3, « popular » removed, back to 3 on reactivation |
+| FEED-11 | Review: no view/click analytics; no automatic moderation from downvotes | **PASS** (by inspection) | No tracking code in `apps/` or `packages/`. The feed migrations never write reports or moderation state |
 
 Also in this pass:
 - A block removes the votes between the two members.
