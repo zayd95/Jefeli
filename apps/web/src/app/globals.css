@@ -668,3 +668,9 @@ button { font: inherit; color: inherit; }
 .message-page h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
 .message-page p { max-width: 440px; color: var(--c-text-secondary); }
 .message-page .btn { margin-top: 12px; }
+.message-page .error-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.message-page .error-detail {
+  max-width: min(560px, 100%); margin: 4px 0 0; padding: 12px; text-align: left; white-space: pre-wrap;
+  overflow-wrap: anywhere; font-size: 12px; line-height: 1.5; color: var(--c-ink);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-sm);
+}
