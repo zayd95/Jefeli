@@ -1,5 +1,12 @@
 # Next actions
 
+## Owner (now): playtest
+
+On your computer (Docker Desktop running, Node 22+, `corepack enable`): check out
+`claude/jefeli-pilot`, run `pnpm install`, then `pnpm preview:lan`. Open the printed
+`http://<IP>:8081` in Safari on the iPhone, which must be on the same private Wi-Fi. Send the
+feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`.
+
 ## Owner (blocking for Gate B)
 
 1. Create a **Supabase staging project** and follow `docs/SETUP_PRODUCTION.md` §1. That gives a

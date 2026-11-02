@@ -55,6 +55,22 @@ Demo accounts (password `Demo-jefeli-2026!`, local/staging only): `awa@demo.jefe
 `baol@demo.jefeli.test`, `moussa@demo.jefeli.test`, `fatou@demo.jefeli.test`, and
 `admin@demo.jefeli.test` for the admin console at `/admin`.
 
+### On your phone's browser (fastest, one command)
+
+```bash
+pnpm install
+pnpm preview:lan          # or: pnpm preview:lan --ip 192.168.1.20
+```
+
+This starts the local Supabase API (Studio, mailpit and postgres-meta stay off), the Edge
+Functions and the DÉMO seed. It also builds the app and the share pages + moderation console
+against `http://<your-computer-IP>:54321`, so the phone reaches the API instead of its own
+localhost. Docker must be running. Then, on the iPhone (same Wi-Fi), open the printed
+`http://<IP>:8081` in Safari. Add `--dev` for the Metro dev server with live reload, or
+`--reset-demo` to recreate the demo content. Use a private network (home Wi-Fi or your phone's
+hotspot), because the local stack uses well-known development keys. On macOS, allow incoming
+connections for Node and Docker if prompted.
+
 ### On your phone (Expo Go)
 
 1. Your phone and computer must be on the same Wi-Fi. In `apps/mobile/.env`, set

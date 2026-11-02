@@ -54,6 +54,7 @@ executed here.
 | Moderation console | **PASS** | Web workstream ran its own Playwright pass: non-staff gate, take in charge, remove with reason, approve verification, reverse an appeal, toggle a flag |
 | Legal drafts (CGU, confidentialité, règles) | **Draft** | `apps/web/src/app/legal/*`, marked « Projet — à valider ». Needs owner and legal review (Senegal law 2008-12, CDP) |
 | Brand / domain clearance | **Pending owner** | `Jëfëli` is used as a working name. Not described as cleared |
+| Owner preview on a phone browser (`pnpm preview:lan`) | **PASS** in iPhone-on-Wi-Fi conditions · **NOT_TESTED** on the owner's computer and iPhone | Verified on a non-loopback http origin (Chromium, iPhone 15 size): 21-step walkthrough, new sign-up, E2E journey 11/11. Not yet run on macOS/Windows or in iOS Safari. Microphone recording is refused by browsers on http, so voice notes need a device build. There is no cloud preview: the cloud session cannot accept inbound connections |
 | Expo doctor | 18/20 | The 2 failing checks need exp.host / React Native Directory (blocked network). `expo prebuild` succeeds on iOS and Android with all plugins |
 
 ## External credentials and decisions still required

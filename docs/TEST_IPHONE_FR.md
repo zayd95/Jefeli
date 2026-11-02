@@ -5,7 +5,14 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 
 ## Avant de commencer
 
-- **Option rapide (Expo Go)** : installez « Expo Go » depuis l’App Store. Sur l’ordinateur où le
+- **Option la plus rapide (Safari sur l’iPhone)** : sur l’ordinateur, lancez `pnpm install` puis
+  `pnpm preview:lan` (Docker doit être lancé). Ouvrez ensuite dans Safari l’adresse affichée,
+  `http://<adresse-de-l’ordinateur>:8081`. Le téléphone et l’ordinateur doivent être sur le même
+  Wi-Fi privé (maison ou partage de connexion), pas un Wi-Fi public. Dans Safari, « Partager →
+  Sur l’écran d’accueil » donne un raccourci plein écran. Les photos fonctionnent (Safari propose
+  l’appareil photo ou la photothèque). En revanche, Safari refuse le micro sur une adresse http :
+  l’enregistrement de messages vocaux se teste avec un build de développement.
+- **Option Expo Go** : installez « Expo Go » depuis l’App Store. Sur l’ordinateur où le
   projet tourne, lancez `pnpm mobile`, puis scannez le QR code avec l’appareil photo de l’iPhone.
   Le téléphone et l’ordinateur doivent être sur le même Wi-Fi (voir le README).
 - **Option complète (build de développement)** : nécessaire pour le **live vidéo** et les

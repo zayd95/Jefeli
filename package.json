@@ -11,6 +11,7 @@
     "mobile": "pnpm --filter @jefeli/mobile start",
     "mobile:web": "pnpm --filter @jefeli/mobile web",
     "web": "pnpm --filter @jefeli/web dev",
+    "preview:lan": "node scripts/preview-lan.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

@@ -87,6 +87,39 @@ be reviewed as a PR.
 README, SETUP_PRODUCTION runbook, French iPhone test script, RELEASE_STATUS, NEXT_ACTIONS, CI
 workflow, EAS profiles, root scripts.
 
+### Local interactive preview for the owner's iPhone (after `9b2cbd4`)
+- **Cloud preview is not possible from this environment.** The Claude Code cloud container
+  has no inbound connectivity and no built-in port forwarding. The environment's containment
+  policy also denied an outbound tunnel. Nothing was exposed and nothing was deployed.
+- New `pnpm preview:lan` (`scripts/preview-lan.mjs`) runs everything on the owner's own
+  computer for a phone on the same Wi-Fi:
+  - the Supabase API only (Studio, mailpit and postgres-meta are excluded), the Edge Functions
+    and the DÉMO seed;
+  - a production Expo web export served on :8081;
+  - a production Next.js build on :3000.
+  - Both front ends are built against `http://<LAN-IP>:54321`, so the phone never calls its own
+    localhost.
+- Bugs found while verifying under iPhone-over-Wi-Fi conditions (plain-http origin = insecure
+  context):
+  - **Uploads failed.** `crypto.randomUUID` does not exist on insecure origins, so object paths
+    are now built from `getRandomValues` (`apps/mobile/src/lib/upload.ts`).
+  - The Next.js **dev** server blocks dev assets requested from a non-localhost origin, so the
+    moderation console stayed on « Chargement… ». The preview uses `next build` + `next start`.
+  - **Local Realtime cold start.** The first postgres_changes subscriber after `supabase start`
+    can miss events written while the change feed starts: reproduced as missed cold and
+    delivered in ~250 ms warm. The launcher holds one warm-up subscription.
+- Verification, on `192.0.2.2` (a non-loopback address, insecure context, Chromium at iPhone 15
+  size):
+  - 21-step walkthrough: feed, statuses, explore, search, product, two boutiques, chat with the
+    barter card on both sides, a live reply, a photo upload, honest Live screen, public pages,
+    admin console. All PASS, no page errors.
+  - A new account sign-up with mailpit off: PASS.
+  - `pnpm test:e2e journey`: **11/11** against the preview servers.
+  - Test-environment note: this container's egress proxy intercepts the browser's `ws://`
+    connection to `192.0.2.2`, but not to a home `192.168.x.x` address, which is on the proxy
+    bypass list. The E2E therefore ran with that IP added to `NO_PROXY`.
+- `pnpm check` (typecheck, lint, unit): pass.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
