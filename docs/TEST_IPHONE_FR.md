@@ -12,9 +12,13 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
   Sur l’écran d’accueil » donne un raccourci plein écran. Les photos fonctionnent (Safari propose
   l’appareil photo ou la photothèque). En revanche, Safari refuse le micro sur une adresse http :
   l’enregistrement de messages vocaux se teste avec un build de développement.
-- **Option Expo Go** : installez « Expo Go » depuis l’App Store. Sur l’ordinateur où le
-  projet tourne, lancez `pnpm mobile`, puis scannez le QR code avec l’appareil photo de l’iPhone.
-  Le téléphone et l’ordinateur doivent être sur le même Wi-Fi (voir le README).
+- **Option application native (Expo Go)** : installez « Expo Go » depuis l’App Store. Sur
+  l’ordinateur, lancez `pnpm preview:expo-go` (Docker doit être lancé), puis scannez le QR code
+  avec l’appareil photo de l’iPhone. Autorisez « Réseau local » quand Expo Go le demande. Dans
+  Expo Go, le micro (messages vocaux), l’appareil photo et les vidéos fonctionnent comme dans
+  une vraie application. Seuls le direct (Live) et les notifications push demandent un build
+  de développement : ils affichent « indisponible ». Si le QR code ne fonctionne pas, ouvrez
+  Expo Go, puis « Enter URL manually » et saisissez l’adresse `exp://…:8081` affichée.
 - **Option complète (build de développement)** : nécessaire pour le **live vidéo** et les
   **notifications push**. Elle demande un compte Apple Developer et un compte Expo (voir
   `docs/SETUP_PRODUCTION.md`).

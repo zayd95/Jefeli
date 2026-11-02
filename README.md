@@ -79,14 +79,33 @@ connections for Node and Docker if prompted. If another local Supabase project a
 the default ports (54321/54322), the launcher stops with a clear message.
 `pnpm exec supabase stop --all` stops the other project and keeps its data.
 
-### On your phone (Expo Go)
+### On your iPhone as a native app (Expo Go)
 
-1. Your phone and computer must be on the same Wi-Fi. In `apps/mobile/.env`, set
-   `EXPO_PUBLIC_SUPABASE_URL=http://<your-computer-LAN-IP>:54321`. Do the same for `EXPO_PUBLIC_WEB_BASE_URL`.
-2. `pnpm mobile`, then scan the QR code with the iPhone Camera app (or the Expo Go app on Android).
-3. Expo Go cannot run live video or push notifications. Those need an EAS development build
-   (`cd apps/mobile && npx eas-cli build --profile development`, which requires an Expo account and an
-   Apple Developer account for iPhone).
+```bash
+pnpm install
+pnpm preview:expo-go      # or: pnpm preview:expo-go -- --ip 192.168.1.20 --reset-demo
+```
+
+This starts the same local backend as `preview:lan`: Supabase API, Edge Functions, pending
+migrations, DÉMO data, and the web share pages + moderation console on :3000. Metro then runs in
+the foreground in **Expo Go mode** and prints a QR code. It is configured with the Wi-Fi IP and
+the local publishable key, so the phone never calls its own localhost. Scan the QR code with the
+iPhone Camera app (Expo Go from the App Store must support **SDK 58**). Allow **Local network**
+when Expo Go asks. Metro also serves the web app on the same port, at `http://<IP>:8081` in a
+browser. The two modes share ports 8081 and 3000, so run one at a time; the launcher reports a
+clash.
+
+What Expo Go cannot do, and how the app handles it:
+- **Live video** (Stream WebRTC needs a custom native module): Live shows « Direct
+  indisponible ». The Stream SDK code is lazy-loaded only when the native WebRTC module exists.
+- **Push notifications** need an EAS project id and a development build. Registration reports
+  "unavailable"; in-app notifications work.
+- **Links** `jefeli://…` (« Ouvrir dans l’app » on the web pages) open an installed Jëfëli
+  app, not Expo Go.
+
+All of these work in an EAS development build
+(`cd apps/mobile && npx eas-cli build --profile development`, which needs an Expo account and,
+for iPhone, an Apple Developer account).
 
 Against a hosted Supabase project, use that project's URL and publishable key instead. The
 step-by-step guide is in [`docs/SETUP_PRODUCTION.md`](docs/SETUP_PRODUCTION.md).

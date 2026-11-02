@@ -180,6 +180,31 @@ module and no new navigation. The details, ranking table and playtest metrics ar
   - suspension → recount → reactivation.
   E2E: community 5/5, journey 11/11, screens 3/3. `pnpm check` passes.
 
+### Expo Go playtest mode
+- **Audit:**
+  - Expo 58.0.22 is the latest published SDK, and `expo install --check` reports dependencies up
+    to date.
+  - The only modules missing from Expo Go are Stream Video and `@stream-io/react-native-webrtc`.
+    The config plugins only run at prebuild.
+  - Stream is already isolated: `isLiveSdkAvailable()` checks for the native WebRTC module, and
+    `StreamLive` is a `React.lazy` import rendered only when that module exists.
+  - Push registration returns "unavailable" without an EAS project id.
+  - `expo export -p ios -p android` compiles both Hermes bundles.
+- **Launcher `--expo-go`** (`pnpm preview:expo-go`):
+  - same backend steps as `preview:lan`;
+  - Metro in the foreground with `--go --lan` so the terminal shows the QR code;
+  - `REACT_NATIVE_PACKAGER_HOSTNAME` pinned to the detected Wi-Fi IP, so the QR code and the
+    API address agree;
+  - `CI` removed from the environment, since it would hide the QR code;
+  - Metro also serves the web app on :8081.
+- **Verified on a LAN address:**
+  - the Expo Go manifest (`application/expo+json`, `exposdk:58.0.0`, hostUri on the LAN IP);
+  - the 17 MB iOS dev bundle, which contains the LAN Supabase URL and publishable key;
+  - the Android manifest;
+  - the 21-step web walkthrough, all PASS through the same Metro.
+- **Not verified:** the app was not run in Expo Go on a physical iPhone; no device is available
+  here.
+
 ## Commands that were run (latest results)
 
 | Command | Result |

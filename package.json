@@ -12,6 +12,7 @@
     "mobile:web": "pnpm --filter @jefeli/mobile web",
     "web": "pnpm --filter @jefeli/web dev",
     "preview:lan": "node scripts/preview-lan.mjs",
+    "preview:expo-go": "node scripts/preview-lan.mjs --expo-go",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

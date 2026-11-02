@@ -1,6 +1,12 @@
 # Next actions
 
-## Owner (now): playtest
+## Owner (now): playtest in Expo Go
+On the Mac (Docker Desktop running): `git pull`, `pnpm install`, then `pnpm preview:expo-go`.
+Scan the QR code with the iPhone (Expo Go for SDK 58, same Wi-Fi, allow « Réseau local »).
+Live and push show « indisponible » in Expo Go; everything else is the native app. The
+browser preview stays available with `pnpm preview:lan`.
+
+## Owner: playtest in the browser (optional)
 
 On your computer (Docker Desktop running, Node 22+, `corepack enable`): check out
 `claude/jefeli-pilot`, run `pnpm install`, then `pnpm preview:lan`. Open the printed

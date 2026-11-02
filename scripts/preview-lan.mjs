@@ -6,6 +6,7 @@
  *   pnpm preview:lan                  # detects this computer's Wi-Fi address
  *   pnpm preview:lan --ip 192.168.1.20
  *   pnpm preview:lan --dev            # Metro dev server (live reload) instead of a production build
+ *   pnpm preview:lan --expo-go        # native app in Expo Go on the phone (QR code), plus the web pages
  *   pnpm preview:lan --reset-demo     # recreate the DÉMO accounts and content
  *
  * Starts: the local Supabase API (Studio, mailpit and postgres-meta stay off), the Edge Functions,
@@ -272,6 +273,47 @@ async function main() {
     EXPO_PUBLIC_WEB_BASE_URL: `http://${ip}:${WEB_PORT}`,
     EXPO_PUBLIC_ENV: 'local',
   };
+  if (flag('--expo-go')) {
+    // Native app in Expo Go: Metro in the foreground so the QR code and Expo's keyboard
+    // shortcuts (r = reload, j = debugger…) reach the terminal. Metro also serves the web app on
+    // the same port, so the browser preview stays available at http://<ip>:8081.
+    await waitFor(`http://127.0.0.1:${WEB_PORT}/`, 'Next.js');
+    console.log(`
+┌───────────────────────────────────────────────────────────────
+│  Jëfëli dans Expo Go (environnement de test, contenus DÉMO)
+│
+│  1. Installez « Expo Go » depuis l’App Store (version pour le SDK 58).
+│  2. iPhone et ordinateur sur le même Wi-Fi privé.
+│  3. Scannez le QR code ci-dessous avec l’appareil photo de l’iPhone
+│     (ou, dans Expo Go : « Enter URL manually » → exp://${ip}:${APP_PORT}).
+│  4. Autorisez « Réseau local » quand Expo Go le demande.
+│
+│  Comptes DÉMO : fatou@ / baol@ / awa@ / khadija@ … @demo.jefeli.test
+│  Mot de passe : Demo-jefeli-2026!
+│  Pages publiques et modération : http://${ip}:${WEB_PORT}/admin
+│  Le direct (Live) et les notifications push demandent un build de
+│  développement : dans Expo Go, ils affichent « indisponible ».
+│
+│  Ctrl+C pour arrêter. Supabase reste lancé : pnpm db:stop
+└───────────────────────────────────────────────────────────────
+`);
+    log('Jëfëli app for Expo Go (Metro)…');
+    const metroEnv = { ...process.env, ...appEnv, REACT_NATIVE_PACKAGER_HOSTNAME: ip };
+    delete metroEnv.CI; // CI=… makes Expo non-interactive and hides the QR code
+    const metro = spawn('pnpm', ['exec', 'expo', 'start', '--go', '--lan', '--port', String(APP_PORT), '--clear'], {
+      cwd: path.join(ROOT, 'apps/mobile'),
+      stdio: 'inherit',
+      env: metroEnv,
+      shell,
+    });
+    children.push(metro);
+    metro.on('exit', (code) => {
+      stopAll();
+      process.exit(code ?? 0);
+    });
+    return;
+  }
+
   if (flag('--dev')) {
     log('Jëfëli app (Metro dev server)…');
     background('app', 'pnpm', ['--filter', '@jefeli/mobile', 'exec', 'expo', 'start', '--web', '--port', String(APP_PORT), '--host', 'lan'], { ...appEnv, BROWSER: 'none', CI: '' });
