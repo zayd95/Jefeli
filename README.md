@@ -69,7 +69,9 @@ localhost. Docker must be running. Then, on the iPhone (same Wi-Fi), open the pr
 `http://<IP>:8081` in Safari. Add `--dev` for the Metro dev server with live reload, or
 `--reset-demo` to recreate the demo content. Use a private network (home Wi-Fi or your phone's
 hotspot), because the local stack uses well-known development keys. On macOS, allow incoming
-connections for Node and Docker if prompted.
+connections for Node and Docker if prompted. If another local Supabase project already holds
+the default ports (54321/54322), the launcher stops with a clear message.
+`pnpm exec supabase stop --all` stops the other project and keeps its data.
 
 ### On your phone (Expo Go)
 

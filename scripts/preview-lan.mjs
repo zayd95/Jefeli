@@ -21,6 +21,7 @@ import { createClient } from '@supabase/supabase-js';
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,11 +36,76 @@ const option = (name) => {
 const APP_PORT = 8081;
 const WEB_PORT = 3000;
 const API_PORT = 54321;
+const DB_PORT = 54322; // supabase/config.toml [db] port
 const children = [];
 const shell = process.platform === 'win32'; // pnpm is a .cmd shim on Windows
 
 function log(msg) {
   console.log(`\n▸ ${msg}`);
+}
+
+function fail(msg) {
+  console.error(`\n✖ ${msg}`);
+  process.exit(1);
+}
+
+/** True when something already accepts connections on the port, or it cannot be bound. */
+async function portInUse(port) {
+  const connects = await new Promise((resolve) => {
+    const s = net.connect({ port, host: '127.0.0.1' });
+    s.setTimeout(1000);
+    s.once('connect', () => (s.destroy(), resolve(true)));
+    s.once('timeout', () => (s.destroy(), resolve(false)));
+    s.once('error', () => resolve(false));
+  });
+  if (connects) return true;
+  return new Promise((resolve) => {
+    const srv = net.createServer();
+    srv.once('error', () => resolve(true));
+    srv.once('listening', () => srv.close(() => resolve(false)));
+    srv.listen(port, '0.0.0.0');
+  });
+}
+
+/**
+ * Every Supabase CLI project uses the same default ports, so another local project (or an old
+ * dev server) makes `supabase start` fail with a bare Docker error. Explain it before starting.
+ */
+async function preflight() {
+  const ps = spawnSync('docker', ['ps', '--format', '{{.Names}}\t{{.Ports}}'], { encoding: 'utf8', shell });
+  if (ps.status !== 0) fail('Docker ne répond pas. Lancez Docker Desktop, attendez qu’il soit prêt, puis relancez « pnpm preview:lan ».');
+  const owners = {};
+  for (const line of ps.stdout.split('\n')) {
+    const [name, ports = ''] = line.split('\t');
+    for (const m of ports.matchAll(/:(\d+)->/g)) owners[Number(m[1])] = name;
+  }
+  const otherProjects = new Set();
+  const problems = [];
+  for (const port of [API_PORT, DB_PORT]) {
+    const owner = owners[port];
+    if (owner?.endsWith('_jefeli')) continue; // our own stack from a previous run: `supabase start` reuses it
+    if (owner) {
+      problems.push(`port ${port} : utilisé par le conteneur Docker « ${owner} »`);
+      if (owner.startsWith('supabase_')) otherProjects.add(owner.replace(/^supabase_[a-z]+_/, ''));
+    } else if (await portInUse(port)) {
+      problems.push(`port ${port} : utilisé par un autre programme`);
+    }
+  }
+  for (const port of [APP_PORT, WEB_PORT]) {
+    if (await portInUse(port)) problems.push(`port ${port} : utilisé par un autre programme (un serveur de développement ?)`);
+  }
+  if (!problems.length) return;
+  const hints = [];
+  if (otherProjects.size) {
+    hints.push(
+      `Un autre projet Supabase local tourne (${[...otherProjects].join(', ')}). Arrêtez-le, ses données sont conservées :`,
+      '    pnpm exec supabase stop --all',
+    );
+  }
+  if (problems.some((p) => p.includes('autre programme'))) {
+    hints.push(`Pour voir quel programme occupe un port (macOS / Linux) :  lsof -nP -iTCP:<port> -sTCP:LISTEN`);
+  }
+  fail(`Ports déjà occupés :\n  - ${problems.join('\n  - ')}\n\n${hints.join('\n')}\nPuis relancez « pnpm preview:lan ».`);
 }
 
 function run(cmd, cmdArgs, opts = {}) {
@@ -121,6 +187,7 @@ function serveStatic(dir, port) {
     });
     fs.createReadStream(file).pipe(res);
   });
+  server.once('error', (e) => fail(`Le port ${port} n’est pas disponible (${e.code}).`));
   server.listen(port, '0.0.0.0');
   return server;
 }
@@ -144,6 +211,8 @@ async function main() {
     process.exit(1);
   }
   const api = `http://${ip}:${API_PORT}`;
+
+  await preflight();
 
   log('Local Supabase (API only)…');
   run('pnpm', ['exec', 'supabase', 'start', '-x', 'studio,postgres-meta,mailpit']);
