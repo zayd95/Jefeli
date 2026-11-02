@@ -40,7 +40,7 @@ executed here.
 | SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **162/162**. The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
 | DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart PASS | Reload persistence PASS. Upload retry/backoff, cancel, local drafts and French permission-denied messages are implemented but NOT_TESTED under real network loss or denied OS permissions |
 | DEV-02 | Real iOS/Android captures, safe areas, keyboard | **BLOCKED_EXTERNAL** (devices) · web renders PASS | `docs/evidence/e2e/screens/{iphone-se,iphone-15-pro-max,pixel-7}` (16 screens each, browser renders, no overflow). Real safe areas and keyboard behaviour need devices |
-| REL-01 | Clean install / migrate / test | **PASS** locally | `supabase db reset` → seed → `pnpm check` → integration → E2E. CI workflow added; first CI run happens on PR #1 |
+| REL-01 | Clean install / migrate / test | **PASS** | Locally: `supabase db reset` → seed → `pnpm check` → integration → E2E. GitHub Actions on PR #1 (head `f18c9dd`): both jobs green, with the typecheck/lint/unit/web build plus all 162 integration tests on a fresh Supabase stack ([run 41378067524](https://github.com/zayd95/Jefeli/actions/runs/41378067524)) |
 | REL-02 | README, env names, staging link, checklist, owner script | **PASS** · staging link **BLOCKED_EXTERNAL** | `README.md`, `.env.example`, `docs/SETUP_PRODUCTION.md`, `docs/TEST_IPHONE_FR.md`. There is no hosted staging project or deployment yet (needs owner accounts and approval) |
 
 ### Other workstreams
