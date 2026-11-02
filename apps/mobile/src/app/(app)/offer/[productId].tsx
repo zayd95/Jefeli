@@ -199,7 +199,7 @@ export default function OfferComposer() {
 
 function TradeOption({ product, selected, onPress }: { product: ProductCard; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={[styles.option, selected && styles.optionOn]} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={product.title}>
+    <Pressable onPress={onPress} style={[styles.option, selected && styles.optionOn]} accessibilityRole="radio" accessibilityState={{ selected }} aria-checked={selected} accessibilityLabel={product.title}>
       <Thumb media={product.media[0]} style={{ height: 100, borderRadius: radius.sm }} />
       <Text variant="caption" weight="600" numberOfLines={1} style={{ marginTop: 6 }}>
         {product.title}

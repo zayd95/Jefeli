@@ -68,7 +68,7 @@ export default function Explore() {
             onPress={() => setCategory(category === c.slug ? null : c.slug)}
             style={[styles.cat, category === c.slug && styles.catOn]}
             accessibilityRole="button"
-            accessibilityState={{ selected: category === c.slug }}
+            accessibilityState={{ selected: category === c.slug }} aria-selected={category === c.slug}
           >
             <Text variant="callout" weight="600" color={category === c.slug ? colors.white : colors.ink}>
               {c.name}

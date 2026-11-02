@@ -80,6 +80,12 @@ export const IconHeart = (p: IconProps) => (
   </Icon>
 );
 
+export const IconUpvote = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 4l7 8h-4v8H9v-8H5z" />
+  </Icon>
+);
+
 export const IconComment = (p: IconProps) => (
   <Icon {...p}>
     <path d="M20.5 11.5a8 8 0 01-11.7 7.1L4 20l1.4-4.4A8 8 0 1120.5 11.5z" />

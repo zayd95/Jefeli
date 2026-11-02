@@ -10,11 +10,12 @@ import { PostCard } from '@/components/PostCard';
 import { Avatar, Button, colors, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
 import { addComment, deleteComment, editPost, fetchComments, fetchPost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
+import { patchPost } from '@/lib/postCache';
 import type { CommentRow } from '@/lib/types';
 
 export default function PostScreen() {
-  const { id, edit } = useLocalSearchParams<{ id: string; edit?: string }>();
-  const { userId } = useAuth();
+  const { id, edit, comment } = useLocalSearchParams<{ id: string; edit?: string; comment?: string }>();
+  const { userId, profile } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
   const insets = useSafeAreaInsets();
@@ -36,11 +37,30 @@ export default function PostScreen() {
     if (!body || !userId) return;
     setSending(true);
     try {
-      await addComment(userId, id ?? '', body, replyTo ? (replyTo.parent_id ?? replyTo.id) : null);
+      const parentId = replyTo ? (replyTo.parent_id ?? replyTo.id) : null;
+      await addComment(userId, id ?? '', body, parentId);
       setText('');
       setReplyTo(null);
       qc.invalidateQueries({ queryKey: ['comments', id] });
       qc.invalidateQueries({ queryKey: ['post', id] });
+      // Keep the feed card in step without re-ranking the whole feed.
+      patchPost(qc, id ?? '', (p) => ({
+        comment_count: p.comment_count + 1,
+        comments_preview:
+          parentId || !profile
+            ? p.comments_preview
+            : [
+                {
+                  post_id: p.id,
+                  comment_id: `local-${Date.now()}`,
+                  body,
+                  created_at: new Date().toISOString(),
+                  by_post_author: p.author_id === userId,
+                  author: profile,
+                },
+                ...(p.comments_preview ?? []),
+              ].slice(0, 2),
+      }));
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
@@ -153,10 +173,11 @@ export default function PostScreen() {
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="Ajouter un commentaire…"
+              placeholder={post.data.intent === 'opinion' ? 'Donnez votre avis…' : post.data.intent === 'seek' ? 'Une piste, une adresse, un conseil…' : 'Ajouter un commentaire…'}
               placeholderTextColor={colors.textSecondary}
               multiline
               maxLength={1000}
+              autoFocus={comment === '1'}
               style={styles.input}
               accessibilityLabel="Commentaire"
             />

@@ -4,7 +4,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { deepLinks, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
 import { ShareActions } from '@/components/ShareActions';
-import { IconComment, IconHeart, IconLock, IconPin, IconPlay } from '@/components/icons';
+import { IconComment, IconLock, IconPin, IconPlay, IconUpvote } from '@/components/icons';
 import { Avatar, DemoChip, ProductCard, Stars, VerifiedBadge, locationLabel } from '@/components/ui';
 import { env } from '@/lib/env';
 import { avatarUrl, coverUrl, firstStill, publicMediaUrl, sortMedia } from '@/lib/media';
@@ -323,8 +323,8 @@ function PostItem({ post }: { post: PostRow }) {
         <p className="post-item-body">{body || (media.length ? 'Publication avec médias' : 'Publication')}</p>
         <div className="meta-row">
           <span>{timeAgo(post.created_at)}</span>
-          <span aria-label={`${post.like_count} j’aime`}>
-            <IconHeart /> {formatCount(post.like_count)}
+          <span aria-label={`${post.upvote_count} ${post.upvote_count > 1 ? 'votes' : 'vote'} pour`}>
+            <IconUpvote /> {formatCount(post.upvote_count)}
           </span>
           <span aria-label={`${post.comment_count} commentaires`}>
             <IconComment /> {formatCount(post.comment_count)}

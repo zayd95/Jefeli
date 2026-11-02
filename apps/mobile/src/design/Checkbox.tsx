@@ -18,7 +18,7 @@ export function Checkbox({
   link?: { label: string; onPress: () => void };
 }) {
   return (
-    <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked }} accessibilityLabel={label} style={styles.check}>
+    <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked }} aria-checked={checked} accessibilityLabel={label} style={styles.check}>
       <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Check size={16} color={colors.white} strokeWidth={3} /> : null}</View>
       <View style={{ flex: 1 }}>
         <Text variant="callout" weight={description ? '600' : '400'}>
@@ -44,7 +44,7 @@ export function Toggle({ value, onChange, label, description }: { value: boolean
     <Pressable
       onPress={() => onChange(!value)}
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value }} aria-checked={value}
       accessibilityLabel={label}
       style={styles.toggleRow}
     >

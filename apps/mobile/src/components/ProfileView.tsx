@@ -316,7 +316,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
 
           <View style={styles.tabs} accessibilityRole="tablist">
             {TABS.map((t) => (
-              <Pressable key={t.key} onPress={() => setTab(t.key)} style={styles.tab} accessibilityRole="tab" accessibilityState={{ selected: tab === t.key }}>
+              <Pressable key={t.key} onPress={() => setTab(t.key)} style={styles.tab} accessibilityRole="tab" accessibilityState={{ selected: tab === t.key }} aria-selected={tab === t.key}>
                 <Text variant="callout" weight={tab === t.key ? '700' : '500'} tone={tab === t.key ? 'default' : 'secondary'}>
                   {t.label}
                 </Text>

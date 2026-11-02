@@ -118,7 +118,7 @@ export type PostRow = {
   id: string;
   body: string;
   kind: string;
-  like_count: number;
+  upvote_count: number;
   comment_count: number;
   created_at: string;
   edited_at: string | null;
@@ -208,7 +208,7 @@ export const getSellerProducts = cache(
 export const getRecentPosts = cache(async (authorId: string, limit = 6): Promise<PostRow[]> => {
   const { data, error } = await publicClient()
     .from('posts')
-    .select(`id, body, kind, like_count, comment_count, created_at, edited_at, post_media(bucket, ${MEDIA_COLUMNS})`)
+    .select(`id, body, kind, upvote_count, comment_count, created_at, edited_at, post_media(bucket, ${MEDIA_COLUMNS})`)
     .eq('author_id', authorId)
     .eq('visibility', 'public')
     .order('created_at', { ascending: false })
@@ -252,7 +252,7 @@ export const getPost = cache(async (id: string): Promise<PostDetail | null> => {
   const { data, error } = await publicClient()
     .from('posts')
     .select(
-      `id, body, kind, like_count, comment_count, created_at, edited_at, author_id,
+      `id, body, kind, upvote_count, comment_count, created_at, edited_at, author_id,
        post_media(bucket, ${MEDIA_COLUMNS}),
        author:profiles!posts_author_id_fkey(${SUMMARY_COLUMNS}),
        post_products(products(${CARD_COLUMNS}))`,

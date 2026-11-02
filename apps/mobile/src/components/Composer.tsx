@@ -136,7 +136,7 @@ export function OptionRow<T extends string>({
             onPress={() => onChange(o.key)}
             style={[styles.option, on && styles.optionOn, dark && styles.optionDark, dark && on && styles.optionDarkOn]}
             accessibilityRole="radio"
-            accessibilityState={{ selected: on }}
+            accessibilityState={{ selected: on }} aria-checked={on}
             accessibilityLabel={o.label}
           >
             <Text variant="callout" weight="700" color={fg} align="center">

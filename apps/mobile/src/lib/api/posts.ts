@@ -1,6 +1,8 @@
+import type { PostIntent } from '@jefeli/shared';
+
 import type { UploadedMedia } from '../upload';
 import { supabase, unwrap } from '../supabase';
-import type { CommentRow, PostCardData } from '../types';
+import type { CommentPreview, CommentRow, PostCardData, VoteValue } from '../types';
 import { PROFILE_LITE } from './profiles';
 
 export const POST_SELECT = `*,
@@ -14,16 +16,29 @@ function sortMedia(p: PostCardData): PostCardData {
   return { ...p, media: [...(p.media ?? [])].sort((a, b) => a.position - b.position) };
 }
 
+/** Adds the viewer's own vote and save, and a preview of genuine recent comments. */
 async function decorate(userId: string | null, posts: PostCardData[]): Promise<PostCardData[]> {
-  if (!userId || posts.length === 0) return posts.map(sortMedia);
+  if (posts.length === 0) return [];
   const ids = posts.map((p) => p.id);
-  const [likes, saves] = await Promise.all([
-    supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', ids),
-    supabase.from('post_saves').select('post_id').eq('user_id', userId).in('post_id', ids),
+  const withComments = posts.filter((p) => p.comment_count > 0).map((p) => p.id);
+  const [votes, saves, previews] = await Promise.all([
+    userId ? supabase.from('post_votes').select('post_id, value').eq('user_id', userId).in('post_id', ids) : null,
+    userId ? supabase.from('post_saves').select('post_id').eq('user_id', userId).in('post_id', ids) : null,
+    withComments.length > 0 ? supabase.rpc('get_comment_previews', { p_post_ids: withComments, p_per_post: 2 }) : null,
   ]);
-  const liked = new Set((likes.data ?? []).map((r) => r.post_id));
-  const saved = new Set((saves.data ?? []).map((r) => r.post_id));
-  return posts.map((p) => ({ ...sortMedia(p), liked: liked.has(p.id), saved: saved.has(p.id) }));
+  const myVotes = new Map((votes?.data ?? []).map((r) => [r.post_id, r.value as VoteValue]));
+  const saved = new Set((saves?.data ?? []).map((r) => r.post_id));
+  // Previews are a bonus: if they fail to load, cards still render without them.
+  const byPost = new Map<string, CommentPreview[]>();
+  for (const c of (previews?.data ?? []) as unknown as CommentPreview[]) {
+    byPost.set(c.post_id, [...(byPost.get(c.post_id) ?? []), c]);
+  }
+  return posts.map((p) => ({
+    ...sortMedia(p),
+    my_vote: myVotes.get(p.id) ?? 0,
+    saved: saved.has(p.id),
+    comments_preview: byPost.get(p.id) ?? [],
+  }));
 }
 
 export async function fetchPostsByIds(userId: string | null, ids: string[]): Promise<PostCardData[]> {
@@ -95,6 +110,7 @@ export async function createPost(args: {
   visibility: 'public' | 'followers' | 'friends';
   media: UploadedMedia[];
   productIds: string[];
+  intent?: PostIntent;
 }): Promise<string> {
   return unwrap(
     await supabase.rpc('create_post', {
@@ -102,6 +118,7 @@ export async function createPost(args: {
       p_visibility: args.visibility,
       p_media: args.media as unknown as never,
       p_product_ids: args.productIds,
+      p_intent: args.intent ?? 'share',
     }),
   ) as string;
 }
@@ -114,13 +131,12 @@ export async function deletePost(id: string) {
   unwrap(await supabase.rpc('delete_post', { p_post_id: id }));
 }
 
-export async function setLike(userId: string, postId: string, like: boolean) {
-  if (like) {
-    const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
-    if (error && !/duplicate/i.test(error.message)) throw error;
-  } else {
-    unwrap(await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId));
-  }
+/** One reversible vote per member: 1 (pour), -1 (contre, never shown publicly) or 0 (retirer). */
+export async function votePost(postId: string, value: VoteValue): Promise<{ upvote_count: number; my_vote: VoteValue }> {
+  return unwrap(await supabase.rpc('vote_post', { p_post_id: postId, p_value: value })) as unknown as {
+    upvote_count: number;
+    my_vote: VoteValue;
+  };
 }
 
 export async function setSave(userId: string, postId: string, save: boolean) {

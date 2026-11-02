@@ -86,6 +86,12 @@ const USERS = [
   { key: 'baol', email: `baol@${DOMAIN}`, handle: 'baolmode', name: 'BaolMode', city: 'Dakar', area: 'Sacré-Cœur', merchant: true, bio: 'Chaussures et sacs, neufs et d’occasion. Troc bienvenu.', interests: ['chaussures', 'sacs-accessoires'] },
   { key: 'moussa', email: `moussa@${DOMAIN}`, handle: 'moussa_dakar', name: 'Moussa Diop', city: 'Dakar', area: 'Parcelles Assainies', merchant: false, bio: 'Je vends ce que je n’utilise plus.', interests: ['telephones', 'electronique'] },
   { key: 'fatou', email: `fatou@${DOMAIN}`, handle: 'fatou_sarr', name: 'Fatou Sarr', city: 'Dakar', area: 'Mermoz', merchant: false, bio: 'Toujours à la recherche de belles pièces.', interests: ['mode-femme', 'beaute', 'sacs-accessoires'] },
+  // Feed engagement pass: services, requests and a brand-new seller (all fictional DÉMO members).
+  { key: 'khadija', email: `khadija@${DOMAIN}`, handle: 'khadija_retouches', name: 'Khadija Ba', city: 'Dakar', area: 'Mermoz', merchant: true, bio: 'Couturière : retouches, ourlets et confection à domicile. Devis gratuit.', interests: ['mode-femme'] },
+  { key: 'ibrahima', email: `ibrahima@${DOMAIN}`, handle: 'ibou_repare', name: 'Ibrahima Sow', city: 'Thiès', area: 'Centre-ville', merchant: true, bio: 'Réparation de téléphones et d’ordinateurs. Pièces garanties 3 mois.', interests: ['telephones', 'electronique'] },
+  { key: 'aissatou', email: `aissatou@${DOMAIN}`, handle: 'chez_aissatou', name: 'Aïssatou Ka', city: 'Dakar', area: 'Liberté 6', merchant: true, bio: 'Traiteur : thiéboudienne, yassa et mafé pour vos baptêmes et réunions.', interests: [] },
+  { key: 'mariama', email: `mariama@${DOMAIN}`, handle: 'mariama_d', name: 'Mariama Diallo', city: 'Saint-Louis', area: null, merchant: false, bio: 'Étudiante à Saint-Louis.', interests: ['electronique', 'telephones'] },
+  { key: 'ousmane', email: `ousmane@${DOMAIN}`, handle: 'ousmane_cabas', name: 'Ousmane Fall', city: 'Dakar', area: 'Grand Yoff', merchant: true, bio: 'Cabas et trousses en wax, cousus à la main. Nouveau sur Jëfëli !', interests: ['tissus-wax', 'sacs-accessoires'] },
   { key: 'admin', email: `admin@${DOMAIN}`, handle: 'equipe_moderation_demo', name: 'Modération (démo)', city: 'Dakar', area: null, merchant: false, bio: '', interests: [], staff: 'admin' },
 ];
 
@@ -159,6 +165,7 @@ async function main() {
     dress: await asset('yellow_dress.jpg', 800),
     waxGreen: await wax(['#F3E9D2', '#1F6E5A', '#E2A33B', '#10252C'], 1),
     waxIndigo: await wax(['#E9EEF5', '#22406E', '#D96A3A', '#1B2A3A'], 2),
+    waxOrange: await wax(['#FBEFE3', '#D9622B', '#1F6E5A', '#10252C'], 3),
   };
 
   console.log('Profiles…');
@@ -218,11 +225,36 @@ async function main() {
   await listing('moussa', { title: 'Tissu wax indigo 6 yards — à échanger', description: 'Jamais utilisé. J’échange contre des chaussures pointure 42 ou un sac.', price: 10000, category: 'tissus-wax', mode: 'trade', delivery: ['pickup'] }, [img.waxIndigo]);
   const bag = await listing('fatou', { title: 'Sac violet en cuir', description: 'Acheté le mois dernier, très bon état. Je préfère un échange.', price: 18000, category: 'sacs-accessoires', condition: 'like_new', mode: 'sale_or_trade' }, [img.bag]);
 
+  const cabas = await listing('ousmane', { title: 'Cabas en wax fait main — grand modèle', description: 'Doublé, poche intérieure, anses renforcées. Plusieurs motifs disponibles.', price: 7500, category: 'sacs-accessoires', quantity: 6, deliveryNotes: 'Retrait à Grand Yoff ou livraison Dakar 1 000 F.' }, [img.waxOrange]);
+  const waxTrade = (must(await admin.from('products').select('id').eq('seller_id', u.moussa.id).limit(1).single(), 'moussa listing')).id;
+
+  // Publications go through create_post as their author, with an intent (« Je partage » by default).
+  // `hoursAgo` spreads the DÉMO timeline over a few days so the feed shows realistic ages.
+  const post = async (who, body, { intent = 'share', media = [], products = [], hoursAgo = 0 } = {}) => {
+    const id = must(await u[who].client.rpc('create_post', { p_body: body, p_visibility: 'public', p_media: media, p_product_ids: products, p_intent: intent }), `post ${who}`);
+    if (hoursAgo > 0) {
+      const at = new Date(Date.now() - hoursAgo * 3600_000).toISOString();
+      must(await admin.from('posts').update({ created_at: at }).eq('id', id), 'post date');
+    }
+    return id;
+  };
+  const comment = async (who, postId, body, parentId = null) =>
+    must(await u[who].client.from('comments').insert({ post_id: postId, author_id: u[who].id, body, parent_id: parentId }).select('id').single(), `comment ${who}`).id;
+  const vote = async (who, postId, value = 1) => must(await u[who].client.rpc('vote_post', { p_post_id: postId, p_value: value }), `vote ${who}`);
+
   console.log('Posts and statuses…');
-  must(await u.awa.client.rpc('create_post', { p_body: 'Nouvel arrivage — collection du jour. Disponible dans ma boutique, retouches offertes cette semaine.', p_visibility: 'public', p_media: ensemble.media, p_product_ids: [ensemble.id] }), 'post awa');
-  must(await u.baol.client.rpc('create_post', { p_body: 'Baskets blanches en très bon état, pointure 42. Vente ou troc : proposez !', p_visibility: 'public', p_media: shoes.media, p_product_ids: [shoes.id] }), 'post baol');
-  must(await u.fatou.client.rpc('create_post', { p_body: 'Quelqu’un connaît un bon tailleur vers Mermoz pour un boubou de fête ?', p_visibility: 'public', p_media: [], p_product_ids: [] }), 'post fatou');
-  must(await u.awa.client.rpc('create_post', { p_body: 'Le wax cauris vert est de retour en 6 yards.', p_visibility: 'public', p_media: waxGreen.media, p_product_ids: [waxGreen.id] }), 'post wax');
+  const pEnsemble = await post('awa', 'Nouvel arrivage — collection du jour. Disponible dans ma boutique, retouches offertes cette semaine.', { media: ensemble.media, products: [ensemble.id], hoursAgo: 5 });
+  const pShoes = await post('baol', 'Baskets blanches en très bon état, pointure 42. Vente ou troc : proposez !', { media: shoes.media, products: [shoes.id], hoursAgo: 20 });
+  const pTailor = await post('fatou', 'Je cherche un bon tailleur vers Mermoz pour un boubou de fête, à rendre avant la Tabaski. Des adresses à me conseiller ?', { intent: 'seek', hoursAgo: 9 });
+  const pWax = await post('awa', 'Le wax cauris vert est de retour en 6 yards.', { media: waxGreen.media, products: [waxGreen.id], hoursAgo: 30 });
+  const pLaptop = await post('mariama', 'Je cherche un ordinateur portable d’occasion pour mes cours, budget 150 000 F maximum. Je suis à Saint-Louis, envoi possible.', { intent: 'seek', hoursAgo: 3 });
+  const pPhone = await post('moussa', 'Votre avis ? iPhone 11 d’occasion à 110 000 F, ou Samsung A54 neuf à 150 000 F avec garantie ?', { intent: 'opinion', hoursAgo: 14 });
+  const pRetouches = await post('khadija', 'Retouches, ourlets et confection à domicile à Mermoz et Sacré-Cœur. Devis gratuit, délai 48 h. Écrivez-moi pour un essayage.', { intent: 'offer', hoursAgo: 26 });
+  const pRepair = await post('ibrahima', 'Réparation d’écrans et de batteries de téléphones à Thiès. Diagnostic gratuit, pièces garanties 3 mois.', { intent: 'offer', hoursAgo: 40 });
+  const pTraiteur = await post('aissatou', 'Plateaux de thiéboudienne et de yassa pour baptêmes et réunions, à partir de 10 personnes. Commande 48 h à l’avance.', { intent: 'offer', hoursAgo: 50 });
+  const pCabas = await post('ousmane', 'Mes premiers cabas en wax sont prêts ! Cousus main, doublés, grand format. Vos retours m’aideront à choisir les prochains motifs.', { media: cabas.media, products: [cabas.id], hoursAgo: 7 });
+  const pTrade = await post('moussa', 'J’échange ce wax indigo 6 yards, jamais utilisé, contre des chaussures en 42 ou un sac. Faites-moi une proposition de troc.', { intent: 'offer', products: [waxTrade], hoursAgo: 18 });
+  const pBraids = await post('fatou', 'Votre avis ? Quelle coiffeuse pour des tresses rapides à Mermoz ou Ouakam ?', { intent: 'opinion', hoursAgo: 1 });
 
   const statusMedia = await upload(u.awa, 'private-media', 'stories', img.dress);
   must(await u.awa.client.rpc('create_story', { p_media_kind: 'image', p_path: statusMedia.path, p_poster_path: null, p_width: statusMedia.width, p_height: statusMedia.height, p_duration_ms: null, p_caption: 'Arrivage du jour', p_audience: 'public', p_product_id: dress.id }), 'story awa');
@@ -238,6 +270,57 @@ async function main() {
   const cid = must(await u.fatou.client.rpc('message_about_product', { p_product_id: shoes.id, p_body: 'Salam ! Les baskets sont toujours disponibles ?' }), 'message');
   must(await u.baol.client.from('messages').insert({ conversation_id: cid, sender_id: u.baol.id, kind: 'text', body: 'Oui, elles sont disponibles. Tu veux acheter ou échanger ?' }), 'reply');
   must(await u.fatou.client.rpc('make_offer', { p_product_id: shoes.id, p_kind: 'barter', p_amount_xof: 15000, p_offered_product_id: bag.id, p_cash_payer: 'buyer', p_message: 'Je propose mon sac violet + 15 000 F.' }), 'barter');
+
+  console.log('Comments, votes and conversations (DÉMO fixtures)…');
+  // Comments: genuine-looking fictional exchanges between DÉMO members, written through the API.
+  await comment('khadija', pTailor, 'Je suis couturière à Mermoz, je peux vous montrer des modèles de boubou. Écrivez-moi !');
+  await comment('awa', pTailor, 'Khadija travaille très bien, mes clientes vont souvent chez elle pour les retouches.');
+  await comment('moussa', pLaptop, 'J’ai un HP EliteBook (8 Go de RAM, SSD 256 Go) à 120 000 F. Je peux envoyer des photos.');
+  await comment('ibrahima', pLaptop, 'Faites vérifier la batterie et l’écran avant d’acheter. Si vous passez par Thiès, je le teste gratuitement.');
+  await comment('ibrahima', pPhone, 'Pour l’iPhone, demandez la capacité de la batterie : au moins 85 %, sinon prévoyez 25 000 F de remplacement.');
+  await comment('fatou', pPhone, 'Le A54 avec la garantie, sans hésiter.');
+  const cEnsemble = await comment('fatou', pEnsemble, 'Magnifique ! Il reste la taille M ?');
+  await comment('awa', pEnsemble, 'Oui, il en reste deux en M. Je vous la garde jusqu’à samedi.', cEnsemble);
+  await comment('mariama', pEnsemble, 'La broderie est superbe. Vous livrez à Saint-Louis ?');
+  await comment('fatou', pCabas, 'Très joli ! Le motif orange existe en plus petit format ?');
+  await comment('aissatou', pTraiteur, 'Merci à toutes pour vos commandes de la semaine dernière !');
+  await comment('khadija', pBraids, 'Essayez le salon à côté du marché de Ouakam, elles sont rapides.');
+
+  // Votes: cast by DÉMO members through vote_post (one per member, never on their own posts).
+  for (const [who, postId] of [
+    ['awa', pTailor], ['khadija', pTailor], ['mariama', pTailor],
+    ['moussa', pLaptop], ['ibrahima', pLaptop], ['fatou', pLaptop],
+    ['fatou', pEnsemble], ['mariama', pEnsemble], ['khadija', pEnsemble], ['aissatou', pEnsemble],
+    ['fatou', pShoes], ['moussa', pShoes],
+    ['fatou', pRetouches], ['awa', pRetouches],
+    ['moussa', pRepair], ['mariama', pRepair],
+    ['fatou', pPhone], ['ibrahima', pPhone],
+    ['fatou', pCabas], ['khadija', pCabas],
+    ['baol', pTrade], ['awa', pTraiteur], ['khadija', pTraiteur], ['fatou', pWax],
+  ]) {
+    await vote(who, postId);
+  }
+
+  for (const [a, b] of [['khadija', 'awa'], ['mariama', 'moussa'], ['fatou', 'khadija'], ['ousmane', 'awa']]) {
+    must(await u[a].client.from('follows').insert({ follower_id: u[a].id, followee_id: u[b].id }), `follow ${a}->${b}`);
+  }
+
+  // Private conversations that follow up on public requests (fictional DÉMO fixtures).
+  const dm = async (from, to, lines) => {
+    const conv = must(await u[from].client.rpc('get_or_create_conversation', { p_other: u[to].id }), `conversation ${from}`);
+    for (const [who, body] of lines) {
+      must(await u[who].client.from('messages').insert({ conversation_id: conv, sender_id: u[who].id, kind: 'text', body }), `dm ${who}`);
+    }
+  };
+  await dm('mariama', 'moussa', [
+    ['mariama', 'Bonjour Moussa, le HP EliteBook est toujours disponible ? Vous pouvez m’envoyer des photos ?'],
+    ['moussa', 'Bonjour ! Oui, je vous envoie les photos ce soir. La batterie tient environ 4 heures.'],
+    ['mariama', 'Parfait, merci. Je peux passer le voir à Dakar dimanche.'],
+  ]);
+  await dm('fatou', 'khadija', [
+    ['fatou', 'Bonjour Khadija, j’ai vu votre réponse. Vous êtes disponible samedi pour un essayage ?'],
+    ['khadija', 'Oui, samedi à partir de 10 h à Mermoz. Apportez le tissu, on choisit le modèle ensemble.'],
+  ]);
 
   console.log('\nDemo ready (local/staging only). Accounts, password:', PASSWORD);
   for (const spec of USERS) console.log(`  ${spec.email.padEnd(28)} @${spec.handle}${spec.staff ? '  (admin console)' : ''}`);

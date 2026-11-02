@@ -62,7 +62,7 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
             key={route.key}
             onPress={() => navigateToTab(route.key)}
             accessibilityRole="tab"
-            accessibilityState={{ selected: focused }}
+            accessibilityState={{ selected: focused }} aria-selected={focused}
             accessibilityLabel={badge ? `${meta.label}, ${badge} non lus` : meta.label}
             style={styles.item}
           >

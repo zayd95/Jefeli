@@ -331,7 +331,7 @@ const spamPostId = must(
   }),
   'publication 2',
 );
-must(await moussa.client.from('post_likes').insert({ post_id: postId, user_id: moussa.id }), 'like');
+must(await moussa.client.rpc('vote_post', { p_post_id: postId, p_value: 1 }), 'vote');
 must(
   await moussa.client.from('comments').insert({ post_id: postId, author_id: moussa.id, body: 'Disponible en 42 ?' }),
   'commentaire',

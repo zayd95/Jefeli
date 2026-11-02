@@ -65,7 +65,7 @@ export default function Report() {
           {REPORT_REASONS.map((r) => {
             const on = reason === r.key;
             return (
-              <Pressable key={r.key} onPress={() => setReason(r.key)} style={styles.option} accessibilityRole="radio" accessibilityState={{ selected: on }}>
+              <Pressable key={r.key} onPress={() => setReason(r.key)} style={styles.option} accessibilityRole="radio" accessibilityState={{ selected: on }} aria-checked={on}>
                 {on ? <CheckCircle2 size={22} color={colors.ink} /> : <Circle size={22} color={colors.borderStrong} />}
                 <Text variant="body" weight={on ? '600' : '400'}>
                   {r.label}

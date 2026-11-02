@@ -25,7 +25,7 @@ cd tests/integration && pnpm test              # from this folder
 cd tests/integration && pnpm vitest run src/06-messaging-storage.test.ts   # one file
 ```
 
-Files run one after another (`fileParallelism: false`). A full run takes about 25 seconds.
+Files run one after another (`fileParallelism: false`). A full run takes about 45 seconds.
 
 ### Configuration
 
@@ -57,13 +57,14 @@ Files run one after another (`fileParallelism: false`). A full run takes about 2
 | `src/helpers.ts` | `createUser`, `adminClient`, `anonClient`, `uploadImage`, `createListing`, `createPost`, `createStory`, realtime and error helpers |
 | `01-identity.test.ts` | ID-01: profiles, column grants, settings privacy, `export_my_data`, anonymous RPC access, private-schema exposure |
 | `02-social-graph.test.ts` | SOC-01: follows and counters, private accounts, notifications, friendships, blocks |
-| `03-posts-feed.test.ts` | SOC-02: posts, media, likes, comments, saves, ownership, followers-only media, `get_feed` |
+| `03-posts-feed.test.ts` | SOC-02: posts, media, votes, comments, saves, ownership, followers-only media, `get_feed` |
 | `04-stories.test.ts` | STA-01/02: audiences, views, `reply_to_story`, expiry, highlights |
 | `05-products-boutique.test.ts` | PROF-01, MKT-01, SOC-03/04: auto boutique, listing lifecycle, prohibited items, media ownership, `browse_products`, `search_profiles` |
 | `06-messaging-storage.test.ts` | MSG-01: conversations, outsider isolation, message kinds, attachments, deletion, Realtime RLS, rate limit |
 | `07-offers-agreements-reviews.test.ts` | MKT-02/03: offers, counters, barter, agreements, reviews, offers and agreements after a block |
 | `08-safety-moderation.test.ts` | SAF-01/02: reports and evidence, moderation, appeals, suspension, verification, reported DMs, media evidence integrity |
 | `09-live.test.ts` | Live: server-only state, `live_started` notifications, comments, pins, mutes |
+| `12-feed-engagement.test.ts` | Feed engagement: `vote_post` (switching, counters, access control, private downvotes, notifications, rate limit), publication intents, `get_comment_previews`, `get_feed` ranking v2 (votes, author diversity, `needs_answers`, mutes/blocks/moderation), votes in `export_my_data` |
 
 ## Defects found and fixed
 

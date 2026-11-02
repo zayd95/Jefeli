@@ -1,7 +1,7 @@
-import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience } from '@jefeli/shared';
+import { AUDIENCE_LABELS, formatXOF, isPostIntent, POST_INTENTS, toFrenchError, type Audience, type PostIntent } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
-import { Check } from 'lucide-react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Check, HandHelping, Megaphone, MessageCircleQuestionMark, Search, type LucideIcon } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -14,12 +14,27 @@ import { useAuth } from '@/lib/auth';
 import { useDraft } from '@/lib/drafts';
 import { uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
 
+const INTENT_ICONS: Record<PostIntent, LucideIcon> = { share: Megaphone, seek: Search, offer: HandHelping, opinion: MessageCircleQuestionMark };
+
 export default function NewPost() {
   const { userId } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
-  const draft = useDraft('post', { body: '', visibility: 'public' as Audience, media: [] as LocalMedia[], productIds: [] as string[] });
+  const params = useLocalSearchParams<{ intent?: string }>();
+  const startIntent: PostIntent = isPostIntent(params.intent) ? params.intent : 'share';
+  // « Demander à la communauté » shortcuts keep their own draft, so a restored photo post never
+  // replaces the request the member just chose to write.
+  const draft = useDraft(startIntent === 'share' ? 'post' : `post-${startIntent}`, {
+    body: '',
+    visibility: 'public' as Audience,
+    media: [] as LocalMedia[],
+    productIds: [] as string[],
+    intent: startIntent,
+  });
   const { body, visibility, media, productIds } = draft.value;
+  const intent: PostIntent = isPostIntent(draft.value.intent) ? draft.value.intent : 'share';
+  const intentInfo = POST_INTENTS.find((i) => i.key === intent) ?? POST_INTENTS[0]!;
+  const needsText = intent === 'seek' || intent === 'opinion';
   const set = (patch: Partial<typeof draft.value>) => draft.setValue((v) => ({ ...v, ...patch }));
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -27,7 +42,7 @@ export default function NewPost() {
 
   const myProducts = useQuery({ queryKey: ['my-active-products', userId], queryFn: () => fetchSellerProducts(userId ?? '', { onlyActive: true }), enabled: !!userId });
 
-  const canPublish = body.trim().length > 0 || media.length > 0;
+  const canPublish = needsText ? body.trim().length > 0 : body.trim().length > 0 || media.length > 0;
 
   async function publish() {
     if (!userId) return;
@@ -41,7 +56,7 @@ export default function NewPost() {
         onProgress: setProgress,
         signal: abort.current.signal,
       });
-      const id = await createPost({ body: body.trim(), visibility, media: uploaded, productIds });
+      const id = await createPost({ body: body.trim(), visibility, media: uploaded, productIds, intent });
       await draft.clear();
       qc.invalidateQueries({ queryKey: ['feed'] });
       qc.invalidateQueries({ queryKey: ['user-posts', userId] });
@@ -67,7 +82,41 @@ export default function NewPost() {
             </Text>
           </Text>
         ) : null}
-        <Field value={body} onChangeText={(t) => set({ body: t })} placeholder="Quoi de neuf ? Un arrivage, une bonne affaire, une pensée…" multiline maxLength={2200} counter label="Texte" />
+        <View style={{ gap: spacing.sm }}>
+          <Text variant="callout" weight="600">
+            Type de publication
+          </Text>
+          <View style={styles.intents} accessibilityRole="radiogroup">
+            {POST_INTENTS.map((i) => {
+              const on = i.key === intent;
+              const Icon = INTENT_ICONS[i.key];
+              return (
+                <Pressable
+                  key={i.key}
+                  onPress={() => set({ intent: i.key })}
+                  style={({ pressed }) => [styles.intent, on && styles.intentOn, pressed && !on && { backgroundColor: colors.surfaceSubtle }]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: on, checked: on }} aria-checked={on}
+                  accessibilityLabel={i.label}
+                >
+                  <Icon size={18} color={on ? colors.white : colors.ink} strokeWidth={2.2} />
+                  <Text variant="callout" weight="700" color={on ? colors.white : colors.ink} numberOfLines={1}>
+                    {i.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text variant="caption" tone="secondary">
+            {intentInfo.hint}
+          </Text>
+        </View>
+        <Field value={body} onChangeText={(t) => set({ body: t })} placeholder={intentInfo.placeholder} multiline maxLength={2200} counter label="Texte" />
+        {needsText && media.length > 0 && body.trim().length === 0 ? (
+          <Text variant="caption" tone="secondary" style={{ marginTop: -spacing.md }}>
+            Ajoutez quelques mots : une photo seule ne dit pas ce que vous cherchez.
+          </Text>
+        ) : null}
         <MediaPickerStrip media={media} onChange={(m) => set({ media: m })} />
 
         {(myProducts.data ?? []).length > 0 ? (
@@ -87,7 +136,7 @@ export default function NewPost() {
                     onPress={() => set({ productIds: on ? productIds.filter((x) => x !== p.id) : [...productIds, p.id].slice(0, 5) })}
                     style={[styles.product, on && styles.productOn]}
                     accessibilityRole="checkbox"
-                    accessibilityState={{ checked: on }}
+                    accessibilityState={{ checked: on }} aria-checked={on}
                     accessibilityLabel={p.title}
                   >
                     <Thumb media={p.media[0]} style={{ width: 120, height: 90, borderRadius: radius.sm }} />
@@ -132,6 +181,21 @@ export default function NewPost() {
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl },
+  intents: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  intent: {
+    flexBasis: '47%',
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 48,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+  },
+  intentOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   product: { padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, gap: 4 },
   productOn: { borderColor: colors.ink, borderWidth: 2 },
   check: { position: 'absolute', top: 12, right: 12, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center' },

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { CircleDot, ImageIcon, Radio, ShoppingBag, X, type LucideIcon } from 'lucide-react-native';
+import { CircleDot, ImageIcon, MessageCircleQuestionMark, Radio, ShoppingBag, X, type LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors, IconButton, radius, Screen, spacing, Text } from '@/design';
@@ -20,6 +20,12 @@ export default function PublishChooser() {
 
   const options: { icon: LucideIcon; title: string; body: string; href: string; disabled?: boolean }[] = [
     { icon: ImageIcon, title: 'Publication', body: 'Photo, vidéo ou texte. Identifiez vos articles si vous le souhaitez.', href: '/publish/post' },
+    {
+      icon: MessageCircleQuestionMark,
+      title: 'Demande à la communauté',
+      body: 'Vous cherchez un article, un service, un conseil ? Posez la question, la communauté répond.',
+      href: '/publish/post?intent=seek',
+    },
     { icon: CircleDot, title: 'Statut', body: 'Visible 24 h par vos abonnés ou vos amis. Idéal pour un arrivage.', href: '/publish/status' },
     { icon: ShoppingBag, title: 'Article', body: 'Neuf ou d’occasion, à vendre ou à échanger. Ajouté à votre boutique.', href: '/publish/listing' },
     {
@@ -47,7 +53,7 @@ export default function PublishChooser() {
             onPress={() => router.replace(href as never)}
             style={({ pressed }) => [styles.option, pressed && { backgroundColor: colors.surfaceSubtle }, disabled && { opacity: 0.55 }]}
             accessibilityRole="button"
-            accessibilityState={{ disabled: !!disabled }}
+            accessibilityState={{ disabled: !!disabled }} aria-disabled={!!disabled}
             accessibilityLabel={`${title}. ${body}`}
           >
             <View style={[styles.icon, title === 'Live' && !disabled && { backgroundColor: colors.dangerSoft }]}>

@@ -161,7 +161,7 @@ export default function AgreementScreen() {
               <Text variant="headline">Laisser un avis sur {other.display_name}</Text>
               <View style={{ flexDirection: 'row', gap: spacing.sm }} accessibilityRole="radiogroup">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <Pressable key={n} onPress={() => setRating(n)} accessibilityRole="radio" accessibilityState={{ selected: rating === n }} accessibilityLabel={`${n} sur 5`} hitSlop={4}>
+                  <Pressable key={n} onPress={() => setRating(n)} accessibilityRole="radio" accessibilityState={{ selected: rating === n }} aria-checked={rating === n} accessibilityLabel={`${n} sur 5`} hitSlop={4}>
                     <Star size={32} color={colors.ink} fill={n <= rating ? colors.ink : 'transparent'} />
                   </Pressable>
                 ))}

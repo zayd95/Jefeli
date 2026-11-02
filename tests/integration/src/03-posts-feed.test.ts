@@ -48,8 +48,12 @@ describe('SOC-02 — public post with photo: reactions, counters, ownership', ()
     expect((await adminProfile(B.id)).posts_count).toBe(1);
   });
 
-  it('A likes, comments and saves; counters and notifications follow', async () => {
-    must(await A.client.from('post_likes').insert({ post_id: post.id, user_id: A.id }));
+  it('A upvotes, comments and saves; counters and notifications follow', async () => {
+    expect(await rpc(A.client, 'vote_post', { p_post_id: post.id, p_value: 1 })).toEqual({
+      post_id: post.id,
+      upvote_count: 1,
+      my_vote: 1,
+    });
     commentId = (
       must(
         await A.client.from('comments').insert({ post_id: post.id, author_id: A.id, body: 'Magnifique !' }).select('id').single(),
@@ -58,10 +62,10 @@ describe('SOC-02 — public post with photo: reactions, counters, ownership', ()
     must(await A.client.from('post_saves').insert({ user_id: A.id, post_id: post.id }));
 
     const counters = must(
-      await A.client.from('posts').select('like_count, comment_count, save_count').eq('id', post.id).single(),
+      await A.client.from('posts').select('upvote_count, comment_count, save_count').eq('id', post.id).single(),
     );
-    expect(counters).toEqual({ like_count: 1, comment_count: 1, save_count: 1 });
-    expect((await notificationsOf(B, 'post_like')).map((n) => n.actor_id)).toEqual([A.id]);
+    expect(counters).toEqual({ upvote_count: 1, comment_count: 1, save_count: 1 });
+    expect((await notificationsOf(B, 'post_upvote')).map((n) => n.actor_id)).toEqual([A.id]);
     expect((await notificationsOf(B, 'post_comment')).map((n) => n.actor_id)).toEqual([A.id]);
 
     // Saves are private to the saver.
@@ -70,11 +74,14 @@ describe('SOC-02 — public post with photo: reactions, counters, ownership', ()
   });
 
   it('reactions cannot be forged in the name of someone else', async () => {
-    expectRlsViolation(await A.client.from('post_likes').insert({ post_id: post.id, user_id: C.id }));
+    // Votes have no direct write path at all: vote_post() always votes as the caller.
+    expectPermissionDenied(await A.client.from('post_votes').insert({ post_id: post.id, user_id: C.id, value: 1 }));
     expectRlsViolation(await A.client.from('comments').insert({ post_id: post.id, author_id: C.id, body: 'Faux' }));
     expectRlsViolation(await A.client.from('post_saves').insert({ post_id: post.id, user_id: C.id }));
     // Counter columns are not writable at all.
-    expectPermissionDenied(await B.client.from('posts').update({ like_count: 9999 }).eq('id', post.id));
+    expectPermissionDenied(await B.client.from('posts').update({ upvote_count: 9999 }).eq('id', post.id));
+    const truth = must(await adminClient.from('posts').select('upvote_count').eq('id', post.id).single()) as any;
+    expect(truth.upvote_count).toBe(1);
   });
 
   it("A cannot edit, soft-delete or delete B's post", async () => {
@@ -137,10 +144,14 @@ describe('SOC-02 — public post with photo: reactions, counters, ownership', ()
     expect(counters.comment_count).toBe(0);
   });
 
-  it('unlike decrements the counter', async () => {
-    must(await A.client.from('post_likes').delete().eq('post_id', post.id).eq('user_id', A.id));
-    const counters = must(await A.client.from('posts').select('like_count').eq('id', post.id).single()) as any;
-    expect(counters.like_count).toBe(0);
+  it('removing the vote decrements the counter', async () => {
+    expect(await rpc(A.client, 'vote_post', { p_post_id: post.id, p_value: 0 })).toEqual({
+      post_id: post.id,
+      upvote_count: 0,
+      my_vote: 0,
+    });
+    const counters = must(await A.client.from('posts').select('upvote_count').eq('id', post.id).single()) as any;
+    expect(counters.upvote_count).toBe(0);
   });
 
   it('the author can edit the text of their own post', async () => {
@@ -184,7 +195,7 @@ describe('SOC-02 — followers-only post and its private media', () => {
   });
 
   it('a non-follower cannot react to it', async () => {
-    expectRlsViolation(await stranger.client.from('post_likes').insert({ post_id: post.id, user_id: stranger.id }));
+    expectError(await stranger.client.rpc('vote_post', { p_post_id: post.id, p_value: 1 }), 'not_found');
     expectRlsViolation(
       await stranger.client.from('comments').insert({ post_id: post.id, author_id: stranger.id, body: 'Je vois tout' }),
     );

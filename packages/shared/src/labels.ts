@@ -63,9 +63,52 @@ export const FEED_REASON_LABELS: Record<string, string | null> = {
   following: null,
   nearby: 'Près de toi',
   interest: 'Selon tes centres d’intérêt',
+  needs_answers: 'Attend vos réponses',
+  popular: 'Apprécié par la communauté',
   new_seller: 'Nouveau sur Jëfëli',
   discover: 'À découvrir',
 };
+
+/**
+ * Publication intents: labels on ordinary posts (same media, comments and messages), not
+ * separate marketplaces. `share` is the default and is not labelled on cards.
+ */
+export type PostIntent = 'share' | 'seek' | 'offer' | 'opinion';
+export const POST_INTENTS: { key: PostIntent; label: string; hint: string; placeholder: string }[] = [
+  {
+    key: 'share',
+    label: 'Je partage',
+    hint: 'Un arrivage, une photo, une nouvelle de votre boutique.',
+    placeholder: 'Quoi de neuf ? Un arrivage, une bonne affaire, une pensée…',
+  },
+  {
+    key: 'seek',
+    label: 'Je cherche',
+    hint: 'Un article, un service, une adresse : la communauté peut vous aider.',
+    placeholder: 'Que cherchez-vous ? Ex. : je cherche un tailleur vers Mermoz pour un boubou de fête.',
+  },
+  {
+    key: 'offer',
+    label: 'Je propose',
+    hint: 'Un service, un savoir-faire ou un article à proposer.',
+    placeholder: 'Que proposez-vous ? Ex. : retouches à domicile à Dakar, devis gratuit.',
+  },
+  {
+    key: 'opinion',
+    label: 'Votre avis ?',
+    hint: 'Une question, une recommandation, un conseil à demander.',
+    placeholder: 'Votre question ? Ex. : quel téléphone choisir à moins de 100 000 F ?',
+  },
+];
+export const INTENT_LABELS: Record<PostIntent, string> = {
+  share: 'Je partage',
+  seek: 'Je cherche',
+  offer: 'Je propose',
+  opinion: 'Votre avis ?',
+};
+export function isPostIntent(v: unknown): v is PostIntent {
+  return v === 'share' || v === 'seek' || v === 'offer' || v === 'opinion';
+}
 
 export const REPORT_REASONS = [
   { key: 'scam', label: 'Arnaque ou fraude' },
@@ -99,7 +142,7 @@ export const NOTIFICATION_COPY: Record<string, (actor: string, data: Record<stri
   follow_accepted: (a) => `${a} a accepté votre demande d’abonnement`,
   friend_request: (a) => `${a} vous a envoyé une demande d’ami`,
   friend_accepted: (a) => `${a} et vous êtes maintenant amis`,
-  post_like: (a) => `${a} a aimé votre publication`,
+  post_upvote: (a) => `${a} a voté pour votre publication`,
   post_comment: (a, d) => `${a} a commenté : « ${String(d.excerpt ?? '')} »`,
   comment_reply: (a, d) => `${a} a répondu : « ${String(d.excerpt ?? '')} »`,
   message: (a) => `Nouveau message de ${a}`,

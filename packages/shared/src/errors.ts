@@ -43,6 +43,10 @@ const DB_ERRORS: Record<string, string> = {
   already_appealed: 'Vous avez déjà contesté cette décision.',
   already_friends: 'Vous êtes déjà amis.',
   provider_not_configured: 'Le direct n’est pas encore activé sur Jëfëli.',
+  invalid_vote: 'Vote invalide.',
+  own_post_vote: 'Vous ne pouvez pas voter pour votre propre publication.',
+  invalid_intent: 'Choisissez le type de publication.',
+  empty_request: 'Décrivez en quelques mots ce que vous cherchez ou votre question.',
 };
 
 const AUTH_ERRORS: Array<[RegExp, string]> = [

@@ -44,8 +44,8 @@ function copy(type: string, actor: string): { title: string; body: string } {
       return { title: 'Demande d’ami', body: `${actor} vous a envoyé une demande d’ami` };
     case 'friend_accepted':
       return { title: 'Nouvel ami', body: `${actor} a accepté votre demande` };
-    case 'post_like':
-      return { title: 'Jëfëli', body: `${actor} a aimé votre publication` };
+    case 'post_upvote':
+      return { title: 'Jëfëli', body: `${actor} a voté pour votre publication` };
     case 'post_comment':
     case 'comment_reply':
       return { title: 'Nouveau commentaire', body: `${actor} a commenté` };

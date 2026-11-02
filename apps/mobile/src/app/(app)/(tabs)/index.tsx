@@ -1,7 +1,7 @@
 import { FEED_TABS, type FeedTab } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bell, MapPin, Radio, Repeat, Sparkles, Tag, Users } from 'lucide-react-native';
+import { Bell, HandHelping, MapPin, MessageCircleQuestionMark, Radio, Repeat, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -106,6 +106,7 @@ export default function Home() {
           <Chip key={t.key} label={t.label} selected={tab === t.key} onPress={() => setTab(t.key)} />
         ))}
       </ScrollView>
+      {tab === 'for_you' && userId ? <AskCommunity name={profile?.display_name ?? ''} avatar={profile?.avatar_path ?? null} /> : null}
       {tab === 'nearby' && !profile?.city ? (
         <EmptyState
           compact
@@ -196,6 +197,48 @@ export default function Home() {
   );
 }
 
+const ASK_SHORTCUTS: { intent: 'seek' | 'offer' | 'opinion'; label: string; icon: LucideIcon }[] = [
+  { intent: 'seek', label: 'Je cherche', icon: Search },
+  { intent: 'offer', label: 'Je propose', icon: HandHelping },
+  { intent: 'opinion', label: 'Votre avis ?', icon: MessageCircleQuestionMark },
+];
+
+/** Low-friction entry to ask the community: a request is an ordinary post with an intent label. */
+function AskCommunity({ name, avatar }: { name: string; avatar: string | null }) {
+  const open = (intent: string) => router.push({ pathname: '/publish/post', params: { intent } });
+  return (
+    <View style={styles.ask}>
+      <Pressable
+        onPress={() => open('seek')}
+        style={styles.askTop}
+        accessibilityRole="button"
+        accessibilityLabel="Demander à la communauté : vous cherchez un article, un service ou un conseil ?"
+      >
+        <Avatar path={avatar} name={name || '?'} size={34} />
+        <Text variant="callout" tone="secondary" style={{ flex: 1 }} numberOfLines={2}>
+          Vous cherchez un article, un service, une adresse ? Demandez à la communauté.
+        </Text>
+      </Pressable>
+      <View style={styles.askRow}>
+        {ASK_SHORTCUTS.map(({ intent, label, icon: Icon }) => (
+          <Pressable
+            key={intent}
+            onPress={() => open(intent)}
+            style={({ pressed }) => [styles.askChip, pressed && { backgroundColor: colors.surfaceMuted }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Publier : ${label}`}
+          >
+            <Icon size={15} color={colors.ink} strokeWidth={2.2} />
+            <Text variant="caption" weight="700" numberOfLines={1}>
+              {label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function LiveRow({ live }: { live: LiveSessionRow }) {
   if (!live.host) return null;
   return (
@@ -254,5 +297,9 @@ const styles = StyleSheet.create({
   envTag: { backgroundColor: colors.warningSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, borderWidth: 1, borderColor: '#F0DFA8' },
   chips: { paddingHorizontal: spacing.lg, gap: 6, paddingBottom: spacing.md },
   gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
+  ask: { backgroundColor: colors.surface, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.border, padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm, marginBottom: spacing.sm },
+  askTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44 },
+  askRow: { flexDirection: 'row', gap: spacing.sm },
+  askChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, minHeight: 36, borderRadius: 999, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 6 },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderColor: colors.border },
 });

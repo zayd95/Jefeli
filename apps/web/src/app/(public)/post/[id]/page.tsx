@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { deepLinks, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
 import { ShareActions } from '@/components/ShareActions';
-import { IconComment, IconHeart } from '@/components/icons';
+import { IconComment, IconUpvote } from '@/components/icons';
 import { Avatar, DemoChip, StatusOverlay, VerifiedBadge, priceLabel } from '@/components/ui';
 import { env } from '@/lib/env';
 import { avatarUrl, firstStill, publicMediaUrl, sortMedia } from '@/lib/media';
@@ -110,7 +110,7 @@ export default async function PostPage({ params }: Props) {
         <div className="post-foot">
           <div className="meta-row">
             <span>
-              <IconHeart /> {formatCount(post.like_count)} {plural(post.like_count, 'j’aime', 'j’aime')}
+              <IconUpvote /> {formatCount(post.upvote_count)} {plural(post.upvote_count, 'vote pour', 'votes pour')}
             </span>
             <span>
               <IconComment /> {formatCount(post.comment_count)} {plural(post.comment_count, 'commentaire', 'commentaires')}

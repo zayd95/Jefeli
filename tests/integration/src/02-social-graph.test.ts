@@ -299,11 +299,15 @@ describe('Blocks', () => {
     expect(await canSee(A.client, 'boutiques', B.id, 'owner_id')).toBe(false);
   });
 
-  it("A cannot comment on or like B's posts", async () => {
+  it("A cannot comment on or vote on B's posts", async () => {
     const c = await A.client.from('comments').insert({ post_id: postId, author_id: A.id, body: 'Coucou' });
     expect(c.error).toBeTruthy();
-    const l = await A.client.from('post_likes').insert({ post_id: postId, user_id: A.id });
-    expect(l.error).toBeTruthy();
+    // Votes go through vote_post only, which applies the same visibility rules (blocks) as reading.
+    expectError(await A.client.rpc('vote_post', { p_post_id: postId, p_value: 1 }), 'not_found');
+    expectError(await A.client.rpc('vote_post', { p_post_id: postId, p_value: -1 }), 'not_found');
+    const truth = must(await adminClient.from('posts').select('upvote_count').eq('id', postId).single()) as any;
+    expect(truth.upvote_count).toBe(0);
+    expect(must(await adminClient.from('post_votes').select('user_id').eq('post_id', postId))).toEqual([]);
   });
 
   it('A cannot open a conversation with B or keep messaging in the old one', async () => {

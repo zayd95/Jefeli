@@ -28,13 +28,27 @@ export type TaggedProduct = Pick<Tables<'products'>, 'id' | 'title' | 'price_xof
   media: Pick<MediaRow, 'storage_path' | 'kind' | 'poster_path' | 'position'>[];
 };
 
+export type VoteValue = -1 | 0 | 1;
+
+/** A genuine recent comment shown under a feed card (from get_comment_previews, RLS-filtered). */
+export type CommentPreview = {
+  post_id: string;
+  comment_id: string;
+  body: string;
+  created_at: string;
+  by_post_author: boolean;
+  author: ProfileLite;
+};
+
 export type PostCardData = Tables<'posts'> & {
   author: ProfileLite | null;
   media: MediaRow[];
   tagged: { product: TaggedProduct | null }[];
   reason?: string;
-  liked?: boolean;
+  /** The viewer's own vote; downvotes are only ever visible to the member who cast them. */
+  my_vote?: VoteValue;
   saved?: boolean;
+  comments_preview?: CommentPreview[];
 };
 
 export type CommentRow = Tables<'comments'> & { author: ProfileLite | null };
