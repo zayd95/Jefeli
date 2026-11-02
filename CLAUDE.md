@@ -10,3 +10,19 @@ This file is the operating contract for coding agents working on Jëfëli. Read 
 - Do not create paid services, post publicly, release app-store binaries, or destroy unrelated work without owner's approval.
 - Keep `docs/IMPLEMENTATION_LOG.md`, `docs/RELEASE_STATUS.md`, and `docs/NEXT_ACTIONS.md` current. Commit logical milestones; include real evidence and exact SHA.
 - Always preserve user's working files and Git state. Never silently rewrite existing branches or discard their uncommitted changes.
+
+## Repository conventions (added during the pilot build)
+
+- Commands: `pnpm check` (typecheck + lint + unit), `pnpm test:integration` (needs `supabase start`
+  and `supabase functions serve --env-file supabase/functions/.env.test`), `pnpm test:e2e`
+  (needs Expo web on :8081, `pnpm web` on :3000 and `pnpm seed`). Run them before claiming a change works.
+- Schema changes = new migration in `supabase/migrations/` (never edit applied ones), then
+  `pnpm db:types`, then add RLS tests in `tests/integration/src/`. Every new `private.*`
+  function must be `revoke execute … from public, anon, authenticated` unless an RLS policy calls it.
+- Client writes go through column-level grants or SECURITY DEFINER RPCs that call
+  `private.require_user()` and check ownership. Raise short error keys and map them in
+  `packages/shared/src/errors.ts` (French copy).
+- Mobile: Expo SDK 58 APIs are verified against installed type definitions; use `goBack()` from
+  `@/lib/nav`, design primitives from `@/design`, never hardcode colors outside the tokens.
+- Live video must never be simulated: `live_sessions.status` changes only via the provider
+  webhook/server sync.

@@ -1,6 +1,6 @@
 {
   "name": "@jefeli/mobile",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@config-plugins/react-native-webrtc": "15.0.2",
@@ -67,7 +67,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "export:web": "expo export --platform web",
-    "lint": "expo lint",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "doctor": "expo-doctor"
   },

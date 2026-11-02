@@ -88,8 +88,8 @@ describe('live — tokens and webhook (fake provider credentials)', () => {
     if (providerConfigured) await adminClient.from('feature_flags').update({ enabled: false }).eq('key', 'live_streaming');
   });
 
-  it('a visible session yields a short-lived token signed for the caller only', async () => {
-    if (!providerConfigured) return;
+  it('a visible session yields a short-lived token signed for the caller only', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const r = await call('live', { action: 'token', sessionId }, { Authorization: `Bearer ${F.accessToken}` });
     expect(r.status, JSON.stringify(r.json)).toBe(200);
     expect(r.json.apiKey).toBe(TEST_STREAM_KEY);
@@ -102,20 +102,20 @@ describe('live — tokens and webhook (fake provider credentials)', () => {
     expect(ttl).toBeLessThanOrEqual(3600);
   });
 
-  it('a member the host blocked cannot obtain a token (RLS on the session)', async () => {
-    if (!providerConfigured) return;
+  it('a member the host blocked cannot obtain a token (RLS on the session)', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const r = await call('live', { action: 'token', sessionId }, { Authorization: `Bearer ${C.accessToken}` });
     expect(r.status).toBe(404);
   });
 
-  it('only the host can end the session', async () => {
-    if (!providerConfigured) return;
+  it('only the host can end the session', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const r = await call('live', { action: 'end', sessionId }, { Authorization: `Bearer ${F.accessToken}` });
     expect(r.status).toBe(403);
   });
 
-  it('webhook rejects a bad signature and wrong API key', async () => {
-    if (!providerConfigured) return;
+  it('webhook rejects a bad signature and wrong API key', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const body = JSON.stringify({ type: 'call.live_started', call_cid: `livestream:${callId}` });
     const bad = await call('live-webhook', body, { 'x-signature': 'deadbeef', 'x-api-key': TEST_STREAM_KEY });
     expect(bad.status).toBe(401);
@@ -126,8 +126,8 @@ describe('live — tokens and webhook (fake provider credentials)', () => {
     expect(s.status).toBe('created');
   });
 
-  it('signed provider events drive EN DIRECT, viewer counts and the end', async () => {
-    if (!providerConfigured) return;
+  it('signed provider events drive EN DIRECT, viewer counts and the end', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const send = async (event: Record<string, unknown>) => {
       const body = JSON.stringify(event);
       const sig = createHmac('sha256', TEST_STREAM_SECRET).update(body).digest('hex');
@@ -163,8 +163,8 @@ describe('push-dispatch — shared-secret protected', () => {
     expect((await call('push-dispatch', { notification_id: crypto.randomUUID() }, { 'x-jefeli-webhook-secret': 'wrong' })).status).toBe(401);
   });
 
-  it('skips recipients without registered devices', async () => {
-    if (!providerConfigured) return;
+  it('skips recipients without registered devices', async (ctx) => {
+    if (!providerConfigured) ctx.skip();
     const [A, B] = await Promise.all([createUser('push-a'), createUser('push-b')]);
     await follow(A, B);
     const [n] = await notificationsOf(B, 'follow');
