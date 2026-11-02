@@ -7,6 +7,17 @@ On your computer (Docker Desktop running, Node 22+, `corepack enable`): check ou
 `http://<IP>:8081` in Safari on the iPhone, which must be on the same private Wi-Fi. Send the
 feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`.
 
+## Next playtest: feed engagement
+- Test the community features from `docs/TEST_IPHONE_FR.md` §5 bis: votes, *Je cherche*,
+  comment previews.
+- After the playtest, run the 8 metric queries in `docs/FEED_ENGAGEMENT.md` on the staging
+  database. Ask the playtesters the questions listed there, especially whether ▲/▼ is clearly
+  different from a review and whether downvoting felt safe.
+- Decisions for the owner:
+  - whether to count downvotes from suspended accounts;
+  - whether to add opt-in impression analytics (nothing is tracked today);
+  - whether frequently downvoted posts should feed the moderation queue.
+
 ## Owner (blocking for Gate B)
 
 1. Create a **Supabase staging project** and follow `docs/SETUP_PRODUCTION.md` §1. That gives a

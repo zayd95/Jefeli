@@ -51,9 +51,15 @@ Create `supabase/functions/.env` (it is gitignored) containing
 `PUSH_WEBHOOK_SECRET=<any random string>`. Live video stays **disabled** until
 `STREAM_API_KEY` / `STREAM_API_SECRET` are added (see [`docs/SETUP_PRODUCTION.md`](docs/SETUP_PRODUCTION.md)).
 
-Demo accounts (password `Demo-jefeli-2026!`, local/staging only): `awa@demo.jefeli.test`,
-`baol@demo.jefeli.test`, `moussa@demo.jefeli.test`, `fatou@demo.jefeli.test`, and
-`admin@demo.jefeli.test` for the admin console at `/admin`.
+Demo accounts (password `Demo-jefeli-2026!`, local/staging only, all labelled DÉMO):
+- `awa@`, `baol@`, `moussa@`, `fatou@`: the original sellers and buyers.
+- `khadija@`, `ibrahima@`, `aissatou@`, `mariama@`, `ousmane@`: services, requests and a new
+  seller.
+- `admin@demo.jefeli.test`: the admin console at `/admin`.
+
+All addresses end in `@demo.jefeli.test`. Community votes, publication types (*Je cherche*,
+*Je propose*, *Votre avis ?*), comment previews and the feed ranking are described in
+[`docs/FEED_ENGAGEMENT.md`](docs/FEED_ENGAGEMENT.md).
 
 ### On your phone's browser (fastest, one command)
 

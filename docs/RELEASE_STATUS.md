@@ -37,11 +37,31 @@ executed here.
 | LIVE-02 | Provider auth + moderation | **PASS** (server side, fake credentials) · **BLOCKED_EXTERNAL** (real provider) | integration `11-edge-functions`: tokens signed for the caller only, ≤ 1 h; blocked viewer gets 404; non-host cannot end; bad webhook signature/API key rejected; only signed events set EN DIRECT, viewer counts and end. Integration `09`: comment/pin/mute rules |
 | SAF-01 | Report, block, admin queue | **PASS** | E2E `SAF-01` (report → moderator hides it in `/admin` → listing unavailable → block → profile hidden); integration `08` |
 | SAF-02 | No fake badge; reviews only after a completed agreement | **PASS** | integration `01`, `07`, `08` (verification only via admin RPC; review refused before both confirmations) |
-| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **162/162**. The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
+| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **196/196** (162 before the feed pass). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
 | DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart PASS | Reload persistence PASS. Upload retry/backoff, cancel, local drafts and French permission-denied messages are implemented but NOT_TESTED under real network loss or denied OS permissions |
 | DEV-02 | Real iOS/Android captures, safe areas, keyboard | **BLOCKED_EXTERNAL** (devices) · web renders PASS | `docs/evidence/e2e/screens/{iphone-se,iphone-15-pro-max,pixel-7}` (16 screens each, browser renders, no overflow). Real safe areas and keyboard behaviour need devices |
 | REL-01 | Clean install / migrate / test | **PASS** | Locally: `supabase db reset` → seed → `pnpm check` → integration → E2E. GitHub Actions on PR #1 (head `f18c9dd`): both jobs green, with the typecheck/lint/unit/web build plus all 162 integration tests on a fresh Supabase stack ([run 41378067524](https://github.com/zayd95/Jefeli/actions/runs/41378067524)) |
 | REL-02 | README, env names, staging link, checklist, owner script | **PASS** · staging link **BLOCKED_EXTERNAL** | `README.md`, `.env.example`, `docs/SETUP_PRODUCTION.md`, `docs/TEST_IPHONE_FR.md`. There is no hosted staging project or deployment yet (needs owner accounts and approval) |
+
+### Feed engagement pass (migration `…20261103000100_feed_engagement.sql`)
+
+| ID | Journey | Status | Evidence |
+|---|---|---|---|
+| FEED-01 | One reversible vote per member and publication. Public upvote count only; downvotes private; no self-vote | **PASS** | integration `12-feed-engagement` (switching, counters, no direct writes, anon/blocked/hidden/deleted/suspended/audience refused, rate limit, notification once, export); E2E `community` (up → down → persisted after reload, the author sees no negative) |
+| FEED-02 | Downvotes never exposed | **PASS** | integration: `post_votes` readable only by its owner; the penalty function is not reachable over the API; `get_feed` returns no score (regression for a leak found during this pass); the « popular » label uses public upvotes only |
+| FEED-03 | Optimistic vote with rollback and French error | **PASS** | E2E `community` (a server error is shown, then reverted, with « Une erreur est survenue. Réessayez. ») |
+| FEED-04 | Intents Je partage / Je cherche / Je propose / Votre avis ? on ordinary posts | **PASS** | integration (stored, `invalid_intent`, `empty_request`); E2E (feed shortcut → composer preselected → label on the card → « Je peux aider » opens a private chat) |
+| FEED-05 | Comment previews respect blocks, mutes, moderation and audience | **PASS** | integration `get_comment_previews`; E2E (the author sees a genuine reply under their card) |
+| FEED-06 | Explainable ranking: votes, recency, locality, relationships, author/type diversity, new members, unanswered requests | **PASS** | integration (upvotes lift and downvotes sink equivalent posts; a prolific author cannot fill the top; `needs_answers`; muted/blocked/hidden/deleted absent). DÉMO feed inspected by hand |
+| FEED-07 | Varied DÉMO content set | **PASS** | `pnpm seed`: 10 DÉMO accounts, 12 publications across the 4 intents, 12 comments, 24 votes, 3 conversations (one with a barter offer), all created through the real APIs |
+| FEED-08 | Mobile sizes, before/after | **PASS** (browser renders) | `docs/evidence/feed-pass/{before,after}/{iphone-se,iphone-15,pixel-7}` |
+
+Also in this pass:
+- A block removes the votes between the two members.
+- An allowlist test fails if a new `private.*` function is left executable by API roles. It
+  caught one during this pass.
+- Selected and checked states now reach the web build's accessibility tree: `aria-*` props are
+  set next to `accessibilityState` in 16 places.
 
 ### Other workstreams
 

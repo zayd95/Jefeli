@@ -68,6 +68,19 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 3. A : **Partager** sur l’article → WhatsApp. Ouvrez le lien sur un autre téléphone qui n’a
    **pas** l’application : la page publique s’affiche avec le titre, la photo et le prix.
 
+## 5 bis. Communauté (5 min)
+
+1. A : sur **Pour toi**, touchez **Je cherche** dans l’encadré « Demandez à la communauté ».
+   Écrivez une demande (par exemple un tailleur ou un réparateur), puis **Publier**.
+2. B : retrouvez la demande dans **Pour toi**. Elle porte l’étiquette « Je cherche » et la mention
+   « Attend vos réponses ». Touchez **Je peux aider** : une conversation privée s’ouvre.
+3. B : votez **▲** sur la demande, puis passez à **▼**. Le compteur public n’affiche jamais de
+   nombre négatif. A ne voit pas les votes « contre ».
+4. B : touchez **Commenter** et répondez. A voit l’aperçu du commentaire sous la publication,
+   directement dans le fil.
+5. Comptes DÉMO à essayer : `khadija@`, `mariama@` et `ousmane@` (même mot de passe). Ils montrent
+   des services proposés, une demande d’ordinateur et un tout nouveau vendeur.
+
 ## 6. Live (si activé)
 
 - Sans fournisseur vidéo configuré, **Publier → Live** indique clairement que le direct n’est pas

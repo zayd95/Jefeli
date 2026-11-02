@@ -120,13 +120,53 @@ workflow, EAS profiles, root scripts.
     bypass list. The E2E therefore ran with that IP added to `NO_PROXY`.
 - `pnpm check` (typecheck, lint, unit): pass.
 
+### `cb3c9b2` — Feed engagement and discovery pass
+Requested after the first local playtest. It is a focused pass on the existing feed: no new
+module and no new navigation. The details, ranking table and playtest metrics are in
+`docs/FEED_ENGAGEMENT.md`.
+- Migration `20261103000100_feed_engagement.sql`:
+  - `post_votes` + `vote_post()`, with a public `upvote_count` and private downvotes;
+  - likes migrated as upvotes, then `post_likes`/`like_count` dropped;
+  - `posts.intent` and `create_post(p_intent)`;
+  - `get_comment_previews()`;
+  - `get_feed` v2;
+  - votes added to the data export;
+  - a block removes the votes between the two members.
+- Mobile:
+  - `VoteControl` with optimistic update and rollback, through one cache helper (`lib/postCache.ts`);
+  - intent picker in the composer, plus « Demandez à la communauté » on the feed and in the
+    Publier menu;
+  - intent labels and contextual actions on cards;
+  - comment previews;
+  - a new action-row hierarchy.
+- Web share pages show upvotes instead of likes.
+- Defects found during the pass, all fixed before commit:
+  - `get_feed` returned its score to 3 decimals, including the downvote penalty, so anyone
+    could compute a post's downvotes. Found by the integration test workstream. The score is
+    no longer returned, and a regression test checks this.
+  - « popular » hinted at downvotes; it now uses public upvotes only.
+  - A blocked member's old votes kept counting.
+  - A new trigger function was executable by anon. A new allowlist test now fails for any
+    `private.*` function exposed to API roles.
+  - Copying likes fired the new notification trigger, so the migration was reordered.
+  - React Native Web ignores `accessibilityState`, so `aria-*` props were added in 16 places.
+  - The web profile showed « 1 votes ».
+- Evidence:
+  - integration **196/196**;
+  - E2E `community` 5/5 (vote switch and persistence, rollback on a server error, « Je peux
+    aider » → chat, comment preview), `journey` 11/11 and `screens` 3/3;
+  - `pnpm check` passes;
+  - before/after screenshots in `docs/evidence/feed-pass/`.
+  All of these are browser renders.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
 | `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass |
-| `pnpm test:integration` (with `.env.test` functions) | 162/162 |
+| `pnpm test:integration` (with `.env.test` functions) | 196/196 |
 | `pnpm test:e2e journey` | 11/11 |
+| `pnpm test:e2e community` | 5/5 |
 | `pnpm test:e2e screens` | 3/3 sizes |
 | `pnpm --filter @jefeli/web build` | pass (web workstream) |
 | `npx expo prebuild --no-install` | pass (output gitignored) |
