@@ -8,11 +8,12 @@ import {
   PLATFORM_DISCLAIMER,
   PRODUCT_STATUS_LABELS,
   deepLinks,
+  hasDisplayedPrice,
   shareUrls,
   timeAgo,
 } from '@jefeli/shared';
 import { Gallery, type GalleryItem } from '@/components/Gallery';
-import { OpenInApp } from '@/components/OpenInApp';
+import { OPEN_IN_APP_NOTE, OpenInApp } from '@/components/OpenInApp';
 import { ShareActions } from '@/components/ShareActions';
 import {
   IconBox,
@@ -25,9 +26,9 @@ import {
   IconTag,
   IconTruck,
 } from '@/components/icons';
-import { Avatar, DemoChip, ProductCard, Stars, VerifiedBadge, locationLabel, priceLabel } from '@/components/ui';
+import { Avatar, DemoChip, PriceText, ProductCard, Stars, VerifiedBadge, locationLabel, priceLabel } from '@/components/ui';
 import { env } from '@/lib/env';
-import { deName, xof } from '@/lib/format';
+import { deName } from '@/lib/format';
 import { avatarUrl, firstStill, publicMediaUrl, sortMedia } from '@/lib/media';
 import { getProduct, getSellerProducts, ratingAverage } from '@/lib/public-data';
 
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return { title: 'Article introuvable', robots: { index: false } };
 
   const url = shareUrls.product(env.siteUrl, product.id);
-  const price = product.price_xof !== null ? xof(product.price_xof) : LISTING_MODE_LABELS[product.listing_mode];
+  // Same label as the page and the app: « Prix sur demande », « … · à discuter », never « 0 F ».
+  const price = priceLabel(product);
   const status = product.status === 'active' ? '' : ` · ${PRODUCT_STATUS_LABELS[product.status]}`;
   const title = `${product.title} — ${price}${status}`;
   const where = locationLabel(product.neighborhood, product.city);
@@ -102,7 +104,11 @@ export default async function ProductPage({ params }: Props) {
   const shareUrl = shareUrls.product(env.siteUrl, product.id);
   const sellerRating = seller ? ratingAverage(seller.rating_sum, seller.rating_count) : null;
   const isAvailable = product.status === 'active';
-  const tradeOnly = product.price_xof === null;
+  const price = priceLabel(product);
+  // No amount shown (« Prix sur demande », « Prix à discuter », « À échanger »): a word label.
+  const wordPrice = !hasDisplayedPrice(product);
+  const askPrice = product.price_mode === 'on_request' || product.price_mode === 'negotiable';
+  const shareMessage = `À voir sur Jëfëli\u00A0: ${product.title} — ${price}${isAvailable ? '' : ` (${PRODUCT_STATUS_LABELS[product.status].toLowerCase()})`}`;
 
   return (
     <div className="container">
@@ -115,7 +121,9 @@ export default async function ProductPage({ params }: Props) {
               <DemoChip /> <span className="muted small">Annonce de démonstration</span>
             </p>
           ) : null}
-          <p className={`product-price ${tradeOnly ? 'is-trade' : ''}`}>{priceLabel(product)}</p>
+          <p className={`product-price ${wordPrice ? 'is-label' : ''}`}>
+            <PriceText product={product} />
+          </p>
           <h1 className="product-title">{product.title}</h1>
 
           <div className="chip-row">
@@ -147,16 +155,22 @@ export default async function ProductPage({ params }: Props) {
           <div className="cta-block cta-sticky">
             <OpenInApp
               href={deepLinks.product(product.id)}
-              label={isAvailable ? 'Ouvrir dans l’app pour contacter' : 'Ouvrir dans l’app'}
+              label={isAvailable ? 'Écrire au vendeur dans l’app' : 'Ouvrir dans l’app'}
               note={
+                // Kept to one short line: on a phone this bar is sticky and must not hide the price.
                 isAvailable
-                  ? undefined
+                  ? askPrice
+                    ? product.price_mode === 'on_request'
+                      ? 'Le prix est donné par le vendeur en message.'
+                      : 'Le prix se discute avec le vendeur en message.'
+                    : 'Ouvre l’application Jëfëli (phase pilote).'
                   : product.status === 'sold'
                     ? 'Cet article est vendu. Découvrez les autres articles du vendeur dans l’application.'
                     : 'Cet article est réservé pour le moment. Il peut redevenir disponible.'
               }
             />
           </div>
+          <p className="cta-note">{OPEN_IN_APP_NOTE}</p>
 
           <div className="stack-16" style={{ marginTop: 24 }}>
             {seller ? (
@@ -225,7 +239,7 @@ export default async function ProductPage({ params }: Props) {
               </p>
             </div>
 
-            <ShareActions url={shareUrl} text={`${product.title} — ${priceLabel(product)}`} />
+            <ShareActions url={shareUrl} text={`${product.title} — ${price}`} message={shareMessage} />
           </div>
         </div>
       </div>

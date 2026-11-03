@@ -9,6 +9,7 @@ import { confirmAsync } from '@/components/ContentMenu';
 import { ChatComposer, type VoiceClip } from '@/components/chat/Composer';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { OfferCard } from '@/components/chat/OfferCard';
+import { ProductPicker } from '@/components/chat/ProductPicker';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, colors, EmptyState, Header, IconButton, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
 import {
@@ -21,6 +22,7 @@ import {
   markConversationRead,
   MESSAGE_PAGE,
   sendAttachment,
+  sendProductCards,
   sendText,
   setConversationMuted,
 } from '@/lib/api/messages';
@@ -41,6 +43,7 @@ export default function ChatScreen() {
   const voiceEnabled = useFlag('voice_messages');
   const [menu, setMenu] = useState(false);
   const [selected, setSelected] = useState<MessageRow | null>(null);
+  const [picker, setPicker] = useState(false);
 
   const conv = useQuery({ queryKey: ['conversation', id], queryFn: () => fetchConversation(id ?? '') });
   const messages = useInfiniteQuery({
@@ -103,6 +106,11 @@ export default function ChatScreen() {
     } catch (e) {
       toast(e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e), 'error');
     }
+  }
+
+  async function onSendProducts(productIds: string[]) {
+    await sendProductCards(me, id ?? '', productIds);
+    refresh();
   }
 
   async function onSendVoice(clip: VoiceClip) {
@@ -213,8 +221,16 @@ export default function ChatScreen() {
             )
           }
         />
-        <ChatComposer onSendText={onSendText} onPickImage={onPickImage} onSendVoice={onSendVoice} voiceEnabled={voiceEnabled} />
+        <ChatComposer
+          onSendText={onSendText}
+          onPickImage={onPickImage}
+          onSendVoice={onSendVoice}
+          onPickProducts={() => setPicker(true)}
+          voiceEnabled={voiceEnabled}
+        />
       </KeyboardAvoidingView>
+
+      <ProductPicker visible={picker} onClose={() => setPicker(false)} me={me} otherId={other?.user_id ?? null} otherName={otherName} onSend={onSendProducts} />
 
       <Sheet visible={menu} onClose={() => setMenu(false)}>
         <SheetAction

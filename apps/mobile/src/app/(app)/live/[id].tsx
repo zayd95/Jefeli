@@ -1,4 +1,4 @@
-import { formatXOF, toFrenchError } from '@jefeli/shared';
+import { formatListingPrice, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { EyeOff, Flag, MessageCircle, Pin, PinOff, Radio, Send, Share2, UserX, X } from 'lucide-react-native';
@@ -173,7 +173,7 @@ export default function LiveScreen() {
                 {pin.data.title}
               </Text>
               <Text variant="callout" weight="800">
-                {pin.data.price_xof !== null ? formatXOF(pin.data.price_xof) : 'À échanger'}
+                {formatListingPrice(pin.data)}
               </Text>
             </View>
             {isHost ? (
@@ -269,7 +269,7 @@ export default function LiveScreen() {
           }}>
             <Thumb media={p.media[0]} style={{ width: 48, height: 48, borderRadius: 8 }} />
             <Text variant="bodyStrong" style={{ flex: 1 }} numberOfLines={1}>{p.title}</Text>
-            <Text variant="callout" weight="700">{p.price_xof !== null ? formatXOF(p.price_xof, { compact: true }) : 'Troc'}</Text>
+            <Text variant="callout" weight="700">{formatListingPrice(p, { compact: true })}</Text>
           </Pressable>
         ))}
         {myProducts.data?.length === 0 ? <Text tone="secondary">Aucun article disponible à épingler.</Text> : null}

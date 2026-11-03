@@ -202,6 +202,7 @@ async function main() {
         p_title: input.title,
         p_description: input.description,
         p_price_xof: input.price ?? null,
+        p_price_mode: input.priceMode ?? 'fixed',
         p_category_slug: input.category,
         p_condition: input.condition ?? 'new',
         p_listing_mode: input.mode ?? 'sale',
@@ -222,11 +223,14 @@ async function main() {
   const waxGreen = await listing('awa', { title: 'Tissu wax 6 yards — motif cauris vert', description: 'Wax 100 % coton, 6 yards. Idéal pour boubou ou ensemble.', price: 12500, category: 'tissus-wax', quantity: 12 }, [img.waxGreen]);
   const dress = await listing('awa', { title: 'Robe soleil jaune', description: 'Robe évasée, coupe fluide. Taille M.', price: 25000, category: 'mode-femme' }, [img.dress]);
   const shoes = await listing('baol', { title: 'Baskets blanches — pointure 42', description: 'Portées quelques fois, très propres. Boîte d’origine.', price: 35000, category: 'chaussures', condition: 'very_good', mode: 'sale_or_trade', deliveryNotes: 'Remise à Sacré-Cœur ou Liberté 6.' }, [img.shoes]);
-  await listing('moussa', { title: 'Tissu wax indigo 6 yards — à échanger', description: 'Jamais utilisé. J’échange contre des chaussures pointure 42 ou un sac.', price: 10000, category: 'tissus-wax', mode: 'trade', delivery: ['pickup'] }, [img.waxIndigo]);
+  const waxIndigo = await listing('moussa', { title: 'Tissu wax indigo 6 yards — à échanger', description: 'Jamais utilisé. J’échange contre des chaussures pointure 42 ou un sac.', price: 10000, category: 'tissus-wax', mode: 'trade', delivery: ['pickup'] }, [img.waxIndigo]);
   const bag = await listing('fatou', { title: 'Sac violet en cuir', description: 'Acheté le mois dernier, très bon état. Je préfère un échange.', price: 18000, category: 'sacs-accessoires', condition: 'like_new', mode: 'sale_or_trade' }, [img.bag]);
 
   const cabas = await listing('ousmane', { title: 'Cabas en wax fait main — grand modèle', description: 'Doublé, poche intérieure, anses renforcées. Plusieurs motifs disponibles.', price: 7500, category: 'sacs-accessoires', quantity: 6, deliveryNotes: 'Retrait à Grand Yoff ou livraison Dakar 1 000 F.' }, [img.waxOrange]);
-  const waxTrade = (must(await admin.from('products').select('id').eq('seller_id', u.moussa.id).limit(1).single(), 'moussa listing')).id;
+  const waxTrade = waxIndigo.id;
+  // Flexible pricing (DÉMO): a made-to-measure piece priced on request, and a negotiable lot with a starting price.
+  await listing('khadija', { title: 'Boubou brodé sur mesure', description: 'Le prix dépend du tissu et de la broderie choisis. Envoyez-moi une photo du modèle et vos mesures, je vous réponds avec un devis.', priceMode: 'on_request', category: 'mode-femme', deliveryNotes: 'Essayage à Mermoz ou Sacré-Cœur.' }, [img.waxIndigo]);
+  await listing('ousmane', { title: 'Lot de 5 cabas en wax — pour revendeuses', description: 'Cinq grands cabas assortis. Prix de départ, à discuter selon la quantité et les motifs.', price: 30000, priceMode: 'negotiable', category: 'sacs-accessoires', quantity: 3 }, [img.waxOrange]);
 
   // Publications go through create_post as their author, with an intent (« Je partage » by default).
   // `hoursAgo` spreads the DÉMO timeline over a few days so the feed shows realistic ages.
@@ -255,6 +259,14 @@ async function main() {
   const pCabas = await post('ousmane', 'Mes premiers cabas en wax sont prêts ! Cousus main, doublés, grand format. Vos retours m’aideront à choisir les prochains motifs.', { media: cabas.media, products: [cabas.id], hoursAgo: 7 });
   const pTrade = await post('moussa', 'J’échange ce wax indigo 6 yards, jamais utilisé, contre des chaussures en 42 ou un sac. Faites-moi une proposition de troc.', { intent: 'offer', products: [waxTrade], hoursAgo: 18 });
   const pBraids = await post('fatou', 'Votre avis ? Quelle coiffeuse pour des tresses rapides à Mermoz ou Ouakam ?', { intent: 'opinion', hoursAgo: 1 });
+
+  // Pins and a cover photo (DÉMO): what a seller highlights at the top of their profile.
+  const pin = async (who, kind, id) => must(await u[who].client.rpc('set_pinned', { p_kind: kind, p_id: id, p_pinned: true }), `pin ${kind} ${who}`);
+  await pin('awa', 'post', pEnsemble);
+  await pin('awa', 'product', ensemble.id);
+  await pin('baol', 'product', shoes.id);
+  const cover = await upload(u.awa, 'avatars', 'cover', img.waxGreen);
+  must(await u.awa.client.from('profiles').update({ cover_path: cover.path }).eq('id', u.awa.id), 'cover awa');
 
   const statusMedia = await upload(u.awa, 'private-media', 'stories', img.dress);
   must(await u.awa.client.rpc('create_story', { p_media_kind: 'image', p_path: statusMedia.path, p_poster_path: null, p_width: statusMedia.width, p_height: statusMedia.height, p_duration_ms: null, p_caption: 'Arrivage du jour', p_audience: 'public', p_product_id: dress.id }), 'story awa');

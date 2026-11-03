@@ -1,4 +1,4 @@
-import { AGREEMENT_STATUS_LABELS, describeCashDifference, formatXOF, PLATFORM_DISCLAIMER, timeAgo, toFrenchError } from '@jefeli/shared';
+import { AGREEMENT_STATUS_LABELS, describeCashDifference, formatXOF, PLATFORM_DISCLAIMER, timeAgo, toFrenchError, formatListingPrice, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeftRight, CheckCircle2, FileX, MapPin, MessageCircle, ShieldAlert, Star } from 'lucide-react-native';
@@ -219,7 +219,7 @@ function SnapRow({ snap, caption }: { snap: ProductSnapshot; caption: string }) 
         </Text>
         <Text variant="caption" tone="secondary">
           {caption}
-          {snap.price_xof !== null ? ` · affiché ${formatXOF(snap.price_xof, { compact: true })}` : ''}
+          {` · ${hasDisplayedPrice(snap) ? 'affiché ' : ''}${formatListingPrice(snap, { compact: true })}`}
         </Text>
       </View>
     </View>

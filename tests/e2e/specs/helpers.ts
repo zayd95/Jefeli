@@ -79,3 +79,39 @@ export async function pickFile(page: Page, trigger: () => Promise<void>, file: s
   const chooser = await chooserPromise;
   await chooser.setFiles(file);
 }
+
+/**
+ * Publishes an article through the 3-step guided composer (L’essentiel → Détails → Remise).
+ * `priceMode` defaults to « Prix affiché »; `price` is optional for the other modes.
+ */
+export async function publishListing(
+  page: Page,
+  opts: {
+    file: string;
+    title: string;
+    mode?: 'Vente' | 'Vente ou troc' | 'Troc';
+    priceMode?: 'Prix affiché' | 'Prix sur demande' | 'À discuter';
+    price?: string;
+    category: string;
+    condition: string;
+    description?: string;
+  },
+) {
+  await page.goto('/publish/listing');
+  await expect(page.getByText('Étape 1 sur 3', { exact: false }).last()).toBeVisible();
+  await pickFile(page, () => btn(page, 'Ajouter depuis la galerie').click(), opts.file);
+  await expect(page.getByText('Couverture', { exact: true }).last()).toBeVisible();
+  await field(page, 'Titre').fill(opts.title);
+  if (opts.mode) await page.getByRole('radio', { name: opts.mode, exact: true }).click();
+  if (opts.priceMode) await page.getByRole('radio', { name: opts.priceMode, exact: true }).click();
+  if (opts.price) await field(page, /^Prix/).fill(opts.price);
+  await btn(page, 'Continuer').click();
+  await expect(page.getByText('Étape 2 sur 3', { exact: false }).last()).toBeVisible();
+  await btn(page, opts.category).click();
+  await btn(page, opts.condition).click();
+  if (opts.description) await field(page, 'Description (facultatif)').fill(opts.description);
+  await btn(page, 'Continuer').click();
+  await expect(page.getByText('Étape 3 sur 3', { exact: false }).last()).toBeVisible();
+  await btn(page, 'Publier l’article').click();
+  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+}

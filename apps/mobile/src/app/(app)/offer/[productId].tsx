@@ -1,4 +1,4 @@
-import { formatAmountInput, formatXOF, parseXOF, PLATFORM_DISCLAIMER, toFrenchError } from '@jefeli/shared';
+import { formatAmountInput, formatXOF, parseXOF, PLATFORM_DISCLAIMER, toFrenchError, formatListingPrice, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeftRight, Check, PackagePlus } from 'lucide-react-native';
@@ -108,7 +108,7 @@ export default function OfferComposer() {
               {p.title}
             </Text>
             <Text variant="callout" weight="700">
-              {p.price_xof !== null ? `Prix affiché : ${formatXOF(p.price_xof)}` : 'À échanger'}
+              {hasDisplayedPrice(p) ? `Prix affiché : ${formatListingPrice(p)}` : formatListingPrice(p)}
             </Text>
           </View>
         </View>
@@ -119,7 +119,7 @@ export default function OfferComposer() {
             value={amount}
             onChangeText={(t) => setAmount(formatAmountInput(t))}
             keyboardType="number-pad"
-            placeholder={p.price_xof ? formatAmountInput(String(Math.round(p.price_xof * 0.85))) : '20 000'}
+            placeholder={hasDisplayedPrice(p) && p.price_xof ? formatAmountInput(String(Math.round(p.price_xof * 0.85))) : '20 000'}
             suffix="F CFA"
             hint={original.data?.amount_xof ? `Proposition précédente : ${formatXOF(original.data.amount_xof)}` : 'Le vendeur peut accepter, refuser ou faire une contre-proposition.'}
           />
@@ -205,7 +205,7 @@ function TradeOption({ product, selected, onPress }: { product: ProductCard; sel
         {product.title}
       </Text>
       <Text variant="caption" tone="secondary">
-        {product.price_xof !== null ? formatXOF(product.price_xof, { compact: true }) : 'Troc'}
+        {formatListingPrice(product, { compact: true })}
       </Text>
       {selected ? (
         <View style={styles.check}>

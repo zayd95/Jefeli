@@ -34,7 +34,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '03-home-occasions');
 
     await page.goto('/explore');
-    await expect(page.getByText('Catégories', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Tous', exact: true })).toHaveAttribute('aria-selected', 'true');
     await capture(page, device, '04-explore');
 
     await page.goto('/u/awa_couture');
@@ -59,7 +59,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '09-status-viewer');
 
     await page.goto('/publish');
-    await expect(page.getByText(/Bientôt disponible/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Live\./ })).toHaveAttribute('aria-disabled', 'true');
     await capture(page, device, '10-publish-live-disabled');
 
     await page.goto('/publish/listing');

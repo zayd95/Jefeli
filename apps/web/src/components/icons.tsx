@@ -208,3 +208,10 @@ export const IconExternal = (p: IconProps) => (
     <path d="M13.5 4.5h6v6M19.5 4.5L11 13M17 14v4.5a1.5 1.5 0 01-1.5 1.5h-10A1.5 1.5 0 014 18.5v-10A1.5 1.5 0 015.5 7H10" />
   </Icon>
 );
+
+/** Push pin — « Épinglé » (pinned to the top of a profile). Distinct from IconPin (location). */
+export const IconPushpin = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9 3.5h6M10 3.5l-.6 5.8L6.5 12.5v1.5h11v-1.5l-2.9-3.2L14 3.5M12 14v6.5" />
+  </Icon>
+);

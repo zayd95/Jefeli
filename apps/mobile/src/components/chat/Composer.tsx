@@ -1,11 +1,11 @@
 import { formatDuration } from '@jefeli/shared';
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
-import { Mic, Plus, Send, Square, Trash2 } from 'lucide-react-native';
+import { Image as ImageIcon, Mic, Plus, Send, ShoppingBag, Square, Trash2 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, spacing, Text, useToast } from '@/design';
+import { colors, fonts, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
 
 export interface VoiceClip {
   uri: string;
@@ -17,11 +17,14 @@ export function ChatComposer({
   onSendText,
   onPickImage,
   onSendVoice,
+  onPickProducts,
   disabled,
   voiceEnabled = true,
 }: {
   onSendText: (text: string) => Promise<void>;
   onPickImage: () => void;
+  /** When set, « + » offers a photo or articles (product cards) instead of opening the photo picker directly. */
+  onPickProducts?: () => void;
   onSendVoice: (clip: VoiceClip) => Promise<void>;
   disabled?: boolean;
   voiceEnabled?: boolean;
@@ -32,6 +35,7 @@ export function ChatComposer({
   const [sending, setSending] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [attach, setAttach] = useState(false);
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const started = useRef<number>(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -121,9 +125,36 @@ export function ChatComposer({
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-      <Pressable onPress={onPickImage} disabled={disabled} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Envoyer une photo">
+      <Pressable
+        onPress={onPickProducts ? () => setAttach(true) : onPickImage}
+        disabled={disabled}
+        style={styles.iconBtn}
+        accessibilityRole="button"
+        accessibilityLabel={onPickProducts ? 'Joindre une photo ou des articles' : 'Envoyer une photo'}
+      >
         <Plus size={24} color={colors.ink} />
       </Pressable>
+      {onPickProducts ? (
+        <Sheet visible={attach} onClose={() => setAttach(false)}>
+          <SheetAction
+            icon={ImageIcon}
+            label="Envoyer une photo"
+            onPress={() => {
+              setAttach(false);
+              onPickImage();
+            }}
+          />
+          <SheetAction
+            icon={ShoppingBag}
+            label="Envoyer des articles"
+            description="Une fiche par article, de sa boutique ou de la vôtre."
+            onPress={() => {
+              setAttach(false);
+              onPickProducts();
+            }}
+          />
+        </Sheet>
+      ) : null}
       <View style={styles.inputWrap}>
         <TextInput
           value={text}

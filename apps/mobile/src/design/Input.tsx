@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react-native';
 import { forwardRef, useState, type ComponentRef } from 'react';
-import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { Text } from './Text';
 import { colors, fonts, radius, spacing } from './theme';
@@ -140,7 +140,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  input: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 10, minHeight: 24 },
+  // On web the box border already turns ink on focus; drop the browser's second focus ring inside it.
+  input: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 10, minHeight: 24, ...(Platform.OS === 'web' ? { outlineWidth: 0 } : null) },
   search: {
     height: 46,
     borderRadius: radius.md,

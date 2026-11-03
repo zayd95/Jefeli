@@ -18,6 +18,7 @@ export function patchPost(qc: QueryClient, postId: string, patch: (p: PostCardDa
     d ? { ...d, pages: d.pages.map((pg) => pg.map(apply)) } : d,
   );
   qc.setQueriesData<PostCardData[]>({ queryKey: ['saved-posts'] }, (d) => d?.map(apply));
+  qc.setQueriesData<PostCardData[]>({ queryKey: ['pinned-posts'] }, (d) => d?.map(apply));
   qc.setQueryData<PostCardData | null>(['post', postId], (d) => (d ? apply(d) : d));
 }
 

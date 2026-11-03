@@ -340,6 +340,10 @@ async function main() {
 │  Le direct (Live) et les notifications push demandent un build de
 │  développement : dans Expo Go, ils affichent « indisponible ».
 │
+│  Roue d’outils flottante : c’est l’outil d’Expo Go, pas l’app.
+│  Secouez l’iPhone (menu développeur d’Expo Go) et désactivez
+│  l’option du bouton d’outils flottant (« Tools button »).
+│
 │  Ctrl+C pour arrêter. Supabase reste lancé : pnpm db:stop
 └───────────────────────────────────────────────────────────────
 `);

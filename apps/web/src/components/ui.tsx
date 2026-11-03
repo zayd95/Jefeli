@@ -3,13 +3,13 @@ import {
   CONDITION_LABELS,
   LISTING_MODE_LABELS,
   PRODUCT_STATUS_LABELS,
+  formatListingPrice,
   initials,
 } from '@jefeli/shared';
 import type { ProductStatus } from '@jefeli/shared';
-import { xof } from '@/lib/format';
 import { firstStill } from '@/lib/media';
 import type { ProductCardRow } from '@/lib/public-data';
-import { IconImage, IconPlay, IconStar, IconVerified } from './icons';
+import { IconImage, IconPlay, IconPushpin, IconStar, IconVerified } from './icons';
 
 export const VERIFIED_EXPLANATION =
   'Informations vendeur examinées par l’équipe Jëfëli. Ne garantit pas les produits.';
@@ -83,15 +83,48 @@ export function StatusOverlay({ status, large = false }: { status: ProductStatus
   );
 }
 
-export function priceLabel(p: { price_xof: number | null; listing_mode: ProductCardRow['listing_mode'] }, compact = false): string {
-  if (p.price_xof === null) return 'À échanger';
-  return xof(p.price_xof, { compact });
+type PricedListing = Pick<ProductCardRow, 'price_xof' | 'price_mode' | 'listing_mode'>;
+
+/**
+ * How a listing's price reads on the web — the shared formatListingPrice rules, so the share
+ * pages match the app: « 25 000 F CFA », « Prix sur demande », « 25 000 F CFA · à discuter »,
+ * « Prix à discuter », « À échanger ». Never « 0 F », never an invented amount.
+ * Regular no-break spaces: the narrow one renders too tight in Inter at UI sizes.
+ */
+export function priceLabel(p: PricedListing, compact = false): string {
+  return formatListingPrice(p, { compact }).replace(/\u202F/g, '\u00A0');
 }
 
-export function ProductCard({ product }: { product: ProductCardRow }) {
+/** The price label, with a trailing « · à discuter » set in a quieter style. Text is unchanged. */
+export function PriceText({ product, compact = false }: { product: PricedListing; compact?: boolean }) {
+  const label = priceLabel(product, compact);
+  const cut = label.indexOf(' · ');
+  if (cut < 0) return <>{label}</>;
+  return (
+    <>
+      {label.slice(0, cut)}
+      <span className="price-note">{label.slice(cut)}</span>
+    </>
+  );
+}
+
+/** « Épinglé » marker for posts and listings the owner pinned to the top of their profile. */
+export function PinnedChip({ className = '' }: { className?: string }) {
+  return (
+    <span className={`pinned-chip ${className}`}>
+      <IconPushpin /> Épinglé
+    </span>
+  );
+}
+
+/** `showPinned`: mark pinned listings « Épinglé » (only on the seller's own storefront). */
+export function ProductCard({ product, showPinned = false }: { product: ProductCardRow; showPinned?: boolean }) {
   const still = firstStill(product.product_media);
   const hasVideo = product.product_media.some((m) => m.kind === 'video');
+  const price = priceLabel(product, true);
+  // « Vente ou troc » / « À échanger » under the price, unless the price line already says it.
   const modeNote = product.listing_mode === 'sale' ? null : LISTING_MODE_LABELS[product.listing_mode];
+  const pinned = showPinned && product.pinned_at !== null;
   return (
     <Link href={`/p/${product.id}`} className={`product-card ${product.status === 'sold' ? 'is-sold' : ''}`}>
       <div className="product-card-media">
@@ -108,13 +141,16 @@ export function ProductCard({ product }: { product: ProductCardRow }) {
           </span>
         ) : null}
         <StatusOverlay status={product.status} />
+        {pinned ? <PinnedChip className="is-overlay" /> : null}
       </div>
       <div className="product-card-body">
-        <div className="product-card-price">{priceLabel(product, true)}</div>
+        <div className="product-card-price">
+          <PriceText product={product} compact />
+        </div>
         <div className="product-card-title">{product.title}</div>
         <div className="product-card-meta">
           {CONDITION_LABELS[product.condition]}
-          {modeNote && product.price_xof !== null ? ` · ${modeNote}` : ''}
+          {modeNote && modeNote !== price ? ` · ${modeNote}` : ''}
         </div>
       </div>
     </Link>

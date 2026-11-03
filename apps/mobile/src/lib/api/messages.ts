@@ -77,6 +77,19 @@ export async function sendProductCard(userId: string, conversationId: string, pr
   );
 }
 
+/**
+ * Several product cards in one insert (one row per article, in the chosen order). Each row goes
+ * through the same RLS policy and insert trigger as a single card (membership, blocks, visibility).
+ */
+export async function sendProductCards(userId: string, conversationId: string, productIds: string[]): Promise<void> {
+  if (productIds.length === 0) return;
+  unwrap(
+    await supabase
+      .from('messages')
+      .insert(productIds.map((productId) => ({ conversation_id: conversationId, sender_id: userId, kind: 'product', product_id: productId, body: '' }))),
+  );
+}
+
 export async function openConversationWith(otherUserId: string): Promise<string> {
   return unwrap(await supabase.rpc('get_or_create_conversation', { p_other: otherUserId })) as string;
 }

@@ -1,7 +1,8 @@
 import {
   CONDITION_LABELS,
   DELIVERY_LABELS,
-  formatXOF,
+  formatListingPrice,
+  hasDisplayedPrice,
   LISTING_MODE_LABELS,
   PLATFORM_DISCLAIMER,
   PRODUCT_STATUS_LABELS,
@@ -10,7 +11,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Heart, MapPin, MessageCircle, MoreHorizontal, PackageX, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { Heart, MapPin, MessageCircle, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,9 +21,10 @@ import { MediaCarousel } from '@/components/Media';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, Button, colors, EmptyState, ErrorState, Header, IconButton, radius, Screen, Skeleton, spacing, Tag, Text, useToast } from '@/design';
 import { messageAboutProduct } from '@/lib/api/messages';
+import { setPinned } from '@/lib/api/posts';
 import { deleteListing, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
-import { shareLinks } from '@/lib/share';
+import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
 import { goBack } from '@/lib/nav';
 
@@ -123,7 +125,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         title="Article"
         right={
           <>
-            <IconButton icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product.id, product.title, product.price_xof)} />
+            <IconButton icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} />
             {!isOwner ? (
               <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : colors.ink} onPress={toggleSave} />
             ) : null}
@@ -146,10 +148,16 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         </View>
 
         <View style={styles.info}>
-          <Text variant="display" accessibilityLabel={product.price_xof !== null ? formatXOF(product.price_xof) : 'À échanger'}>
-            {product.price_xof !== null ? formatXOF(product.price_xof) : 'À échanger'}
-          </Text>
-          {product.listing_mode === 'trade' && product.price_xof !== null ? (
+          {product.pinned_at ? (
+            <View style={styles.pinned}>
+              <Pin size={13} color={colors.accentDeep} />
+              <Text variant="caption" weight="700" color={colors.accentDeep}>
+                Épinglé par le vendeur
+              </Text>
+            </View>
+          ) : null}
+          <Text variant={hasDisplayedPrice(product) ? 'display' : 'title'}>{formatListingPrice(product)}</Text>
+          {product.listing_mode === 'trade' && hasDisplayedPrice(product) ? (
             <Text variant="caption" tone="secondary">
               Valeur estimée par le vendeur
             </Text>
@@ -174,6 +182,30 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           <Text variant="caption" tone="secondary" style={{ marginTop: spacing.sm }}>
             Publié {timeAgo(product.created_at)}
           </Text>
+          <View style={styles.shareRow}>
+            <Pressable
+              onPress={() => whatsappLinks.product(product)}
+              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceMuted }]}
+              accessibilityRole="button"
+              accessibilityLabel="Partager sur WhatsApp"
+            >
+              <MessageCircle size={16} color={colors.ink} />
+              <Text variant="callout" weight="700">
+                WhatsApp
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => shareLinks.product(product)}
+              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceMuted }]}
+              accessibilityRole="button"
+              accessibilityLabel="Partager ailleurs (Facebook, Instagram, TikTok…)"
+            >
+              <Share2 size={16} color={colors.ink} />
+              <Text variant="callout" weight="700">
+                Partager
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         {seller ? (
@@ -245,7 +277,20 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         ownerId={product.seller_id}
         ownerName={seller?.display_name ?? 'ce vendeur'}
         target={{ type: 'product', id: product.id }}
-        onShare={() => shareLinks.product(product.id, product.title, product.price_xof)}
+        onShare={() => shareLinks.product(product)}
+        pin={{
+          pinned: !!product.pinned_at,
+          onToggle: async () => {
+            try {
+              await setPinned('product', product.id, !product.pinned_at);
+              qc.invalidateQueries({ queryKey: ['product', product.id] });
+              qc.invalidateQueries({ queryKey: ['seller-products', product.seller_id] });
+              toast(product.pinned_at ? 'Retiré de votre profil' : 'Épinglé sur votre profil', 'success');
+            } catch (e) {
+              toast(toFrenchError(e), 'error');
+            }
+          },
+        }}
         onEdit={() => router.push(`/listing-edit/${product.id}`)}
         deleteLabel="Supprimer l’article"
         onDelete={async () => {
@@ -279,6 +324,17 @@ function Detail({ icon: Icon, label, hint }: { icon: typeof MapPin; label: strin
 const styles = StyleSheet.create({
   statusBanner: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,37,44,0.75)', paddingVertical: 10, alignItems: 'center' },
   info: { padding: spacing.lg, gap: 2 },
+  pinned: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+  shareRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  sharePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
+  },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: spacing.md },
   detailList: { marginTop: spacing.lg, gap: spacing.md, borderTopWidth: 1, borderColor: colors.border, paddingTop: spacing.lg },
   detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },

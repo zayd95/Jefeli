@@ -47,6 +47,9 @@ const DB_ERRORS: Record<string, string> = {
   own_post_vote: 'Vous ne pouvez pas voter pour votre propre publication.',
   invalid_intent: 'Choisissez le type de publication.',
   empty_request: 'Décrivez en quelques mots ce que vous cherchez ou votre question.',
+  price_required: 'Indiquez un prix, ou choisissez « Prix sur demande » ou « À discuter ».',
+  invalid_price_mode: 'Choisissez comment afficher le prix.',
+  pin_limit: 'Vous pouvez épingler 3 éléments au maximum. Retirez-en un d’abord.',
 };
 
 const AUTH_ERRORS: Array<[RegExp, string]> = [

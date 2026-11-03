@@ -1,38 +1,56 @@
+/**
+ * Explorer: one compact filter hierarchy instead of several horizontal carousels.
+ *   1. What: Tout · Neuf · Occasion · Troc (segmented, one row)
+ *   2. Category: « Tous » by default, the main categories, « Voir tout » expands the rest
+ *   3. Where: one city button (all cities, my city, or an active city) in a sheet
+ * Every filter maps to the existing browse_products RPC (mode / condition / category / city).
+ */
 import { toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { MapPin, PackageSearch } from 'lucide-react-native';
+import { Check, ChevronDown, Globe2, MapPin, Navigation, PackageSearch } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { gridItemWidth, ListingCard } from '@/components/ListingCard';
-import { Chip, colors, EmptyState, ErrorState, radius, Screen, SearchBar, Skeleton, spacing, Text } from '@/design';
+import { colors, EmptyState, ErrorState, radius, Screen, SearchBar, Sheet, SheetAction, Skeleton, spacing, Text } from '@/design';
 import { browseProducts, fetchActiveCities, fetchCategories, PRODUCT_PAGE, type BrowseMode } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import type { ProductCard } from '@/lib/types';
 
-const MODES: { key: BrowseMode; label: string }[] = [
-  { key: 'recent', label: 'Nouveautés' },
-  { key: 'nearby', label: 'À proximité' },
-  { key: 'occasions', label: 'Occasions' },
-  { key: 'troc', label: 'Troc' },
+type Kind = 'all' | 'new' | 'used' | 'trade';
+const KINDS: { key: Kind; label: string }[] = [
+  { key: 'all', label: 'Tout' },
+  { key: 'new', label: 'Neuf' },
+  { key: 'used', label: 'Occasion' },
+  { key: 'trade', label: 'Troc' },
 ];
+const FEATURED = 5;
+
+function browseArgs(kind: Kind): { mode: BrowseMode; condition: string | null } {
+  if (kind === 'new') return { mode: 'recent', condition: 'new' };
+  if (kind === 'used') return { mode: 'occasions', condition: null };
+  if (kind === 'trade') return { mode: 'troc', condition: null };
+  return { mode: 'recent', condition: null };
+}
 
 export default function Explore() {
   const { profile } = useAuth();
   const { width } = useWindowDimensions();
-  const [mode, setMode] = useState<BrowseMode>('recent');
+  const [kind, setKind] = useState<Kind>('all');
   const [category, setCategory] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
+  const [allCategories, setAllCategories] = useState(false);
+  const [citySheet, setCitySheet] = useState(false);
 
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity });
   const cities = useQuery({ queryKey: ['active-cities'], queryFn: fetchActiveCities, staleTime: 5 * 60_000 });
 
-  const effectiveCity = mode === 'nearby' ? (city ?? profile?.city ?? null) : city;
+  const { mode, condition } = browseArgs(kind);
   const products = useInfiniteQuery({
-    queryKey: ['explore', mode, category, effectiveCity],
+    queryKey: ['explore', kind, category, city],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => browseProducts({ mode, category, city: effectiveCity, offset: pageParam }),
+    queryFn: ({ pageParam }) => browseProducts({ mode, condition, category, city, offset: pageParam }),
     getNextPageParam: (last, all) => (last.length < PRODUCT_PAGE ? undefined : all.length * PRODUCT_PAGE),
   });
 
@@ -44,6 +62,11 @@ export default function Explore() {
   }, [items]);
   const itemW = gridItemWidth(width);
 
+  const cats = categories.data ?? [];
+  const selectedCat = cats.find((c) => c.slug === category);
+  const shownCats = allCategories ? cats : cats.slice(0, FEATURED).concat(selectedCat && cats.indexOf(selectedCat) >= FEATURED ? [selectedCat] : []);
+  const filtered = kind !== 'all' || !!category || !!city;
+
   const header = (
     <View>
       <View style={styles.top}>
@@ -52,62 +75,55 @@ export default function Explore() {
       <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
         <SearchBar onPress={() => router.push('/search')} placeholder="Produits, vendeurs, quartiers…" />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {MODES.map((m) => (
-          <Chip key={m.key} label={m.label} selected={mode === m.key} onPress={() => setMode(m.key)} />
-        ))}
-      </ScrollView>
 
-      <Text variant="headline" weight="800" style={styles.section}>
-        Catégories
-      </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {(categories.data ?? []).map((c) => (
-          <Pressable
-            key={c.slug}
-            onPress={() => setCategory(category === c.slug ? null : c.slug)}
-            style={[styles.cat, category === c.slug && styles.catOn]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: category === c.slug }} aria-selected={category === c.slug}
-          >
-            <Text variant="callout" weight="600" color={category === c.slug ? colors.white : colors.ink}>
-              {c.name}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.segment} accessibilityRole="tablist">
+        {KINDS.map((k) => {
+          const on = kind === k.key;
+          return (
+            <Pressable
+              key={k.key}
+              onPress={() => setKind(k.key)}
+              style={[styles.segmentItem, on && styles.segmentOn]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              aria-selected={on}
+              accessibilityLabel={k.label}
+            >
+              <Text variant="callout" weight="700" color={on ? colors.white : colors.ink}>
+                {k.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-      {(cities.data ?? []).length > 0 ? (
-        <>
-          <Text variant="headline" weight="800" style={styles.section}>
-            Par ville
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-            {(cities.data ?? []).map((c) => (
-              <Chip
-                key={c.city}
-                icon={MapPin}
-                label={`${c.city} · ${c.listings}`}
-                selected={city === c.city}
-                onPress={() => setCity(city === c.city ? null : c.city)}
-                style={city === c.city ? undefined : styles.idle}
-              />
-            ))}
-          </ScrollView>
-        </>
-      ) : null}
+      <View style={styles.cats}>
+        <CategoryChip label="Tous" selected={!category} onPress={() => setCategory(null)} />
+        {shownCats.map((c) => (
+          <CategoryChip key={c.slug} label={c.name} selected={category === c.slug} onPress={() => setCategory(category === c.slug ? null : c.slug)} />
+        ))}
+        {cats.length > FEATURED ? (
+          <CategoryChip label={allCategories ? 'Moins' : 'Voir tout'} subtle onPress={() => setAllCategories((x) => !x)} />
+        ) : null}
+      </View>
 
       <View style={styles.resultHeader}>
-        <Text variant="headline" weight="800">
-          {mode === 'nearby' ? `Près de ${effectiveCity ?? 'chez vous'}` : MODES.find((m) => m.key === mode)?.label}
-        </Text>
-        {category || city ? (
+        <Pressable onPress={() => setCitySheet(true)} style={styles.cityButton} accessibilityRole="button" accessibilityLabel={`Ville : ${city ?? 'toutes les villes'}. Changer`}>
+          <MapPin size={16} color={colors.ink} />
+          <Text variant="callout" weight="700">
+            {city ?? 'Toutes les villes'}
+          </Text>
+          <ChevronDown size={16} color={colors.textSecondary} />
+        </Pressable>
+        {filtered ? (
           <Pressable
             onPress={() => {
+              setKind('all');
               setCategory(null);
               setCity(null);
             }}
             hitSlop={10}
+            accessibilityRole="button"
           >
             <Text variant="callout" weight="600" tone="secondary">
               Effacer les filtres
@@ -143,10 +159,22 @@ export default function Explore() {
             </View>
           ) : products.isError ? (
             <ErrorState message={toFrenchError(products.error)} onRetry={() => products.refetch()} />
-          ) : mode === 'nearby' && !effectiveCity ? (
-            <EmptyState icon={MapPin} title="Choisissez une ville" body="Ajoutez votre ville dans votre profil ou sélectionnez-en une ci-dessus." />
           ) : (
-            <EmptyState icon={PackageSearch} title="Aucun article trouvé" body="Essayez une autre catégorie ou une autre ville." />
+            <EmptyState
+              icon={PackageSearch}
+              title="Aucun article trouvé"
+              body={filtered ? 'Essayez une autre catégorie, un autre type ou une autre ville.' : 'Les premiers articles arrivent bientôt.'}
+              actionLabel={filtered ? 'Effacer les filtres' : undefined}
+              onAction={
+                filtered
+                  ? () => {
+                      setKind('all');
+                      setCategory(null);
+                      setCity(null);
+                    }
+                  : undefined
+              }
+            />
           )
         }
         onEndReached={() => products.hasNextPage && !products.isFetchingNextPage && products.fetchNextPage()}
@@ -154,17 +182,71 @@ export default function Explore() {
         refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={() => void products.refetch()} tintColor={colors.ink} />}
         contentContainerStyle={{ paddingBottom: spacing.xxl }}
       />
+
+      <Sheet visible={citySheet} onClose={() => setCitySheet(false)}>
+        <SheetAction
+          icon={city === null ? Check : Globe2}
+          label="Toutes les villes"
+          onPress={() => {
+            setCity(null);
+            setCitySheet(false);
+          }}
+        />
+        {profile?.city ? (
+          <SheetAction
+            icon={city === profile.city ? Check : Navigation}
+            label={`Près de moi · ${profile.city}`}
+            onPress={() => {
+              setCity(profile.city);
+              setCitySheet(false);
+            }}
+          />
+        ) : null}
+        {(cities.data ?? [])
+          .filter((c) => c.city !== profile?.city)
+          .map((c) => (
+            <SheetAction
+              key={c.city}
+              icon={city === c.city ? Check : MapPin}
+              label={`${c.city} · ${c.listings} article${c.listings > 1 ? 's' : ''}`}
+              onPress={() => {
+                setCity(c.city);
+                setCitySheet(false);
+              }}
+            />
+          ))}
+      </Sheet>
     </Screen>
+  );
+}
+
+function CategoryChip({ label, selected, subtle, onPress }: { label: string; selected?: boolean; subtle?: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.cat, selected && styles.catOn, subtle && styles.catSubtle, pressed && !selected && { backgroundColor: colors.surfaceSubtle }]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!selected }}
+      aria-selected={!!selected}
+      accessibilityLabel={label}
+    >
+      <Text variant="caption" weight="700" color={selected ? colors.white : colors.ink}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   top: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
-  chips: { paddingHorizontal: spacing.lg, gap: 6, paddingBottom: spacing.sm },
-  section: { paddingHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: spacing.sm },
-  cat: { paddingHorizontal: 14, height: 40, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center' },
+  segment: { flexDirection: 'row', marginHorizontal: spacing.lg, padding: 3, borderRadius: radius.md, backgroundColor: colors.surfaceSubtle },
+  segmentItem: { flex: 1, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
+  segmentOn: { backgroundColor: colors.ink },
+  cats: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  cat: { paddingHorizontal: 11, minHeight: 34, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center' },
   catOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  idle: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  catSubtle: { backgroundColor: colors.surfaceSubtle, borderColor: colors.surfaceSubtle },
   resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.lg, marginBottom: spacing.md },
+  cityButton: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
 });

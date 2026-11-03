@@ -1,6 +1,6 @@
-import { CONDITION_LABELS, formatXOF, LISTING_MODE_LABELS } from '@jefeli/shared';
+import { CONDITION_LABELS, formatListingPrice, formatXOF, hasDisplayedPrice } from '@jefeli/shared';
 import { router } from 'expo-router';
-import { Repeat } from 'lucide-react-native';
+import { Pin, Repeat } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -10,15 +10,16 @@ import type { ProductCard } from '@/lib/types';
 import { Thumb } from './Media';
 import { fill } from '@/design/fill';
 
-function ListingCardInner({ product, width, showSeller = true }: { product: ProductCard; width: number; showSeller?: boolean }) {
+function ListingCardInner({ product, width, showSeller = true, showPinned = false }: { product: ProductCard; width: number; showSeller?: boolean; showPinned?: boolean }) {
   const media = product.media[0];
   const unavailable = product.status === 'sold' || product.status === 'reserved';
+  const pinned = showPinned && !!product.pinned_at;
   return (
     <Pressable
       onPress={() => router.push(`/p/${product.id}`)}
       style={({ pressed }) => [{ width }, pressed && { opacity: 0.85 }]}
       accessibilityRole="button"
-      accessibilityLabel={`${product.title}, ${product.price_xof !== null ? formatXOF(product.price_xof) : 'à échanger'}`}
+      accessibilityLabel={`${pinned ? 'Épinglé. ' : ''}${product.title}, ${formatListingPrice(product)}`}
     >
       <View>
         <Thumb media={media} style={{ width, height: Math.round(width * 1.15), borderRadius: radius.md }} />
@@ -26,6 +27,14 @@ function ListingCardInner({ product, width, showSeller = true }: { product: Prod
           <View style={styles.statusOverlay}>
             <Text variant="caption" weight="800" color={colors.white}>
               {product.status === 'sold' ? 'VENDU' : 'RÉSERVÉ'}
+            </Text>
+          </View>
+        ) : null}
+        {pinned ? (
+          <View style={styles.pinned}>
+            <Pin size={11} color={colors.ink} strokeWidth={2.6} />
+            <Text variant="micro" weight="700">
+              Épinglé
             </Text>
           </View>
         ) : null}
@@ -39,13 +48,17 @@ function ListingCardInner({ product, width, showSeller = true }: { product: Prod
         ) : null}
       </View>
       <View style={{ paddingTop: 8, gap: 1 }}>
-        {product.price_xof !== null ? (
+        {product.price_mode === 'negotiable' && hasDisplayedPrice(product) ? (
+          // « 30 000 F · à discuter » fits a narrow grid card; the full label stays in the a11y name.
           <Text variant="bodyStrong" weight="800" numberOfLines={1}>
-            {formatXOF(product.price_xof)}
+            {formatXOF(product.price_xof, { compact: true })}
+            <Text variant="caption" weight="600" tone="secondary">
+              {' · à discuter'}
+            </Text>
           </Text>
         ) : (
-          <Text variant="bodyStrong" weight="800">
-            {LISTING_MODE_LABELS[product.listing_mode]}
+          <Text variant="bodyStrong" weight="800" numberOfLines={1}>
+            {formatListingPrice(product)}
           </Text>
         )}
         <Text variant="callout" numberOfLines={1}>
@@ -80,6 +93,18 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  pinned: {
+    position: 'absolute',
+    left: 8,
+    top: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   trade: {
     position: 'absolute',

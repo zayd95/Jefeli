@@ -1,7 +1,7 @@
 import { toFrenchError } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Ban, BellOff, Flag, Pencil, Share2, Trash2 } from 'lucide-react-native';
+import { Ban, BellOff, Flag, Pencil, Pin, PinOff, Share2, Trash2 } from 'lucide-react-native';
 import { Alert, Platform } from 'react-native';
 
 import { Sheet, SheetAction, useToast } from '@/design';
@@ -35,6 +35,7 @@ export function ContentMenu({
   onEdit,
   onDelete,
   deleteLabel = 'Supprimer',
+  pin,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -45,6 +46,8 @@ export function ContentMenu({
   onEdit?: () => void;
   onDelete?: () => Promise<void>;
   deleteLabel?: string;
+  /** Owner-only: pin to / unpin from the profile (max 3 per kind, enforced by the database). */
+  pin?: { pinned: boolean; onToggle: () => void };
 }) {
   const { userId } = useAuth();
   const qc = useQueryClient();
@@ -63,6 +66,9 @@ export function ContentMenu({
   return (
     <Sheet visible={visible} onClose={onClose}>
       {onShare ? <SheetAction icon={Share2} label="Partager" onPress={run(onShare)} /> : null}
+      {isOwner && pin ? (
+        <SheetAction icon={pin.pinned ? PinOff : Pin} label={pin.pinned ? 'Retirer de mon profil' : 'Épingler sur mon profil'} onPress={run(pin.onToggle)} />
+      ) : null}
       {isOwner && onEdit ? <SheetAction icon={Pencil} label="Modifier" onPress={run(onEdit)} /> : null}
       {isOwner && onDelete ? (
         <SheetAction

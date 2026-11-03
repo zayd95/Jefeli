@@ -52,8 +52,12 @@ interface PreviewRow {
   author: Record<string, any>;
 }
 
+/**
+ * Members who completed onboarding: since 20261105000100_refinement.sql only active, onboarded
+ * members count in the public upvote count (13-refinement covers voters who did not onboard).
+ */
 function createUsers(...labels: string[]): Promise<TestUser[]> {
-  return Promise.all(labels.map((l) => createUser(l)));
+  return Promise.all(labels.map((l) => createUser(l, { onboarded: true })));
 }
 
 /** Text-only publication through the real create_post RPC. */
@@ -795,8 +799,12 @@ describe('Feed ranking v2 (get_feed for_you)', () => {
     const oldSeek = await textPost(authors.oldseek!, 'Je cherche un vélo', 'seek');
     await setPostCreatedAt(oldSeek, minutesAgo(4 * 24 * 60));
     const answered = await textPost(authors.answered!, 'Je cherche du thiéboudienne livré', 'seek');
-    for (const body of ['Chez Fatou', 'Au restaurant du coin', 'Essayez Keur Ndeye']) {
-      must(await voters[0]!.client.from('comments').insert({ post_id: answered, author_id: voters[0]!.id, body }));
+    // Three answers from three different members (since v4, answers count per distinct member;
+    // 13-refinement checks that one member answering three times is not enough).
+    const answers = ['Chez Fatou', 'Au restaurant du coin', 'Essayez Keur Ndeye'];
+    for (const [i, body] of answers.entries()) {
+      const voter = voters[i]!;
+      must(await voter.client.from('comments').insert({ post_id: answered, author_id: voter.id, body }));
     }
     expect((must(await adminClient.from('posts').select('comment_count').eq('id', answered).single()) as any).comment_count).toBe(3);
 

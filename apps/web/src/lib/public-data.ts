@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import { HANDLE_PATTERN } from '@jefeli/shared';
-import type { ItemCondition, ListingMode, ProductStatus } from '@jefeli/shared';
+import type { ItemCondition, ListingMode, PriceMode, ProductStatus } from '@jefeli/shared';
 import { publicClient } from './supabase/public';
 
 /**
@@ -86,11 +86,15 @@ export type ProductCardRow = {
   id: string;
   title: string;
   price_xof: number | null;
+  /** How the price reads: always render it with formatListingPrice (never « 0 F »). */
+  price_mode: PriceMode;
   condition: ItemCondition;
   listing_mode: ListingMode;
   status: ProductStatus;
   city: string | null;
   neighborhood: string | null;
+  /** Set when the seller pinned the listing to the top of their storefront (max 3). */
+  pinned_at: string | null;
   created_at: string;
   product_media: MediaRow[];
 };
@@ -122,6 +126,8 @@ export type PostRow = {
   comment_count: number;
   created_at: string;
   edited_at: string | null;
+  /** Set when the author pinned the post to the top of their profile (max 3). */
+  pinned_at: string | null;
   post_media: PostMediaRow[];
 };
 
@@ -158,9 +164,17 @@ const SUMMARY_COLUMNS =
 
 const MEDIA_COLUMNS = 'kind, storage_path, poster_path, position, width, height';
 
-const CARD_COLUMNS = `id, title, price_xof, condition, listing_mode, status, city, neighborhood, created_at, product_media(${MEDIA_COLUMNS})`;
+const CARD_COLUMNS = `id, title, price_xof, price_mode, condition, listing_mode, status, city, neighborhood, pinned_at, created_at, product_media(${MEDIA_COLUMNS})`;
 
 const STATUS_ORDER: Record<ProductStatus, number> = { active: 0, reserved: 1, sold: 2, archived: 3 };
+
+/** Pinned rows first (most recently pinned on top), then everything else. */
+function pinnedFirst(a: { pinned_at: string | null }, b: { pinned_at: string | null }): number {
+  if (a.pinned_at && b.pinned_at) return Date.parse(b.pinned_at) - Date.parse(a.pinned_at);
+  if (a.pinned_at) return -1;
+  if (b.pinned_at) return 1;
+  return 0;
+}
 
 // ---------------------------------------------------------------------------
 // Queries (wrapped in React cache: generateMetadata and the page share one round-trip)
@@ -195,22 +209,31 @@ export const getSellerProducts = cache(
       .select(CARD_COLUMNS)
       .eq('seller_id', sellerId)
       .in('status', ['active', 'reserved', 'sold'])
+      // Pinned listings first so they always make the cut, then newest.
+      .order('pinned_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(limit);
     if (excludeId) query = query.neq('id', excludeId);
     const { data, error } = await query.overrideTypes<ProductCardRow[], { merge: false }>();
     if (error) throw new Error(`articles: ${error.message}`);
-    // Available first, then reserved, then sold — newest first inside each group.
-    return [...(data ?? [])].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+    // Pinned first (as the seller chose), then available, reserved, sold — newest first inside
+    // each group (Array.prototype.sort is stable, so the query order is kept for ties).
+    return [...(data ?? [])].sort((a, b) => {
+      const byPin = pinnedFirst(a, b);
+      if (byPin !== 0 || a.pinned_at) return byPin;
+      return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    });
   },
 );
 
 export const getRecentPosts = cache(async (authorId: string, limit = 6): Promise<PostRow[]> => {
   const { data, error } = await publicClient()
     .from('posts')
-    .select(`id, body, kind, upvote_count, comment_count, created_at, edited_at, post_media(bucket, ${MEDIA_COLUMNS})`)
+    .select(`id, body, kind, upvote_count, comment_count, created_at, edited_at, pinned_at, post_media(bucket, ${MEDIA_COLUMNS})`)
     .eq('author_id', authorId)
     .eq('visibility', 'public')
+    // Pinned posts first (most recently pinned on top), then newest.
+    .order('pinned_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .limit(limit)
     .overrideTypes<PostRow[], { merge: false }>();
@@ -235,7 +258,7 @@ export const getProduct = cache(async (id: string): Promise<ProductDetail | null
   const { data, error } = await publicClient()
     .from('products')
     .select(
-      `id, title, description, price_xof, category_slug, condition, listing_mode, quantity, status, city, neighborhood, delivery_options, delivery_notes, created_at, updated_at, seller_id,
+      `id, title, description, price_xof, price_mode, category_slug, condition, listing_mode, quantity, status, city, neighborhood, delivery_options, delivery_notes, pinned_at, created_at, updated_at, seller_id,
        product_media(${MEDIA_COLUMNS}),
        seller:profiles!products_seller_id_fkey(${SUMMARY_COLUMNS}),
        category:categories(name)`,
@@ -252,7 +275,7 @@ export const getPost = cache(async (id: string): Promise<PostDetail | null> => {
   const { data, error } = await publicClient()
     .from('posts')
     .select(
-      `id, body, kind, upvote_count, comment_count, created_at, edited_at, author_id,
+      `id, body, kind, upvote_count, comment_count, created_at, edited_at, pinned_at, author_id,
        post_media(bucket, ${MEDIA_COLUMNS}),
        author:profiles!posts_author_id_fkey(${SUMMARY_COLUMNS}),
        post_products(products(${CARD_COLUMNS}))`,

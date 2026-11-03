@@ -1,4 +1,4 @@
-import { formatClock, formatXOF } from '@jefeli/shared';
+import { formatClock, formatListingPrice } from '@jefeli/shared';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -42,7 +42,7 @@ function ProductMessage({ productId }: { productId: string }) {
           {p.title}
         </Text>
         <Text variant="callout" weight="800">
-          {p.price_xof !== null ? formatXOF(p.price_xof) : 'À échanger'}
+          {formatListingPrice(p)}
         </Text>
         {p.status !== 'active' ? (
           <Text variant="caption" tone="secondary" weight="600">

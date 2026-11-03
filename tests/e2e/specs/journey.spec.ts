@@ -5,7 +5,7 @@
  */
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-import { FIXTURE, btn, field, newDevice, pickFile, runId, shot, signUp, WEB_URL } from './helpers';
+import { FIXTURE, btn, field, newDevice, pickFile, publishListing, runId, shot, signUp, WEB_URL } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -40,17 +40,15 @@ test.describe.serial('Two-account social commerce journey', () => {
   });
 
   test('PROF-01 / MKT-01 · B publishes a used listing; boutique appears automatically', async () => {
-    await b.goto('/publish/listing');
-    await pickFile(b, () => btn(b, 'Ajouter depuis la galerie').click(), FIXTURE('shoe.jpg'));
-    await expect(b.getByText('Couverture', { exact: true }).last()).toBeVisible();
-    await field(b, 'Titre *').fill(LISTING);
-    await b.getByRole('radio', { name: 'Vente ou troc' }).click();
-    await field(b, 'Prix *').fill('35000');
-    await btn(b, 'Chaussures').click();
-    await btn(b, 'Très bon état').click();
-    await field(b, 'Description').fill('Pointure 42, portées deux fois. Remise à Liberté 6.');
-    await shot(b, DIR, 'B-listing-form');
-    await btn(b, 'Publier').click();
+    await publishListing(b, {
+      file: FIXTURE('shoe.jpg'),
+      title: LISTING,
+      mode: 'Vente ou troc',
+      price: '35000',
+      category: 'Chaussures',
+      condition: 'Très bon état',
+      description: 'Pointure 42, portées deux fois. Remise à Liberté 6.',
+    });
     await expect(b.getByText('35 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
     await expect(b.getByText(LISTING, { exact: true }).last()).toBeVisible();
     productUrl = b.url();
@@ -132,14 +130,7 @@ test.describe.serial('Two-account social commerce journey', () => {
 
   test('MKT-03 · A proposes a barter (A-owned item + XOF difference); B accepts', async () => {
     // A lists an item to trade.
-    await a.goto('/publish/listing');
-    await pickFile(a, () => btn(a, 'Ajouter depuis la galerie').click(), FIXTURE('bag.jpg'));
-    await field(a, 'Titre *').fill(A_ITEM);
-    await a.getByRole('radio', { name: 'Vente ou troc' }).click();
-    await field(a, 'Prix *').fill('18000');
-    await btn(a, 'Sacs & accessoires').click();
-    await btn(a, 'Comme neuf').click();
-    await btn(a, 'Publier').click();
+    await publishListing(a, { file: FIXTURE('bag.jpg'), title: A_ITEM, mode: 'Vente ou troc', price: '18000', category: 'Sacs & accessoires', condition: 'Comme neuf' });
     await expect(a.getByText('18 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
 
     await a.goto(productUrl);

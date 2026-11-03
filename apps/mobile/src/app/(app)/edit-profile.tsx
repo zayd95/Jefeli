@@ -2,7 +2,7 @@ import { HANDLE_PATTERN, normalizeHandle, toFrenchError } from '@jefeli/shared';
 import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 
-import { AvatarPicker } from '@/components/AvatarPicker';
+import { AvatarPicker, CoverPicker } from '@/components/AvatarPicker';
 import { LocationPicker } from '@/components/LocationPicker';
 import { Button, Field, Header, Screen, spacing, Text, Toggle, useToast } from '@/design';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
@@ -16,6 +16,7 @@ export default function EditProfile() {
   const [handle, setHandle] = useState(profile?.handle ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
   const [avatar, setAvatar] = useState(profile?.avatar_path ?? null);
+  const [cover, setCover] = useState(profile?.cover_path ?? null);
   const [city, setCity] = useState(profile?.city ?? '');
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [isPrivate, setIsPrivate] = useState(profile?.is_private ?? false);
@@ -41,6 +42,7 @@ export default function EditProfile() {
         handle,
         bio: bio.trim(),
         avatar_path: avatar,
+        cover_path: cover,
         city: city.trim() || null,
         neighborhood: neighborhood.trim() || null,
         is_private: isPrivate,
@@ -61,6 +63,7 @@ export default function EditProfile() {
       <Header title="Modifier le profil" right={<Button label="Enregistrer" size="sm" variant="cta" loading={saving} disabled={name.trim().length < 2 || !handleOk} onPress={save} style={{ marginRight: spacing.sm }} />} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl }} keyboardShouldPersistTaps="handled">
         <AvatarPicker userId={userId ?? ''} name={name} path={avatar} onUploaded={setAvatar} />
+        <CoverPicker userId={userId ?? ''} path={cover} onChange={setCover} />
         <Field label="Nom affiché" value={name} onChangeText={setName} maxLength={50} />
         <Field
           label="Nom d’utilisateur"

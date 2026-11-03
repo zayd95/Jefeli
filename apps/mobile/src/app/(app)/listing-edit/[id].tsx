@@ -2,11 +2,14 @@ import {
   CONDITION_LABELS,
   CONDITION_OPTIONS,
   formatAmountInput,
+  isPriceMode,
   LISTING_MODE_LABELS,
   parseXOF,
+  PRICE_MODES,
   toFrenchError,
   type ItemCondition,
   type ListingMode,
+  type PriceMode,
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -40,18 +43,27 @@ function ListingForm({ id, p }: { id: string; p: ProductCard }) {
   const [description, setDescription] = useState(p.description);
   const [price, setPrice] = useState(p.price_xof !== null ? formatAmountInput(String(p.price_xof)) : '');
   const [mode, setMode] = useState<ListingMode>(p.listing_mode);
+  const [priceMode, setPriceMode] = useState<PriceMode>(isPriceMode(p.price_mode) ? p.price_mode : 'fixed');
   const [condition, setCondition] = useState<ItemCondition>(p.condition);
   const [quantity, setQuantity] = useState(String(p.quantity));
   const [deliveryNotes, setDeliveryNotes] = useState(p.delivery_notes);
   const [saving, setSaving] = useState(false);
 
   async function save() {
+    const amount = parseXOF(price);
+    const effectiveMode: PriceMode = mode === 'trade' ? 'fixed' : priceMode;
+    // Same rules as the database: a displayed price needs an amount; « sur demande » stores none.
+    if (mode !== 'trade' && effectiveMode === 'fixed' && !(amount && amount > 0)) {
+      toast('Indiquez un prix, ou choisissez « Prix sur demande » ou « À discuter ».', 'error');
+      return;
+    }
     setSaving(true);
     try {
       await updateListing(id, {
         title: title.trim(),
         description: description.trim(),
-        price_xof: parseXOF(price),
+        price_xof: effectiveMode === 'on_request' ? null : amount && amount > 0 ? amount : null,
+        price_mode: effectiveMode,
         listing_mode: mode,
         condition,
         quantity: Math.max(0, Number.parseInt(quantity, 10) || 0),
@@ -74,7 +86,22 @@ function ListingForm({ id, p }: { id: string; p: ProductCard }) {
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl }} keyboardShouldPersistTaps="handled">
         <Field label="Titre" value={title} onChangeText={setTitle} maxLength={80} counter />
         <OptionRow<ListingMode> value={mode} onChange={setMode} options={(['sale', 'trade', 'sale_or_trade'] as ListingMode[]).map((m) => ({ key: m, label: LISTING_MODE_LABELS[m] }))} />
-        <Field label={mode === 'trade' ? 'Valeur estimée (facultatif)' : 'Prix'} value={price} onChangeText={(t) => setPrice(formatAmountInput(t))} keyboardType="number-pad" suffix="F CFA" />
+        {mode !== 'trade' ? (
+          <OptionRow<PriceMode> value={priceMode} onChange={setPriceMode} options={PRICE_MODES.map((m) => ({ key: m.key, label: m.label }))} />
+        ) : null}
+        {mode === 'trade' || priceMode !== 'on_request' ? (
+          <Field
+            label={mode === 'trade' ? 'Valeur estimée (facultatif)' : priceMode === 'negotiable' ? 'Prix de départ (facultatif)' : 'Prix'}
+            value={price}
+            onChangeText={(t) => setPrice(formatAmountInput(t))}
+            keyboardType="number-pad"
+            suffix="F CFA"
+          />
+        ) : (
+          <Text variant="caption" tone="secondary">
+            Aucun prix n’est affiché : les acheteurs vous écrivent.
+          </Text>
+        )}
         <View style={{ gap: spacing.sm }}>
           <Text variant="callout" weight="600">
             État

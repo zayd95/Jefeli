@@ -40,9 +40,11 @@ test.describe.serial('Community: intents, votes, comments', () => {
     await ctxB?.close();
   });
 
-  test('B asks the community from the feed shortcut (« Je cherche »)', async () => {
-    await b.goto('/');
-    await btn(b, 'Publier : Je cherche').click();
+  test('B asks the community with an optional intent in the one publication composer (« Je cherche »)', async () => {
+    await b.goto('/publish');
+    await btn(b, /^Publication\./).click();
+    await expect(b.getByRole('radio', { name: 'Je partage' })).toHaveAttribute('aria-checked', 'true');
+    await b.getByRole('radio', { name: 'Je cherche' }).click();
     await expect(b.getByRole('radio', { name: 'Je cherche' })).toHaveAttribute('aria-checked', 'true');
     await shot(b, DIR, 'B-composer-je-cherche');
     await b.getByRole('textbox', { name: 'Texte' }).fill(REQUEST);
@@ -103,7 +105,8 @@ test.describe.serial('Community: intents, votes, comments', () => {
     await a.goto(postUrl);
     await visible(a.getByRole('textbox', { name: 'Commentaire' })).fill(ANSWER);
     await visible(btn(a, 'Publier le commentaire')).click();
-    await expect(visible(a.getByText(ANSWER, { exact: true }))).toBeVisible();
+    // The body is rendered inline after the author's name (« Aminata … Essayez … »).
+    await expect(visible(a.getByText(ANSWER))).toBeVisible();
   });
 
   test('B sees the genuine comment preview and vote count on its feed card', async () => {

@@ -1,12 +1,4 @@
-import {
-  canRespond,
-  canWithdraw,
-  describeCashDifference,
-  formatXOF,
-  OFFER_STATUS_LABELS,
-  toFrenchError,
-  type OfferStatus,
-} from '@jefeli/shared';
+import { canRespond, canWithdraw, describeCashDifference, formatXOF, OFFER_STATUS_LABELS, toFrenchError, type OfferStatus, formatListingPrice } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ArrowLeftRight } from 'lucide-react-native';
@@ -30,7 +22,7 @@ function SnapshotRow({ snap, caption }: { snap: ProductSnapshot; caption: string
         </Text>
         <Text variant="caption" tone="secondary">
           {caption}
-          {snap.price_xof !== null ? ` · ${formatXOF(snap.price_xof, { compact: true })}` : ''}
+          {` · ${formatListingPrice(snap, { compact: true })}`}
         </Text>
       </View>
     </Pressable>

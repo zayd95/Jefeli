@@ -82,6 +82,12 @@ export interface CreateUserOptions {
   handle?: string;
   /** Profile columns the user sets on themselves after sign-in (as `authenticated`). */
   profile?: Record<string, unknown>;
+  /**
+   * Completes onboarding (the user sets `onboarded_at` on themselves, as the app does). Only
+   * onboarded, active members count in public upvote counts
+   * (supabase/migrations/20261105000100_refinement.sql).
+   */
+  onboarded?: boolean;
   staffRole?: 'admin' | 'moderator';
 }
 
@@ -115,8 +121,9 @@ export async function createUser(label: string, opts: CreateUserOptions = {}): P
   const { data: session, error: signInErr } = await client.auth.signInWithPassword({ email, password });
   if (signInErr || !session.session) throw new Error(`signIn(${label}) failed: ${signInErr?.message}`);
 
-  if (opts.profile) {
-    const { error: profErr } = await client.from('profiles').update(opts.profile).eq('id', id);
+  const profile = opts.onboarded ? { onboarded_at: new Date().toISOString(), ...opts.profile } : opts.profile;
+  if (profile) {
+    const { error: profErr } = await client.from('profiles').update(profile).eq('id', id);
     if (profErr) throw new Error(`profile setup for ${label} failed: ${profErr.message}`);
   }
   return { id, email, label, accessToken: session.session.access_token, client };
@@ -222,6 +229,8 @@ export interface ListingInput {
   category?: string;
   condition?: string;
   mode?: 'sale' | 'trade' | 'sale_or_trade';
+  /** How the price is shown. Omitted: `p_price_mode` is not sent (the RPC defaults to 'fixed'). */
+  priceMode?: 'fixed' | 'on_request' | 'negotiable' | null;
   city?: string | null;
   neighborhood?: string | null;
   mediaPath?: string;
@@ -241,6 +250,7 @@ export function listingArgs(mediaPath: string, input: ListingInput = {}): Record
     p_delivery_options: ['pickup'],
     p_delivery_notes: '',
     p_media: mediaJson(mediaPath),
+    ...(input.priceMode === undefined ? {} : { p_price_mode: input.priceMode }),
   };
 }
 

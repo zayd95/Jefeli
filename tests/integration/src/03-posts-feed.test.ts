@@ -31,7 +31,8 @@ describe('SOC-02 — public post with photo: reactions, counters, ownership', ()
   let commentId: string;
 
   beforeAll(async () => {
-    [A, B, C] = await Promise.all([createUser('A'), createUser('B'), createUser('C')]);
+    // A votes: only onboarded members count in the public upvote count (20261105000100_refinement).
+    [A, B, C] = await Promise.all([createUser('A', { onboarded: true }), createUser('B'), createUser('C')]);
     post = await createPost(B, 'public', 'Nouvelle collection de wax 🌍');
   });
 

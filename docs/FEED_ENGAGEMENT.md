@@ -89,6 +89,21 @@ The feed still excludes:
 The *Abonnements* and *À proximité* tabs remain chronological. The score itself is **never
 returned**: it includes the private downvote penalty, and a test checks that it stays null.
 
+### 4 bis. Ranking v4 (post-playtest refinement, `…20261105000100_refinement.sql`)
+The goal: an upvote should mean "a real member found this useful", and repeating yourself
+should not help.
+
+| Change | Effect |
+|---|---|
+| Genuine upvotes | `upvote_count` counts only votes from members who are **active and finished onboarding**. Votes from others are kept, but do not count and do not rank. A trigger recounts when a member's status or onboarding changes |
+| Meaningful comments | The community term uses **distinct members other than the author** who wrote at least 3 characters: `0.35·ln(1+commenters)`. One member posting ten comments counts once, and an author answering their own post counts zero |
+| Requests waiting for answers | *Attend vos réponses* now needs fewer than 3 **different** members who answered |
+| Repeated text | The same text (≥ 12 characters, normalised) published again by the same author sinks by 2.5 for each repeat (max 2). The first copy keeps its place |
+| Repeated product ads | A later post by the same author tagging the same product sinks by 1.5 for each repeat (max 2) |
+| Unchanged | Relationships, locality, interests, recency (−1 per 18 h), the fair chance for new members, author and type diversity, personal-only downvotes, and the score is still never returned |
+
+There are no engagement prompts: no "vote for this" text, and no ranking reward for asking for votes.
+
 ### 5. DÉMO content for playtesting (`pnpm seed`, local or staging only)
 There are 10 fictional DÉMO accounts (password `Demo-jefeli-2026!`). The 5 new ones are:
 - `khadija@` — tailor, *Je propose*

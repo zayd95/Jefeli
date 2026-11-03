@@ -165,3 +165,10 @@ export const NOTIFICATION_COPY: Record<string, (actor: string, data: Record<stri
   appeal_result: (_a, d) =>
     d.outcome === 'reversed' ? 'Votre contestation a été acceptée' : 'Votre contestation a été examinée : la décision est maintenue',
 };
+
+/** How a seller chooses to show the price of a listing. Ordinary posts never have a price. */
+export const PRICE_MODES: { key: 'fixed' | 'on_request' | 'negotiable'; label: string; hint: string }[] = [
+  { key: 'fixed', label: 'Prix affiché', hint: 'Le prix est visible sur l’annonce.' },
+  { key: 'on_request', label: 'Prix sur demande', hint: 'Les acheteurs vous écrivent pour connaître le prix.' },
+  { key: 'negotiable', label: 'À discuter', hint: 'Indiquez un prix de départ si vous le souhaitez.' },
+];

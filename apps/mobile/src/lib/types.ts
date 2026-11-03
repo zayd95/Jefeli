@@ -24,7 +24,7 @@ export type ProductCard = Tables<'products'> & {
   media: MediaRow[];
 };
 
-export type TaggedProduct = Pick<Tables<'products'>, 'id' | 'title' | 'price_xof' | 'status' | 'listing_mode' | 'condition'> & {
+export type TaggedProduct = Pick<Tables<'products'>, 'id' | 'title' | 'price_xof' | 'price_mode' | 'status' | 'listing_mode' | 'condition' | 'seller_id'> & {
   media: Pick<MediaRow, 'storage_path' | 'kind' | 'poster_path' | 'position'>[];
 };
 
@@ -75,6 +75,8 @@ export type ProductSnapshot = {
   id: string;
   title: string;
   price_xof: number | null;
+  /** Absent on snapshots taken before flexible pricing (treated as « Prix affiché »). */
+  price_mode?: string | null;
   condition: string;
   listing_mode: string;
   category_slug: string;

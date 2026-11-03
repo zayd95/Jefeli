@@ -1,4 +1,4 @@
-import { formatXOF, timeAgo, timeLeft, toFrenchError } from '@jefeli/shared';
+import { formatListingPrice, timeAgo, timeLeft, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -164,7 +164,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
                 {product.data.title}
               </Text>
               <Text variant="callout" weight="800">
-                {product.data.price_xof !== null ? formatXOF(product.data.price_xof) : 'À échanger'}
+                {formatListingPrice(product.data)}
               </Text>
             </View>
             <View style={styles.stickerCta}>

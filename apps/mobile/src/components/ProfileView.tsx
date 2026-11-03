@@ -1,4 +1,4 @@
-import { formatCount, formatXOF, plural, timeAgo, toFrenchError } from '@jefeli/shared';
+import { formatCount, formatListingPrice, formatMemberSince, plural, timeAgo, toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -6,8 +6,10 @@ import {
   Check,
   ChevronLeft,
   Clock,
+  Link2,
   Lock,
   MessageCircle,
+  Pin,
   MoreHorizontal,
   Radio,
   Settings,
@@ -32,6 +34,8 @@ import {
   LiveBadge,
   radius,
   Screen,
+  Sheet,
+  SheetAction,
   Skeleton,
   spacing,
   StoryRing,
@@ -42,7 +46,7 @@ import {
 import { fetchLiveByHost } from '@/lib/api/live';
 import { openConversationWith } from '@/lib/api/messages';
 import { fetchReviews } from '@/lib/api/offers';
-import { fetchUserPosts } from '@/lib/api/posts';
+import { fetchPinnedPosts, fetchUserPosts } from '@/lib/api/posts';
 import { fetchBoutique, fetchSellerProducts } from '@/lib/api/products';
 import {
   cancelFriendRequest,
@@ -57,7 +61,7 @@ import {
 import { fetchActiveStories, fetchHighlights } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { avatarUrl } from '@/lib/media';
-import { shareLinks } from '@/lib/share';
+import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { PostCardData, ProductCard, ProfileRow } from '@/lib/types';
 
 import { ContentMenu, confirmAsync } from './ContentMenu';
@@ -65,6 +69,7 @@ import { gridItemWidth, ListingCard } from './ListingCard';
 import { Thumb } from './Media';
 import { PostCard } from './PostCard';
 import { ProfileName } from './ProfileName';
+import { fill } from '@/design/fill';
 import { goBack } from '@/lib/nav';
 
 type Tab = 'fil' | 'statuts' | 'live' | 'boutique' | 'avis';
@@ -84,6 +89,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const isSelf = userId === profile.id;
   const [tab, setTab] = useState<Tab>('fil');
   const [menu, setMenu] = useState(false);
+  const [shareSheet, setShareSheet] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
   const rel = useQuery({ queryKey: ['relationship', profile.id], queryFn: () => getRelationship(profile.id), enabled: !isSelf });
@@ -104,6 +110,11 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     initialPageParam: null as string | null,
     queryFn: ({ pageParam }) => fetchUserPosts(userId, profile.id, pageParam),
     getNextPageParam: (last) => (last.length < 12 ? undefined : last[last.length - 1]?.created_at),
+  });
+  const pinnedPosts = useQuery({
+    queryKey: ['pinned-posts', profile.id],
+    queryFn: () => fetchPinnedPosts(userId, profile.id),
+    enabled: !locked && tab === 'fil',
   });
   const lives = useQuery({ queryKey: ['host-lives', profile.id], queryFn: () => fetchLiveByHost(profile.id), enabled: !locked && tab === 'live' });
   const reviews = useQuery({ queryKey: ['reviews', profile.id], queryFn: () => fetchReviews(profile.id), enabled: !locked && tab === 'avis' });
@@ -205,7 +216,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
           {isSelf ? 'Mon profil' : 'Profil'}
         </Text>
         <View style={{ flexDirection: 'row' }}>
-          <IconButton icon={Share2} label="Partager le profil" onPress={() => shareLinks.profile(profile.handle, profile.display_name)} />
+          <IconButton icon={Share2} label="Partager le profil" onPress={() => setShareSheet(true)} />
           {isSelf ? (
             <IconButton icon={Settings} label="Réglages" onPress={() => router.push('/settings')} />
           ) : (
@@ -215,7 +226,9 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
       </View>
 
       <View style={styles.cover}>
-        {coverUri ? <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
+        <View style={styles.coverClip}>
+          {coverUri ? <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel="Photo de couverture" /> : null}
+        </View>
         <View style={styles.avatarWrap}>
           <Pressable
             disabled={!(stories.data?.length ?? 0)}
@@ -240,6 +253,22 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
           </View>
         ) : null}
         {profile.bio ? <Text style={{ marginTop: spacing.xs }}>{profile.bio}</Text> : null}
+        <View style={styles.meta}>
+          {avgRating !== null ? (
+            <Pressable onPress={() => setTab('avis')} style={styles.metaItem} accessibilityRole="button" accessibilityLabel={`Note ${avgRating.toFixed(1).replace('.', ',')} sur 5, ${profile.rating_count} avis. Voir les avis`} hitSlop={6}>
+              <Star size={14} color={colors.ink} fill={colors.ink} />
+              <Text variant="caption" weight="700">
+                {avgRating.toFixed(1).replace('.', ',')}
+              </Text>
+              <Text variant="caption" tone="secondary">
+                ({profile.rating_count} avis)
+              </Text>
+            </Pressable>
+          ) : null}
+          <Text variant="caption" tone="secondary">
+            {formatMemberSince(profile.created_at)}
+          </Text>
+        </View>
 
         <View style={styles.stats}>
           <Stat value={profile.products_count} label={plural(profile.products_count, 'Article', 'Articles')} onPress={() => setTab('boutique')} />
@@ -310,8 +339,11 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
           <BoutiquePreview
             isSelf={isSelf}
             products={available}
+            total={profile.products_count}
             loading={products.isPending}
             onSeeAll={() => setTab('boutique')}
+            onContact={r.blocked ? undefined : startChat}
+            contacting={busy === 'message'}
           />
 
           <View style={styles.tabs} accessibilityRole="tablist">
@@ -394,7 +426,12 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     return out;
   }, [productList]);
 
-  const data: (PostCardData | ProductCard[])[] = locked ? [] : tab === 'fil' ? (posts.data?.pages.flat() ?? []) : tab === 'boutique' ? rows : [];
+  const timeline = useMemo(() => {
+    const pinned = pinnedPosts.data ?? [];
+    const pinnedIds = new Set(pinned.map((p) => p.id));
+    return [...pinned, ...(posts.data?.pages.flat() ?? []).filter((p) => !pinnedIds.has(p.id))];
+  }, [pinnedPosts.data, posts.data]);
+  const data: (PostCardData | ProductCard[])[] = locked ? [] : tab === 'fil' ? timeline : tab === 'boutique' ? rows : [];
   const itemW = gridItemWidth(width);
 
   return (
@@ -407,11 +444,11 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
           Array.isArray(item) ? (
             <View style={styles.gridRow}>
               {item.map((p) => (
-                <ListingCard key={p.id} product={p} width={itemW} showSeller={false} />
+                <ListingCard key={p.id} product={p} width={itemW} showSeller={false} showPinned />
               ))}
             </View>
           ) : (
-            <PostCard post={item} showReason={false} />
+            <PostCard post={item} showReason={false} showPinned />
           )
         }
         ListEmptyComponent={
@@ -438,6 +475,24 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         onEndReachedThreshold={0.5}
         contentContainerStyle={{ paddingBottom: spacing.xxxl }}
       />
+      <Sheet visible={shareSheet} onClose={() => setShareSheet(false)} title={isSelf ? 'Partager mon profil' : 'Partager ce profil'}>
+        <SheetAction
+          icon={MessageCircle}
+          label="Envoyer sur WhatsApp"
+          onPress={() => {
+            setShareSheet(false);
+            whatsappLinks.profile(profile.handle, profile.display_name);
+          }}
+        />
+        <SheetAction
+          icon={Link2}
+          label="Partager le lien…"
+          onPress={() => {
+            setShareSheet(false);
+            shareLinks.profile(profile.handle, profile.display_name);
+          }}
+        />
+      </Sheet>
       <ContentMenu
         visible={menu}
         onClose={() => setMenu(false)}
@@ -476,7 +531,23 @@ function HighlightBubble({ id, title, coverPath }: { id: string; title: string; 
   );
 }
 
-function BoutiquePreview({ isSelf, products, loading, onSeeAll }: { isSelf: boolean; products: ProductCard[]; loading: boolean; onSeeAll: () => void }) {
+function BoutiquePreview({
+  isSelf,
+  products,
+  total,
+  loading,
+  onSeeAll,
+  onContact,
+  contacting,
+}: {
+  isSelf: boolean;
+  products: ProductCard[];
+  total: number;
+  loading: boolean;
+  onSeeAll: () => void;
+  onContact?: () => void;
+  contacting?: boolean;
+}) {
   if (loading) return <Skeleton height={150} style={{ margin: spacing.lg }} radius={14} />;
   if (products.length === 0) {
     if (!isSelf) return null;
@@ -498,10 +569,16 @@ function BoutiquePreview({ isSelf, products, loading, onSeeAll }: { isSelf: bool
   return (
     <View style={styles.shop}>
       <View style={styles.shopHeader}>
-        <Text variant="headline" weight="800">
-          {isSelf ? 'Ma boutique' : 'Sa boutique'}
-        </Text>
-        <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Store size={18} color={colors.ink} />
+          <Text variant="headline" weight="800">
+            {isSelf ? 'Ma boutique' : 'Sa boutique'}
+          </Text>
+          <Text variant="caption" tone="secondary">
+            · {total} {plural(total, 'article', 'articles')}
+          </Text>
+        </View>
+        <Pressable onPress={onSeeAll} hitSlop={10} accessibilityRole="button" accessibilityLabel="Voir toute la boutique">
           <Text variant="callout" weight="600" tone="secondary">
             Tout voir →
           </Text>
@@ -509,15 +586,31 @@ function BoutiquePreview({ isSelf, products, loading, onSeeAll }: { isSelf: bool
       </View>
       <View style={{ flexDirection: 'row', gap: spacing.sm }}>
         {products.slice(0, 3).map((p) => (
-          <Pressable key={p.id} style={{ flex: 1 }} onPress={() => router.push(`/p/${p.id}`)} accessibilityRole="button" accessibilityLabel={p.title}>
-            <Thumb media={p.media[0]} style={{ height: 96, borderRadius: radius.sm }} />
+          <Pressable
+            key={p.id}
+            style={{ flex: 1 }}
+            onPress={() => router.push(`/p/${p.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={`${p.pinned_at ? 'Épinglé. ' : ''}${p.title}, ${formatListingPrice(p)}`}
+          >
+            <View>
+              <Thumb media={p.media[0]} style={{ height: 96, borderRadius: radius.sm }} />
+              {p.pinned_at ? (
+                <View style={styles.shopPin}>
+                  <Pin size={11} color={colors.ink} strokeWidth={2.6} />
+                </View>
+              ) : null}
+            </View>
             <Text variant="caption" weight="800" style={{ marginTop: 5 }} numberOfLines={1}>
-              {p.price_xof !== null ? formatXOF(p.price_xof, { compact: true }) : 'Troc'}
+              {formatListingPrice(p, { compact: true })}
             </Text>
           </Pressable>
         ))}
         {products.length < 3 ? Array.from({ length: 3 - products.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}
       </View>
+      {!isSelf && onContact ? (
+        <Button label="Écrire au vendeur" variant="soft" size="sm" icon={MessageCircle} loading={contacting} onPress={onContact} style={{ marginTop: spacing.md }} />
+      ) : null}
     </View>
   );
 }
@@ -573,7 +666,11 @@ function StatusesTab({ isSelf, storiesCount, highlights, profileId }: { isSelf: 
 
 const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xs, height: 52 },
-  cover: { height: 120, backgroundColor: '#C9DCD2', marginHorizontal: spacing.sm, borderRadius: radius.lg, overflow: 'visible' },
+  cover: { height: 132, marginHorizontal: spacing.sm, borderRadius: radius.lg },
+  coverClip: { ...fill, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.mintSoft },
+  meta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: spacing.md, rowGap: 2, marginTop: spacing.xs },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 24 },
+  shopPin: { position: 'absolute', top: 5, left: 5, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
   avatarWrap: { position: 'absolute', left: spacing.lg, bottom: -42 },
   avatarRing: { borderRadius: 50, borderWidth: 3, borderColor: colors.background, padding: 2, backgroundColor: colors.background },
   identity: { paddingHorizontal: spacing.lg, paddingTop: 52, gap: 2 },

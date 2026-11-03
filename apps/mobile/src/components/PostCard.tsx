@@ -1,13 +1,13 @@
-import { FEED_REASON_LABELS, formatCount, formatXOF, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
+import { FEED_REASON_LABELS, formatCount, formatListingPrice, hasDisplayedPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bookmark, HandHelping, MessageCircle, MessageCircleQuestionMark, MoreHorizontal, Search, Send, type LucideIcon } from 'lucide-react-native';
+import { Bookmark, HandHelping, MessageCircle, MessageCircleQuestionMark, MoreHorizontal, Pin, Search, Send, type LucideIcon } from 'lucide-react-native';
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, colors, IconButton, radius, spacing, Text, useToast } from '@/design';
-import { openConversationWith } from '@/lib/api/messages';
-import { deletePost, setSave } from '@/lib/api/posts';
+import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
+import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { patchPost } from '@/lib/postCache';
 import { shareLinks } from '@/lib/share';
@@ -24,7 +24,18 @@ const INTENT_STYLE: Record<Exclude<PostIntent, 'share'>, { icon: LucideIcon; bg:
   opinion: { icon: MessageCircleQuestionMark, bg: colors.surfaceMuted, fg: colors.ink },
 };
 
-function PostCardInner({ post, showReason = true, onOpenComments }: { post: PostCardData; showReason?: boolean; onOpenComments?: () => void }) {
+function PostCardInner({
+  post,
+  showReason = true,
+  showPinned = false,
+  onOpenComments,
+}: {
+  post: PostCardData;
+  showReason?: boolean;
+  /** Profile timeline only: label posts the author pinned. */
+  showPinned?: boolean;
+  onOpenComments?: () => void;
+}) {
   const { userId } = useAuth();
   const toast = useToast();
   const qc = useQueryClient();
@@ -73,6 +84,35 @@ function PostCardInner({ post, showReason = true, onOpenComments }: { post: Post
     }
   }
 
+  async function contactAboutProduct(productId: string) {
+    if (!userId || contacting) return;
+    setContacting(true);
+    try {
+      const conversationId = await messageAboutProduct(productId);
+      router.push(`/chat/${conversationId}`);
+    } catch (e) {
+      toast(toFrenchError(e), 'error');
+    } finally {
+      setContacting(false);
+    }
+  }
+
+  async function togglePinned() {
+    const next = !post.pinned_at;
+    try {
+      await setPinned('post', post.id, next);
+      toast(next ? 'Épinglé en haut de votre profil' : 'Retiré du haut de votre profil', 'success');
+      qc.invalidateQueries({ queryKey: ['user-posts', post.author_id] });
+      qc.invalidateQueries({ queryKey: ['pinned-posts', post.author_id] });
+      patchPost(qc, post.id, () => ({ pinned_at: next ? new Date().toISOString() : null }));
+    } catch (e) {
+      toast(toFrenchError(e), 'error');
+    }
+  }
+
+  // « Écrire » on a tagged article: for other members, on ordinary shares (requests and offers have their own button).
+  const canWriteAbout = (p: { seller_id: string; status: string }) => !isOwn && p.seller_id !== userId && p.status !== 'sold' && intent === 'share';
+
   const visibilityLabel = post.visibility === 'friends' ? ' · Amis' : post.visibility === 'followers' ? ' · Abonnés' : '';
   const intentStyle = intent === 'share' ? null : INTENT_STYLE[intent];
   // A contextual next step for requests and offers; ordinary shares keep the product « Voir » card.
@@ -87,6 +127,14 @@ function PostCardInner({ post, showReason = true, onOpenComments }: { post: Post
 
   return (
     <View style={styles.card}>
+      {showPinned && post.pinned_at ? (
+        <View style={styles.pinned}>
+          <Pin size={13} color={colors.textSecondary} strokeWidth={2.4} />
+          <Text variant="caption" tone="secondary" weight="700">
+            Épinglé
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.author}>
         <Pressable
           style={styles.authorLeft}
@@ -139,37 +187,56 @@ function PostCardInner({ post, showReason = true, onOpenComments }: { post: Post
         {tagged.length > 0
           ? tagged.slice(0, 2).map((p) =>
               p ? (
-                <Pressable
-                  key={p.id}
-                  onPress={() => router.push(`/p/${p.id}`)}
-                  style={({ pressed }) => [styles.product, pressed && { backgroundColor: colors.surfaceSubtle }]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Voir l’article ${p.title}`}
-                >
-                  <Thumb media={[...p.media].sort((a, b) => a.position - b.position)[0]} style={styles.productThumb} />
-                  <View style={{ flex: 1 }}>
-                    <Text variant="callout" weight="600" numberOfLines={1}>
-                      {p.title}
-                    </Text>
-                    {p.price_xof !== null ? (
-                      <Text variant="price" style={{ fontSize: 18, lineHeight: 23 }}>
-                        {formatXOF(p.price_xof)}
+                // Two sibling buttons (never a button inside a button): open the article, or write to the seller.
+                <View key={p.id} style={styles.product}>
+                  <Pressable
+                    onPress={() => router.push(`/p/${p.id}`)}
+                    style={({ pressed }) => [styles.productMain, pressed && { opacity: 0.7 }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Voir l’article ${p.title}, ${formatListingPrice(p)}`}
+                  >
+                    <Thumb media={[...p.media].sort((a, b) => a.position - b.position)[0]} style={styles.productThumb} />
+                    <View style={{ flex: 1 }}>
+                      <Text variant="callout" weight="600" numberOfLines={1}>
+                        {p.title}
                       </Text>
-                    ) : (
-                      <Text variant="callout" tone="secondary">
-                        À échanger
+                      {hasDisplayedPrice(p) ? (
+                        <Text variant="price" style={{ fontSize: 18, lineHeight: 23 }} numberOfLines={1}>
+                          {formatListingPrice(p)}
+                        </Text>
+                      ) : (
+                        <Text variant="callout" tone="secondary" weight="600">
+                          {formatListingPrice(p)}
+                        </Text>
+                      )}
+                      {p.status !== 'active' ? (
+                        <Text variant="caption" tone="secondary" weight="600">
+                          {p.status === 'sold' ? 'Vendu' : p.status === 'reserved' ? 'Réservé' : ''}
+                        </Text>
+                      ) : null}
+                    </View>
+                    {canWriteAbout(p) ? null : (
+                      <Text variant="callout" weight="700">
+                        Voir →
                       </Text>
                     )}
-                    {p.status !== 'active' ? (
-                      <Text variant="caption" tone="secondary" weight="600">
-                        {p.status === 'sold' ? 'Vendu' : p.status === 'reserved' ? 'Réservé' : ''}
+                  </Pressable>
+                  {canWriteAbout(p) ? (
+                    <Pressable
+                      onPress={() => contactAboutProduct(p.id)}
+                      disabled={contacting}
+                      style={({ pressed }) => [styles.productCta, pressed && { backgroundColor: colors.actionPressed }, contacting && { opacity: 0.6 }]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Écrire au vendeur à propos de ${p.title}`}
+                      hitSlop={4}
+                    >
+                      <MessageCircle size={15} color={colors.actionText} strokeWidth={2.4} />
+                      <Text variant="caption" weight="800" color={colors.actionText}>
+                        Écrire
                       </Text>
-                    ) : null}
-                  </View>
-                  <Text variant="callout" weight="700">
-                    Voir →
-                  </Text>
-                </Pressable>
+                    </Pressable>
+                  ) : null}
+                </View>
               ) : null,
             )
           : null}
@@ -227,6 +294,7 @@ function PostCardInner({ post, showReason = true, onOpenComments }: { post: Post
         target={{ type: 'post', id: post.id }}
         onShare={post.visibility === 'public' ? () => shareLinks.post(post.id, author.display_name) : undefined}
         onEdit={() => router.push({ pathname: '/post/[id]', params: { id: post.id, edit: '1' } })}
+        pin={{ pinned: !!post.pinned_at, onToggle: togglePinned }}
         onDelete={async () => {
           await deletePost(post.id);
           qc.invalidateQueries({ queryKey: ['feed'] });
@@ -274,6 +342,8 @@ export const PostCard = memo(PostCardInner);
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
+  pinned: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  productCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, borderRadius: radius.pill, paddingHorizontal: spacing.md, minHeight: 36 },
   author: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.xs, paddingVertical: spacing.sm },
   authorLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1, minHeight: 44 },
   intent: {
@@ -297,6 +367,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.sm,
   },
+  productMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56 },
   productThumb: { width: 56, height: 56, borderRadius: radius.sm },
   cta: { alignSelf: 'flex-start', backgroundColor: colors.action, borderRadius: radius.pill, paddingHorizontal: spacing.lg, minHeight: 40, justifyContent: 'center' },
   actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

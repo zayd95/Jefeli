@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   formatXOF, parseXOF, formatAmountInput, timeAgo, formatCount, initials, normalizeHandle, HANDLE_PATTERN,
   formatClock, toFrenchError, describeCashDifference, signedDifferenceLabel, canRespond, canWithdraw,
-  shareUrls, publicStorageUrl, timeLeft,
+  shareUrls,
+  formatMemberSince, publicStorageUrl, timeLeft, formatListingPrice, hasDisplayedPrice,
 } from '../src';
 
 const NN = '\u00A0';
@@ -97,5 +98,36 @@ describe('links', () => {
     expect(publicStorageUrl('http://127.0.0.1:54321', 'avatars', 'u1/a b.jpg')).toBe(
       'http://127.0.0.1:54321/storage/v1/object/public/avatars/u1/a%20b.jpg',
     );
+  });
+});
+
+describe('formatListingPrice (flexible pricing)', () => {
+  const N = ' ';
+  it('shows a fixed price', () => {
+    expect(formatListingPrice({ price_xof: 28000, price_mode: 'fixed', listing_mode: 'sale' })).toBe(`28${N}000${N}F CFA`);
+    expect(formatListingPrice({ price_xof: 28000, price_mode: 'fixed' }, { compact: true })).toBe(`28${N}000${N}F`);
+  });
+  it('never shows 0 F or an invented price', () => {
+    expect(formatListingPrice({ price_xof: 0, price_mode: 'fixed', listing_mode: 'sale' })).toBe('Prix sur demande');
+    expect(formatListingPrice({ price_xof: null, price_mode: 'fixed', listing_mode: 'trade' })).toBe('À échanger');
+    expect(formatListingPrice({ price_xof: null, price_mode: null, listing_mode: 'sale' })).toBe('Prix sur demande');
+  });
+  it('« Prix sur demande » hides any amount', () => {
+    expect(formatListingPrice({ price_xof: 15000, price_mode: 'on_request' })).toBe('Prix sur demande');
+    expect(hasDisplayedPrice({ price_xof: 15000, price_mode: 'on_request' })).toBe(false);
+  });
+  it('« À discuter » with or without a starting price', () => {
+    expect(formatListingPrice({ price_xof: 25000, price_mode: 'negotiable' })).toBe(`25${N}000${N}F CFA · à discuter`);
+    expect(formatListingPrice({ price_xof: null, price_mode: 'negotiable' })).toBe('Prix à discuter');
+  });
+});
+
+describe('formatMemberSince', () => {
+  it('uses French month names in Dakar time (UTC)', () => {
+    expect(formatMemberSince('2026-03-14T10:00:00Z')).toBe('Membre depuis mars 2026');
+    expect(formatMemberSince('2025-12-31T23:59:00Z')).toBe('Membre depuis décembre 2025');
+  });
+  it('returns an empty string for an invalid date', () => {
+    expect(formatMemberSince('not a date')).toBe('');
   });
 });

@@ -22,6 +22,10 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 - **Option complète (build de développement)** : nécessaire pour le **live vidéo** et les
   **notifications push**. Elle demande un compte Apple Developer et un compte Expo (voir
   `docs/SETUP_PRODUCTION.md`).
+- **Roue d’outils flottante dans Expo Go** : ce bouton appartient à Expo Go, pas à Jëfëli.
+  Pour le masquer pendant le test, secouez l’iPhone pour ouvrir le menu développeur d’Expo Go,
+  puis désactivez l’option du bouton d’outils flottant (« Tools button »). Le réglage reste
+  dans Expo Go. Secouer à nouveau rouvre le menu si besoin.
 - Le bandeau « PILOTE » et les badges « DÉMO » signalent un environnement de test.
 
 ## 1. Comptes (5 min)
@@ -33,12 +37,18 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 
 ## 2. Publier comme vendeuse (B) (5 min)
 
-1. Bouton central **Publier** → **Article** → prenez une photo avec l’appareil photo.
-2. Titre, « Vente ou troc », prix (par exemple 35 000), catégorie, état « Très bon état », puis
-   **Publier**.
-3. Ouvrez **Profil** : la boutique est apparue toute seule, sans configuration.
-4. **Publier** → **Statut** → une photo, légende, visible par « Mes abonnés » → **Publier le statut**.
-5. **Publier** → **Publication** → une vidéo courte de moins de 60 s. Vérifiez la barre de
+1. Bouton central **Publier** : quatre choix (Publication, Statut, Article, Live « Bientôt »).
+   Touchez **Article**.
+2. **Étape 1 sur 3 · L’essentiel** : une photo (appareil photo ou galerie), un titre,
+   « Vente ou troc », puis le prix : **Prix affiché** (par exemple 35 000), **Prix sur
+   demande** (aucun prix) ou **À discuter** (prix de départ facultatif) → **Continuer**.
+3. **Étape 2 · Détails** : catégorie (« Voir tout » pour les autres), état « Très bon état ».
+   Description et quantité sont facultatives → **Continuer**.
+4. **Étape 3 · Remise** : ville et quartier, retrait ou livraison → **Publier l’article**.
+   Fermez l’app au milieu du formulaire et rouvrez-le : le brouillon est conservé.
+5. Ouvrez **Profil** : la boutique est apparue toute seule, sans configuration.
+6. **Publier** → **Statut** → une photo, légende, visible par « Mes abonnés » → **Publier le statut**.
+7. **Publier** → **Publication** → une vidéo courte de moins de 60 s. Vérifiez la barre de
    progression, puis la lecture dans le fil.
 
 ## 3. Découvrir et discuter (A) (8 min)
@@ -74,8 +84,10 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 
 ## 5 bis. Communauté (5 min)
 
-1. A : sur **Pour toi**, touchez **Je cherche** dans l’encadré « Demandez à la communauté ».
-   Écrivez une demande (par exemple un tailleur ou un réparateur), puis **Publier**.
+1. A : **Publier** → **Publication**. Écrivez une demande (par exemple un tailleur ou un
+   réparateur), choisissez le type facultatif **Je cherche**, puis **Publier**. (L’ancien
+   encadré « Demandez à la communauté » en haut du fil a été retiré : tout passe par
+   Publication.)
 2. B : retrouvez la demande dans **Pour toi**. Elle porte l’étiquette « Je cherche » et la mention
    « Attend vos réponses ». Touchez **Je peux aider** : une conversation privée s’ouvre.
 3. B : votez **▲** sur la demande, puis passez à **▼**. Le compteur public n’affiche jamais de
@@ -84,6 +96,28 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
    directement dans le fil.
 5. Comptes DÉMO à essayer : `khadija@`, `mariama@` et `ousmane@` (même mot de passe). Ils montrent
    des services proposés, une demande d’ordinateur et un tout nouveau vendeur.
+
+## 5 ter. Prix flexibles, boutique et commerce en conversation (8 min)
+
+1. Connectez-vous avec `khadija@demo.jefeli.test` : son article « Boubou brodé sur mesure »
+   affiche **Prix sur demande**. Nulle part « 0 F ». Avec `ousmane@…` : « Lot de 5 cabas »
+   affiche **30 000 F · à discuter**.
+2. Avec un autre compte, sur l’article « Prix sur demande » → **Faire une offre** : l’offre
+   chiffrée, la contre-proposition et l’accord fonctionnent comme avant.
+3. Dans cette conversation → **+** → **Envoyer des articles** → onglet « Articles de … » →
+   cochez deux articles → **Envoyer 2 articles** : deux fiches arrivent dans le fil. Rien n’est
+   réservé ni payé : c’est une base pour discuter de plusieurs articles.
+4. `awa@` : profil avec photo de couverture, « Membre depuis… », publication et article
+   **Épinglés**. Sur une de vos publications ou un de vos articles → « ··· » → **Épingler sur
+   mon profil** (3 au maximum par type).
+5. **Profil** → icône partager → **Envoyer sur WhatsApp**. Sur un article : boutons
+   **WhatsApp** et **Partager**. Ouvrez le lien hors de l’app : la page publique montre le bon
+   prix (ou « Prix sur demande »).
+6. **Modifier le profil** → **Photo de couverture** → ajoutez une image.
+7. Dans le fil, sur une publication qui identifie un article d’un autre membre → **Écrire** :
+   la conversation s’ouvre avec la fiche de l’article.
+8. **Explorer** : « Tout / Neuf / Occasion / Troc », catégories avec **Tous** par défaut et
+   **Voir tout**, bouton ville (« Près de moi »), **Effacer les filtres**.
 
 ## 6. Live (si activé)
 

@@ -5,8 +5,9 @@ import { deepLinks, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shar
 import { OpenInApp } from '@/components/OpenInApp';
 import { ShareActions } from '@/components/ShareActions';
 import { IconComment, IconLock, IconPin, IconPlay, IconUpvote } from '@/components/icons';
-import { Avatar, DemoChip, ProductCard, Stars, VerifiedBadge, locationLabel } from '@/components/ui';
+import { Avatar, DemoChip, PinnedChip, ProductCard, Stars, VerifiedBadge, locationLabel } from '@/components/ui';
 import { env } from '@/lib/env';
+import { deName } from '@/lib/format';
 import { avatarUrl, coverUrl, firstStill, publicMediaUrl, sortMedia } from '@/lib/media';
 import {
   getBoutique,
@@ -122,6 +123,7 @@ export default async function ProfilePage({ params }: Props) {
 
   const average = ratingAverage(profile.rating_sum, profile.rating_count);
   const hasBoutique = boutique !== null || products.length > 0;
+  const shareMessage = `À découvrir sur Jëfëli\u00A0: ${hasBoutique ? 'la boutique' : 'le profil'} ${deName(profile.display_name)} (@${profile.handle})`;
   const notes = boutique
     ? ([
         ['Retrait', boutique.pickup_notes],
@@ -155,7 +157,7 @@ export default async function ProfilePage({ params }: Props) {
             </div>
           </div>
           <div style={{ marginTop: 14 }}>
-            <ShareActions url={shareUrl} text={`${profile.display_name} sur Jëfëli`} />
+            <ShareActions url={shareUrl} text={`${profile.display_name} sur Jëfëli`} message={shareMessage} />
           </div>
         </aside>
 
@@ -185,7 +187,7 @@ export default async function ProfilePage({ params }: Props) {
             {products.length > 0 ? (
               <div className="product-grid">
                 {products.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                  <ProductCard key={p.id} product={p} showPinned />
                 ))}
               </div>
             ) : (
@@ -320,6 +322,7 @@ function PostItem({ post }: { post: PostRow }) {
   return (
     <Link href={`/post/${post.id}`} className="card post-item">
       <div style={{ minWidth: 0 }}>
+        {post.pinned_at ? <PinnedChip /> : null}
         <p className="post-item-body">{body || (media.length ? 'Publication avec médias' : 'Publication')}</p>
         <div className="meta-row">
           <span>{timeAgo(post.created_at)}</span>

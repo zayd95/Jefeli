@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { CONDITION_LABELS, LISTING_MODE_LABELS, publicStorageUrl, timeAgo } from '@jefeli/shared';
+import { CONDITION_LABELS, LISTING_MODE_LABELS, PRICE_MODES, publicStorageUrl, timeAgo } from '@jefeli/shared';
 import type { Json } from '@jefeli/shared';
 import { env } from '@/lib/env';
 import { xof } from '@/lib/format';
@@ -289,6 +289,7 @@ function evidenceMedia(type: string, evidence: Json): EvidenceMedia[] {
 const EVIDENCE_LABELS: Record<string, string> = {
   title: 'Titre',
   price_xof: 'Prix',
+  price_mode: 'Affichage du prix',
   condition: 'État',
   listing_mode: 'Mode',
   category_slug: 'Catégorie',
@@ -314,6 +315,7 @@ const HIDDEN_EVIDENCE_KEYS = new Set(['media', 'image_path', 'poster_path', 'pat
 function formatEvidenceValue(k: string, v: Json): string {
   if (v === null || v === undefined) return '—';
   if (k === 'price_xof' && typeof v === 'number') return xof(v);
+  if (k === 'price_mode' && typeof v === 'string') return PRICE_MODES.find((m) => m.key === v)?.label ?? v;
   if (k === 'condition' && typeof v === 'string') return CONDITION_LABELS[v as keyof typeof CONDITION_LABELS] ?? v;
   if (k === 'listing_mode' && typeof v === 'string') return LISTING_MODE_LABELS[v as keyof typeof LISTING_MODE_LABELS] ?? v;
   if (k === 'sent_at' && typeof v === 'string') return formatDateTime(v);

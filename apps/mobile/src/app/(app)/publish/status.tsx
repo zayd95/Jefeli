@@ -1,4 +1,4 @@
-import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience } from '@jefeli/shared';
+import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Camera, ImagePlus, ShoppingBag, X } from 'lucide-react-native';
@@ -143,7 +143,7 @@ export default function NewStatus() {
                 <Chip
                   key={p.id}
                   icon={ShoppingBag}
-                  label={`${p.title.slice(0, 22)}${p.price_xof !== null ? ` · ${formatXOF(p.price_xof, { compact: true })}` : ''}`}
+                  label={`${p.title.slice(0, 22)}${hasDisplayedPrice(p) ? ` · ${formatXOF(p.price_xof, { compact: true })}` : ''}`}
                   selected={productId === p.id}
                   tone="dark"
                   onPress={() => setProductId(productId === p.id ? null : p.id)}

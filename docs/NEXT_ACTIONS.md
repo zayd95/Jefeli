@@ -1,10 +1,27 @@
 # Next actions
 
-## Owner (now): playtest in Expo Go
-On the Mac (Docker Desktop running): `git pull`, `pnpm install`, then `pnpm preview:expo-go`.
-Scan the QR code with the iPhone (Expo Go for SDK 58, same Wi-Fi, allow « Réseau local »).
-Live and push show « indisponible » in Expo Go; everything else is the native app. The
-browser preview stays available with `pnpm preview:lan`.
+## Owner (now): next Expo Go playtest — post-playtest refinement
+On the Mac (Docker Desktop running):
+
+```bash
+cd ~/Jefeli
+git pull
+pnpm install
+pnpm preview:expo-go --reset-demo
+```
+
+- `--reset-demo` recreates the DÉMO accounts with the new examples: a « Prix sur demande »
+  article, an « À discuter » lot, pinned posts and products, and Awa's cover photo. The new
+  database migration is applied automatically.
+- Scan the QR code with the iPhone (Expo Go for SDK 58, same Wi-Fi, allow « Réseau local »).
+- To hide Expo Go's floating tools gear: shake the iPhone and switch off the floating tools
+  button in Expo Go's developer menu. The gear belongs to Expo Go, not to Jëfëli, so the app
+  cannot hide it.
+- Follow `docs/TEST_IPHONE_FR.md`: §2 (3-step article), §5 bis (one Publication composer with an
+  optional type) and §5 ter (flexible prices, pins, cover, WhatsApp share, several articles in
+  one conversation, Explorer).
+- Please note, with screenshots: anything cut off at your iPhone size, the keyboard covering a
+  field, the gallery picker, and whether the three price choices are clear without explanation.
 
 ## Owner: playtest in the browser (optional)
 
@@ -48,13 +65,19 @@ feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`
    webhook, and test host and viewer on two phones. Confirm the iOS setup on SDK 58 (Swift
    AppDelegate).
 3. Watch the first CI run on PR #1 and fix anything environment-specific.
-4. Small backlog:
+4. Refinement follow-ups (not started):
+   - an order summary built from the multi-article picker plus accepted offers (roadmap in
+     `docs/CONVERSATION_COMMERCE.md`, needs the owner's go-ahead);
+   - reorder pins (today the newest pin comes first);
+   - the price mode in search result rows on the web admin;
+   - a development build with `expo-dev-client` `toolsButton: false` once EAS is set up.
+5. Small backlog:
    - collections UI (the table exists);
    - edit and reorder listing media (the RPC exists);
    - a report-history link from notifications;
    - `my_conversations` preview text for barter offers;
    - a server-side guard for `/admin` routes.
-5. Performance pass on a mid-range Android: switch feed lists to FlashList (installed) and check
+6. Performance pass on a mid-range Android: switch feed lists to FlashList (installed) and check
    image sizes.
 
 ## Resume instructions

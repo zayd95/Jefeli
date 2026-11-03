@@ -5,42 +5,56 @@ import { IconLink, IconMessage, IconShare } from './icons';
 
 /**
  * Share without any tracking: WhatsApp share link, native share sheet when the browser offers
- * one, and copy-to-clipboard. Nothing is posted automatically.
+ * one, and copy-to-clipboard. Nothing is posted automatically: each action only prepares a
+ * message that the visitor sends (or not) themselves.
+ *
+ * `text` is the page title; `message` is the short French sentence placed before the link in
+ * WhatsApp and the native share sheet (defaults to `text`).
  */
 const noopSubscribe = () => () => {};
 
-export function ShareActions({ url, text }: { url: string; text: string }) {
+/** wa.me opens WhatsApp (app or web) with the message pre-filled; the visitor picks the chat. */
+function whatsappShareUrl(message: string, url: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(`${message}\n${url}`)}`;
+}
+
+export function ShareActions({ url, text, message }: { url: string; text: string; message?: string }) {
   const canNativeShare = useSyncExternalStore(
     noopSubscribe,
     () => typeof navigator.share === 'function',
     () => false,
   );
   const [status, setStatus] = useState('');
+  const body = message ?? text;
 
   async function copy() {
     try {
       await navigator.clipboard.writeText(url);
       setStatus('Lien copié');
     } catch {
-      setStatus('Copie impossible\u00A0: sélectionnez l’adresse dans la barre du navigateur.');
+      setStatus('Copie impossible : sélectionnez l’adresse dans la barre du navigateur.');
     }
     window.setTimeout(() => setStatus(''), 3000);
   }
 
   async function nativeShare() {
     try {
-      await navigator.share({ title: text, url });
+      await navigator.share({ title: text, text: body, url });
     } catch {
       /* dismissed */
     }
   }
 
-  const whatsapp = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
-
   return (
     <div>
-      <div className="share-row">
-        <a className="btn btn-outline btn-sm" href={whatsapp} target="_blank" rel="noopener noreferrer">
+      <div className="share-row" role="group" aria-label="Partager">
+        <a
+          className="btn btn-outline btn-sm"
+          href={whatsappShareUrl(body, url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Partager sur WhatsApp (nouvel onglet)"
+        >
           <IconMessage width={17} height={17} /> WhatsApp
         </a>
         <button type="button" className="btn btn-outline btn-sm" onClick={copy}>

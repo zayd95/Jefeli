@@ -1,7 +1,7 @@
-import { AUDIENCE_LABELS, formatXOF, isPostIntent, POST_INTENTS, toFrenchError, type Audience, type PostIntent } from '@jefeli/shared';
+import { AUDIENCE_LABELS, formatListingPrice, isPostIntent, POST_INTENTS, toFrenchError, type Audience, type PostIntent } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, HandHelping, Megaphone, MessageCircleQuestionMark, Search, type LucideIcon } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronUp, HandHelping, Megaphone, MessageCircleQuestionMark, Search, ShoppingBag, type LucideIcon } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -37,6 +37,7 @@ export default function NewPost() {
   const needsText = intent === 'seek' || intent === 'opinion';
   const set = (patch: Partial<typeof draft.value>) => draft.setValue((v) => ({ ...v, ...patch }));
   const [uploading, setUploading] = useState(false);
+  const [showProducts, setShowProducts] = useState(false);
   const [progress, setProgress] = useState(0);
   const abort = useRef<AbortController | null>(null);
 
@@ -82,9 +83,26 @@ export default function NewPost() {
             </Text>
           </Text>
         ) : null}
-        <View style={{ gap: spacing.sm }}>
-          <Text variant="callout" weight="600">
-            Type de publication
+        <Field
+          value={body}
+          onChangeText={(t) => set({ body: t })}
+          placeholder={intentInfo.placeholder}
+          multiline
+          maxLength={2200}
+          accessibilityLabel="Texte"
+          style={styles.text}
+          autoFocus={!draft.restored}
+        />
+        {needsText && media.length > 0 && body.trim().length === 0 ? (
+          <Text variant="caption" tone="secondary" style={{ marginTop: -spacing.md }}>
+            Ajoutez quelques mots : une photo seule ne dit pas ce que vous cherchez.
+          </Text>
+        ) : null}
+        <MediaPickerStrip media={media} onChange={(m) => set({ media: m })} />
+
+        <View style={styles.section}>
+          <Text variant="caption" weight="700" tone="secondary">
+            Type de publication · facultatif
           </Text>
           <View style={styles.intents} accessibilityRole="radiogroup">
             {POST_INTENTS.map((i) => {
@@ -94,72 +112,81 @@ export default function NewPost() {
                 <Pressable
                   key={i.key}
                   onPress={() => set({ intent: i.key })}
-                  style={({ pressed }) => [styles.intent, on && styles.intentOn, pressed && !on && { backgroundColor: colors.surfaceSubtle }]}
+                  style={({ pressed }) => [styles.intent, on && styles.intentOn, pressed && !on && { backgroundColor: colors.surfaceMuted }]}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: on, checked: on }} aria-checked={on}
+                  accessibilityState={{ selected: on, checked: on }}
+                  aria-checked={on}
                   accessibilityLabel={i.label}
                 >
-                  <Icon size={18} color={on ? colors.white : colors.ink} strokeWidth={2.2} />
-                  <Text variant="callout" weight="700" color={on ? colors.white : colors.ink} numberOfLines={1}>
+                  <Icon size={15} color={on ? colors.white : colors.ink} strokeWidth={2.2} />
+                  <Text variant="caption" weight="700" color={on ? colors.white : colors.ink} numberOfLines={1}>
                     {i.label}
                   </Text>
                 </Pressable>
               );
             })}
           </View>
-          <Text variant="caption" tone="secondary">
-            {intentInfo.hint}
-          </Text>
+          {intent !== 'share' ? (
+            <Text variant="caption" tone="secondary">
+              {intentInfo.hint}
+            </Text>
+          ) : null}
         </View>
-        <Field value={body} onChangeText={(t) => set({ body: t })} placeholder={intentInfo.placeholder} multiline maxLength={2200} counter label="Texte" />
-        {needsText && media.length > 0 && body.trim().length === 0 ? (
-          <Text variant="caption" tone="secondary" style={{ marginTop: -spacing.md }}>
-            Ajoutez quelques mots : une photo seule ne dit pas ce que vous cherchez.
-          </Text>
-        ) : null}
-        <MediaPickerStrip media={media} onChange={(m) => set({ media: m })} />
 
         {(myProducts.data ?? []).length > 0 ? (
-          <View style={{ gap: spacing.sm }}>
-            <Text variant="callout" weight="600">
-              Identifier un de vos articles (facultatif)
-            </Text>
-            <Text variant="caption" tone="secondary">
-              Une publication n’a pas besoin d’être une vente. Identifiez un article seulement si vous en parlez.
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-              {(myProducts.data ?? []).map((p) => {
-                const on = productIds.includes(p.id);
-                return (
-                  <Pressable
-                    key={p.id}
-                    onPress={() => set({ productIds: on ? productIds.filter((x) => x !== p.id) : [...productIds, p.id].slice(0, 5) })}
-                    style={[styles.product, on && styles.productOn]}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: on }} aria-checked={on}
-                    accessibilityLabel={p.title}
-                  >
-                    <Thumb media={p.media[0]} style={{ width: 120, height: 90, borderRadius: radius.sm }} />
-                    <Text variant="caption" weight="600" numberOfLines={1} style={{ width: 120 }}>
-                      {p.title}
-                    </Text>
-                    <Text variant="caption" tone="secondary">
-                      {p.price_xof !== null ? formatXOF(p.price_xof, { compact: true }) : 'Troc'}
-                    </Text>
-                    {on ? (
-                      <View style={styles.check}>
-                        <Check size={14} color={colors.ink} strokeWidth={3} />
-                      </View>
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+          <View style={styles.section}>
+            <Pressable
+              onPress={() => setShowProducts((x) => !x)}
+              style={styles.disclosure}
+              accessibilityRole="button"
+              aria-expanded={showProducts || productIds.length > 0}
+              accessibilityLabel="Identifier un de vos articles (facultatif)"
+            >
+              <ShoppingBag size={18} color={colors.ink} />
+              <Text variant="callout" weight="600" style={{ flex: 1 }}>
+                Identifier un article{productIds.length > 0 ? ` · ${productIds.length}` : ''}
+              </Text>
+              <Text variant="caption" tone="secondary">
+                Facultatif
+              </Text>
+              {showProducts || productIds.length > 0 ? <ChevronUp size={18} color={colors.textSecondary} /> : <ChevronDown size={18} color={colors.textSecondary} />}
+            </Pressable>
+            {showProducts || productIds.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+                {(myProducts.data ?? []).map((p) => {
+                  const on = productIds.includes(p.id);
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => set({ productIds: on ? productIds.filter((x) => x !== p.id) : [...productIds, p.id].slice(0, 5) })}
+                      style={[styles.product, on && styles.productOn]}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: on }}
+                      aria-checked={on}
+                      accessibilityLabel={p.title}
+                    >
+                      <Thumb media={p.media[0]} style={{ width: 104, height: 80, borderRadius: radius.sm }} />
+                      <Text variant="caption" weight="600" numberOfLines={1} style={{ width: 104 }}>
+                        {p.title}
+                      </Text>
+                      <Text variant="caption" tone="secondary" numberOfLines={1} style={{ width: 104 }}>
+                        {formatListingPrice(p, { compact: true })}
+                      </Text>
+                      {on ? (
+                        <View style={styles.check}>
+                          <Check size={14} color={colors.ink} strokeWidth={3} />
+                        </View>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            ) : null}
           </View>
         ) : null}
 
-        <View style={{ gap: spacing.sm }}>
-          <Text variant="callout" weight="600">
+        <View style={styles.section}>
+          <Text variant="caption" weight="700" tone="secondary">
             Qui peut voir ?
           </Text>
           <OptionRow<Audience>
@@ -167,11 +194,11 @@ export default function NewPost() {
             onChange={(v) => set({ visibility: v })}
             options={(['public', 'followers', 'friends'] as Audience[]).map((k) => ({ key: k, label: AUDIENCE_LABELS[k] }))}
           />
-          <Text variant="caption" tone="secondary">
-            {visibility === 'public'
-              ? 'Visible par tous, y compris via un lien de partage.'
-              : 'Les médias restent privés : seules les personnes autorisées peuvent les ouvrir. L’audience ne pourra pas être changée après publication.'}
-          </Text>
+          {visibility !== 'public' ? (
+            <Text variant="caption" tone="secondary">
+              Les médias restent privés. L’audience ne pourra pas être changée après publication.
+            </Text>
+          ) : null}
         </View>
       </ScrollView>
       <UploadOverlay visible={uploading} progress={progress} label="Publication en cours…" onCancel={() => abort.current?.abort()} />
@@ -181,21 +208,20 @@ export default function NewPost() {
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl },
-  intents: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  text: { fontSize: 17, lineHeight: 24, minHeight: 96 },
+  section: { gap: spacing.sm },
+  intents: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   intent: {
-    flexBasis: '47%',
-    flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: 48,
+    gap: 5,
+    minHeight: 34,
     paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
   },
-  intentOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  intentOn: { backgroundColor: colors.ink },
+  disclosure: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44 },
   product: { padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, gap: 4 },
   productOn: { borderColor: colors.ink, borderWidth: 2 },
   check: { position: 'absolute', top: 12, right: 12, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center' },

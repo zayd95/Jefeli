@@ -16,6 +16,35 @@ export function formatXOF(amount: number | null | undefined, opts: { compact?: b
   return `${sign}${digits}${NNBSP}${opts.compact ? 'F' : 'F CFA'}`;
 }
 
+export type PriceMode = 'fixed' | 'on_request' | 'negotiable';
+
+export function isPriceMode(v: unknown): v is PriceMode {
+  return v === 'fixed' || v === 'on_request' || v === 'negotiable';
+}
+
+type PricedListing = { price_xof: number | null; price_mode?: string | null; listing_mode?: string | null };
+
+/** True when the listing shows a real amount (never 0 F, never for « Prix sur demande »). */
+export function hasDisplayedPrice(p: PricedListing): boolean {
+  return p.price_mode !== 'on_request' && typeof p.price_xof === 'number' && p.price_xof > 0;
+}
+
+/**
+ * How a listing's price reads everywhere: cards, product pages, share pages, chat cards and
+ * offers. Never invents a price and never shows 0 F.
+ *   fixed       → « 28 000 F CFA » (trade-only listings without a value: « À échanger »)
+ *   on_request  → « Prix sur demande »
+ *   negotiable  → « 25 000 F CFA · à discuter », or « Prix à discuter » without a starting price
+ */
+export function formatListingPrice(p: PricedListing, opts: { compact?: boolean } = {}): string {
+  const mode: PriceMode = isPriceMode(p.price_mode) ? p.price_mode : 'fixed';
+  const amount = hasDisplayedPrice(p) ? formatXOF(p.price_xof, opts) : null;
+  if (mode === 'on_request') return 'Prix sur demande';
+  if (mode === 'negotiable') return amount ? `${amount} · à discuter` : 'Prix à discuter';
+  if (amount) return amount;
+  return p.listing_mode === 'trade' ? 'À échanger' : 'Prix sur demande';
+}
+
 /** Parse user input such as "25 000", "25.000", "25000 F" into an integer, or null. */
 export function parseXOF(input: string): number | null {
   const digits = input.replace(/[^\d]/g, '');
@@ -61,6 +90,15 @@ export function formatDate(date: Date, now: Date = new Date()): string {
   } catch {
     return date.toISOString().slice(0, 10);
   }
+}
+
+const FR_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/** « Membre depuis mars 2026 » — explicit month names so it never depends on device Intl data. */
+export function formatMemberSince(iso: string | Date): string {
+  const date = typeof iso === 'string' ? new Date(iso) : iso;
+  if (Number.isNaN(date.getTime())) return '';
+  return `Membre depuis ${FR_MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }
 
 /** Clock time in Dakar (UTC+0, no DST) for message bubbles: "14:05". */

@@ -363,6 +363,22 @@ button { font: inherit; color: inherit; }
 }
 .media-badge svg { width: 12px; height: 12px; }
 
+/* Price labels: « 25 000 F · à discuter » keeps the amount bold, the note quieter. */
+.price-note { font-size: 0.8em; font-weight: 600; letter-spacing: 0; color: var(--c-text-secondary); }
+.product-card.is-sold .price-note { color: inherit; }
+
+/* « Épinglé »: posts and listings the owner pinned to the top of their profile. */
+.pinned-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-mint-soft); color: var(--c-ink);
+  font-size: 11.5px; font-weight: 700; line-height: 1;
+  white-space: nowrap;
+}
+.pinned-chip svg { width: 12px; height: 12px; }
+.pinned-chip.is-overlay { position: absolute; top: 8px; right: 8px; height: 24px; background: var(--c-action); color: var(--c-action-text); }
+
 /* ------------------------------------------------------------------ */
 /* Profile                                                             */
 /* ------------------------------------------------------------------ */
@@ -439,6 +455,7 @@ button { font: inherit; color: inherit; }
 }
 .post-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .post-item .meta-row { margin-top: 8px; font-size: 12.5px; }
+.post-item .pinned-chip { margin-bottom: 8px; }
 
 /* Reviews */
 .review-summary { display: flex; align-items: center; gap: 14px; }
@@ -505,7 +522,8 @@ button { font: inherit; color: inherit; }
 
 .product-info { padding-top: 18px; }
 .product-price { font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
-.product-price.is-trade { font-size: 26px; }
+.product-price.is-label { font-size: 26px; }
+.product-price .price-note { font-size: 0.6em; }
 .product-title { margin-top: 6px; font-size: 19px; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; overflow-wrap: anywhere; }
 .product-info .chip-row { margin-top: 14px; }
 .product-info .meta-row { margin-top: 14px; }

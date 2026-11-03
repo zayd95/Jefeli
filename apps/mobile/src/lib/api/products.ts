@@ -1,4 +1,4 @@
-import type { ItemCondition, ListingMode, ProductStatus } from '@jefeli/shared';
+import type { ItemCondition, ListingMode, PriceMode, ProductStatus } from '@jefeli/shared';
 
 import { supabase, unwrap } from '../supabase';
 import type { ProductCard } from '../types';
@@ -48,7 +48,14 @@ export async function fetchProduct(id: string): Promise<ProductCard | null> {
 }
 
 export async function fetchSellerProducts(sellerId: string, opts: { includeSold?: boolean; onlyActive?: boolean } = {}): Promise<ProductCard[]> {
-  let q = supabase.from('products').select(PRODUCT_SELECT).eq('seller_id', sellerId).order('created_at', { ascending: false }).limit(60);
+  // Pinned listings first, then the newest.
+  let q = supabase
+    .from('products')
+    .select(PRODUCT_SELECT)
+    .eq('seller_id', sellerId)
+    .order('pinned_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+    .limit(60);
   if (opts.onlyActive) q = q.eq('status', 'active');
   else if (!opts.includeSold) q = q.in('status', ['active', 'reserved']);
   else q = q.neq('status', 'archived');
@@ -85,6 +92,7 @@ export interface ListingInput {
   title: string;
   description: string;
   price_xof: number | null;
+  price_mode: PriceMode;
   category_slug: string;
   condition: ItemCondition;
   listing_mode: ListingMode;
@@ -100,7 +108,8 @@ export async function createListing(input: ListingInput, media: UploadedMedia[])
     await supabase.rpc('create_listing', {
       p_title: input.title,
       p_description: input.description,
-      p_price_xof: input.price_xof as number,
+      p_price_xof: (input.price_mode === 'on_request' ? null : input.price_xof) as number,
+      p_price_mode: input.price_mode,
       p_category_slug: input.category_slug,
       p_condition: input.condition,
       p_listing_mode: input.listing_mode,

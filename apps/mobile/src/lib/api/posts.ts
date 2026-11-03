@@ -8,7 +8,7 @@ import { PROFILE_LITE } from './profiles';
 export const POST_SELECT = `*,
   author:profiles!posts_author_id_fkey(${PROFILE_LITE}),
   media:post_media(id, kind, bucket, storage_path, poster_path, width, height, duration_ms, position),
-  tagged:post_products(product:products(id, title, price_xof, status, listing_mode, condition, media:product_media(storage_path, kind, poster_path, position)))`;
+  tagged:post_products(product:products(id, title, price_xof, price_mode, status, listing_mode, condition, seller_id, media:product_media(storage_path, kind, poster_path, position)))`;
 
 export const FEED_PAGE = 12;
 
@@ -89,7 +89,8 @@ export async function fetchPost(userId: string | null, id: string): Promise<Post
 }
 
 export async function fetchUserPosts(viewerId: string | null, authorId: string, before?: string | null): Promise<PostCardData[]> {
-  let q = supabase.from('posts').select(POST_SELECT).eq('author_id', authorId).order('created_at', { ascending: false }).limit(FEED_PAGE);
+  // Pinned posts are listed separately above the timeline (see fetchPinnedPosts).
+  let q = supabase.from('posts').select(POST_SELECT).eq('author_id', authorId).is('pinned_at', null).order('created_at', { ascending: false }).limit(FEED_PAGE);
   if (before) q = q.lt('created_at', before);
   const rows = unwrap(await q) as unknown as PostCardData[];
   return decorate(viewerId, rows);
@@ -165,4 +166,23 @@ export async function addComment(userId: string, postId: string, body: string, p
 
 export async function deleteComment(id: string) {
   unwrap(await supabase.rpc('delete_comment', { p_comment_id: id }));
+}
+
+/** Pin a post or a listing to the top of one's profile (owner only, max 3 of each). */
+export async function setPinned(kind: 'post' | 'product', id: string, pinned: boolean) {
+  unwrap(await supabase.rpc('set_pinned', { p_kind: kind, p_id: id, p_pinned: pinned }));
+}
+
+/** The author's pinned posts, shown above their timeline. */
+export async function fetchPinnedPosts(viewerId: string | null, authorId: string): Promise<PostCardData[]> {
+  const rows = unwrap(
+    await supabase
+      .from('posts')
+      .select(POST_SELECT)
+      .eq('author_id', authorId)
+      .not('pinned_at', 'is', null)
+      .order('pinned_at', { ascending: false })
+      .limit(3),
+  ) as unknown as PostCardData[];
+  return decorate(viewerId, rows);
 }
