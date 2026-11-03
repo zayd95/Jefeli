@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AvatarPicker } from '@/components/AvatarPicker';
 import { LocationPicker } from '@/components/LocationPicker';
+import { BoutiqueIdentityFields, boutiqueIdentityValid } from '@/components/BoutiqueIdentityFields';
 import { Button, Checkbox, Chip, colors, Field, ProgressBar, Screen, spacing, Text, Toggle, Wordmark } from '@/design';
 import { fetchCategories } from '@/lib/api/products';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
@@ -23,6 +24,8 @@ export default function Onboarding() {
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
   const [merchant, setMerchant] = useState(profile?.is_merchant ?? false);
+  const [boutiqueName, setBoutiqueName] = useState(profile?.boutique_name ?? '');
+  const [boutiqueCategory, setBoutiqueCategory] = useState<string | null>(profile?.boutique_category_slug ?? null);
   const [adult, setAdult] = useState(!!profile?.adult_confirmed_at);
   const [remote, setRemote] = useState<{ handle: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -46,7 +49,8 @@ export default function Onboarding() {
   const canNext = [
     name.trim().length >= 2 && handleState === 'ok' && adult,
     city.trim().length > 0,
-    true,
+    // Selling casually needs nothing; the « Vendeur » identity needs a shop name and category.
+    !merchant || boutiqueIdentityValid(boutiqueName, boutiqueCategory),
   ][step];
 
   async function finish() {
@@ -63,6 +67,8 @@ export default function Onboarding() {
         neighborhood: neighborhood.trim() || null,
         interests,
         is_merchant: merchant,
+        boutique_name: merchant ? boutiqueName.trim() : null,
+        boutique_category_slug: merchant ? boutiqueCategory : null,
         adult_confirmed_at: new Date().toISOString(),
         onboarded_at: new Date().toISOString(),
       });
@@ -157,6 +163,15 @@ export default function Onboarding() {
               label="Je vends régulièrement"
               description="Affiche « Vendeur » sur votre profil. Pas d’abonnement, pas de frais : votre boutique se crée avec votre premier article."
             />
+            {merchant ? (
+              <BoutiqueIdentityFields
+                name={boutiqueName}
+                onName={setBoutiqueName}
+                category={boutiqueCategory}
+                onCategory={setBoutiqueCategory}
+                showErrors={boutiqueName.length > 0}
+              />
+            ) : null}
           </>
         ) : null}
 

@@ -82,16 +82,16 @@ async function wax(palette, seed) {
 // Users
 // ---------------------------------------------------------------------------
 const USERS = [
-  { key: 'awa', email: `awa@${DOMAIN}`, handle: 'awa_couture', name: 'Awa Ndiaye', city: 'Dakar', area: 'Médina', merchant: true, bio: 'Couture et wax sur mesure. Arrivages chaque semaine, retrait à Médina.', interests: ['mode-femme', 'tissus-wax'] },
-  { key: 'baol', email: `baol@${DOMAIN}`, handle: 'baolmode', name: 'BaolMode', city: 'Dakar', area: 'Sacré-Cœur', merchant: true, bio: 'Chaussures et sacs, neufs et d’occasion. Troc bienvenu.', interests: ['chaussures', 'sacs-accessoires'] },
+  { key: 'awa', email: `awa@${DOMAIN}`, handle: 'awa_couture', boutique: 'Awa Couture', boutiqueCategory: 'mode-femme', name: 'Awa Ndiaye', city: 'Dakar', area: 'Médina', merchant: true, bio: 'Couture et wax sur mesure. Arrivages chaque semaine, retrait à Médina.', interests: ['mode-femme', 'tissus-wax'] },
+  { key: 'baol', email: `baol@${DOMAIN}`, handle: 'baolmode', boutique: 'BaolMode', boutiqueCategory: 'chaussures', name: 'BaolMode', city: 'Dakar', area: 'Sacré-Cœur', merchant: true, bio: 'Chaussures et sacs, neufs et d’occasion. Troc bienvenu.', interests: ['chaussures', 'sacs-accessoires'] },
   { key: 'moussa', email: `moussa@${DOMAIN}`, handle: 'moussa_dakar', name: 'Moussa Diop', city: 'Dakar', area: 'Parcelles Assainies', merchant: false, bio: 'Je vends ce que je n’utilise plus.', interests: ['telephones', 'electronique'] },
   { key: 'fatou', email: `fatou@${DOMAIN}`, handle: 'fatou_sarr', name: 'Fatou Sarr', city: 'Dakar', area: 'Mermoz', merchant: false, bio: 'Toujours à la recherche de belles pièces.', interests: ['mode-femme', 'beaute', 'sacs-accessoires'] },
   // Feed engagement pass: services, requests and a brand-new seller (all fictional DÉMO members).
-  { key: 'khadija', email: `khadija@${DOMAIN}`, handle: 'khadija_retouches', name: 'Khadija Ba', city: 'Dakar', area: 'Mermoz', merchant: true, bio: 'Couturière : retouches, ourlets et confection à domicile. Devis gratuit.', interests: ['mode-femme'] },
-  { key: 'ibrahima', email: `ibrahima@${DOMAIN}`, handle: 'ibou_repare', name: 'Ibrahima Sow', city: 'Thiès', area: 'Centre-ville', merchant: true, bio: 'Réparation de téléphones et d’ordinateurs. Pièces garanties 3 mois.', interests: ['telephones', 'electronique'] },
-  { key: 'aissatou', email: `aissatou@${DOMAIN}`, handle: 'chez_aissatou', name: 'Aïssatou Ka', city: 'Dakar', area: 'Liberté 6', merchant: true, bio: 'Traiteur : thiéboudienne, yassa et mafé pour vos baptêmes et réunions.', interests: [] },
+  { key: 'khadija', email: `khadija@${DOMAIN}`, handle: 'khadija_retouches', boutique: 'Khadija Retouches', boutiqueCategory: 'mode-femme', name: 'Khadija Ba', city: 'Dakar', area: 'Mermoz', merchant: true, bio: 'Couturière : retouches, ourlets et confection à domicile. Devis gratuit.', interests: ['mode-femme'] },
+  { key: 'ibrahima', email: `ibrahima@${DOMAIN}`, handle: 'ibou_repare', boutique: 'Ibou Répare', boutiqueCategory: 'telephones', name: 'Ibrahima Sow', city: 'Thiès', area: 'Centre-ville', merchant: true, bio: 'Réparation de téléphones et d’ordinateurs. Pièces garanties 3 mois.', interests: ['telephones', 'electronique'] },
+  { key: 'aissatou', email: `aissatou@${DOMAIN}`, handle: 'chez_aissatou', boutique: 'Chez Aïssatou', boutiqueCategory: 'epicerie', name: 'Aïssatou Ka', city: 'Dakar', area: 'Liberté 6', merchant: true, bio: 'Traiteur : thiéboudienne, yassa et mafé pour vos baptêmes et réunions.', interests: [] },
   { key: 'mariama', email: `mariama@${DOMAIN}`, handle: 'mariama_d', name: 'Mariama Diallo', city: 'Saint-Louis', area: null, merchant: false, bio: 'Étudiante à Saint-Louis.', interests: ['electronique', 'telephones'] },
-  { key: 'ousmane', email: `ousmane@${DOMAIN}`, handle: 'ousmane_cabas', name: 'Ousmane Fall', city: 'Dakar', area: 'Grand Yoff', merchant: true, bio: 'Cabas et trousses en wax, cousus à la main. Nouveau sur Jëfëli !', interests: ['tissus-wax', 'sacs-accessoires'] },
+  { key: 'ousmane', email: `ousmane@${DOMAIN}`, handle: 'ousmane_cabas', boutique: 'Ousmane Cabas', boutiqueCategory: 'sacs-accessoires', name: 'Ousmane Fall', city: 'Dakar', area: 'Grand Yoff', merchant: true, bio: 'Cabas et trousses en wax, cousus à la main. Nouveau sur Jëfëli !', interests: ['tissus-wax', 'sacs-accessoires'] },
   { key: 'admin', email: `admin@${DOMAIN}`, handle: 'equipe_moderation_demo', name: 'Modération (démo)', city: 'Dakar', area: null, merchant: false, bio: '', interests: [], staff: 'admin' },
 ];
 
@@ -183,6 +183,9 @@ async function main() {
           neighborhood: spec.area,
           interests: spec.interests,
           is_merchant: spec.merchant,
+          // The « Vendeur » identity needs a shop name and a main category (DÉMO values).
+          boutique_name: spec.merchant ? spec.boutique : null,
+          boutique_category_slug: spec.merchant ? spec.boutiqueCategory : null,
           avatar_path,
           adult_confirmed_at: new Date().toISOString(),
           onboarded_at: new Date().toISOString(),

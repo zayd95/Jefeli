@@ -81,12 +81,19 @@ function errorMessageRaw(err: unknown): string {
 }
 
 /** French message for any error coming from Supabase / fetch / our RPCs. */
+/** Table checks whose violation deserves a precise message (matched on the constraint name). */
+const CONSTRAINT_ERRORS: [string, string][] = [
+  ['profiles_boutique_identity_required', 'Pour être affiché comme vendeur, indiquez le nom et la catégorie de votre boutique.'],
+  ['profiles_boutique_name_length', 'Le nom de la boutique doit compter entre 2 et 60 caractères.'],
+];
+
 export function toFrenchError(err: unknown, fallback = 'Une erreur est survenue. Réessayez.'): string {
   const msg = errorMessageRaw(err);
   if (!msg) return fallback;
   const key = errorKey(err);
   if (key) return DB_ERRORS[key] ?? fallback;
   for (const [re, fr] of AUTH_ERRORS) if (re.test(msg)) return fr;
+  for (const [name, fr] of CONSTRAINT_ERRORS) if (msg.includes(name)) return fr;
   if (/check constraint|violates/i.test(msg)) return 'Certaines informations sont invalides. Vérifiez le formulaire.';
   return fallback;
 }

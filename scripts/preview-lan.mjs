@@ -266,7 +266,9 @@ async function main() {
   // `supabase start` reuses an existing local database as is: apply migrations added since the
   // last run (non-destructive; data is kept). Without this, a `git pull` that brings a new
   // migration leaves the app talking to an outdated schema.
-  run('pnpm', ['exec', 'supabase', 'migration', 'up', '--local']);
+  // --include-all: also apply a pending migration dated before the last applied one (for
+  // example a preparation step added after a newer migration was already run locally).
+  run('pnpm', ['exec', 'supabase', 'migration', 'up', '--local', '--include-all']);
   const status = spawnSync('pnpm', ['exec', 'supabase', 'status', '-o', 'json'], { cwd: ROOT, encoding: 'utf8', shell });
   const json = status.stdout.slice(status.stdout.indexOf('{'));
   const keys = JSON.parse(json);

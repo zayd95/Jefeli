@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { AvatarPicker, CoverPicker } from '@/components/AvatarPicker';
+import { BoutiqueIdentityFields, boutiqueIdentityValid } from '@/components/BoutiqueIdentityFields';
 import { LocationPicker } from '@/components/LocationPicker';
 import { Button, Field, Header, Screen, spacing, Text, Toggle, useToast } from '@/design';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
@@ -21,6 +22,9 @@ export default function EditProfile() {
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [isPrivate, setIsPrivate] = useState(profile?.is_private ?? false);
   const [merchant, setMerchant] = useState(profile?.is_merchant ?? false);
+  const [boutiqueName, setBoutiqueName] = useState(profile?.boutique_name ?? '');
+  const [boutiqueCategory, setBoutiqueCategory] = useState<string | null>(profile?.boutique_category_slug ?? null);
+  const [showErrors, setShowErrors] = useState(false);
   const [remote, setRemote] = useState<{ handle: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -33,8 +37,15 @@ export default function EditProfile() {
   }, [handle, valid, unchanged, userId]);
   const handleOk = valid && (unchanged || (remote?.handle === handle ? remote.ok : true));
 
+  const identityOk = !merchant || boutiqueIdentityValid(boutiqueName, boutiqueCategory);
+
   async function save() {
     if (!userId) return;
+    if (!identityOk) {
+      setShowErrors(true);
+      toast('Indiquez le nom et la catégorie de votre boutique, ou désactivez « Je vends régulièrement ».', 'error');
+      return;
+    }
     setSaving(true);
     try {
       await updateMyProfile(userId, {
@@ -47,6 +58,9 @@ export default function EditProfile() {
         neighborhood: neighborhood.trim() || null,
         is_private: isPrivate,
         is_merchant: merchant,
+        // Kept when « Je vends régulièrement » is switched off, so switching it back on is one tap.
+        boutique_name: boutiqueName.trim().length >= 2 ? boutiqueName.trim().slice(0, 60) : null,
+        boutique_category_slug: boutiqueCategory,
       });
       await refreshProfile();
       toast('Profil mis à jour', 'success');
@@ -84,6 +98,9 @@ export default function EditProfile() {
         />
         <Toggle value={isPrivate} onChange={setIsPrivate} label="Compte privé" description="Vous validez chaque nouvel abonné. Vos publications, statuts et votre boutique ne sont visibles que par eux." />
         <Toggle value={merchant} onChange={setMerchant} label="Je vends régulièrement" description="Affiche « Vendeur » sur votre profil. Pour le badge « Vendeur vérifié », faites une demande dans Réglages." />
+        {merchant ? (
+          <BoutiqueIdentityFields name={boutiqueName} onName={setBoutiqueName} category={boutiqueCategory} onCategory={setBoutiqueCategory} showErrors={showErrors} />
+        ) : null}
         <Text variant="caption" tone="secondary">
           Votre e-mail et votre numéro de téléphone ne sont jamais affichés publiquement.
         </Text>

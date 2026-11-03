@@ -131,3 +131,14 @@ describe('formatMemberSince', () => {
     expect(formatMemberSince('not a date')).toBe('');
   });
 });
+
+describe('toFrenchError — boutique identity checks', () => {
+  it('maps the merchant identity and name length constraints to precise French copy', () => {
+    expect(toFrenchError({ message: 'new row for relation "profiles" violates check constraint "profiles_boutique_identity_required"' })).toBe(
+      'Pour être affiché comme vendeur, indiquez le nom et la catégorie de votre boutique.',
+    );
+    expect(toFrenchError({ message: 'new row for relation "profiles" violates check constraint "profiles_boutique_name_length"' })).toBe(
+      'Le nom de la boutique doit compter entre 2 et 60 caractères.',
+    );
+  });
+});

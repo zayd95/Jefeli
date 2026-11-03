@@ -187,7 +187,9 @@ describe('SAF-02 — verified badge is granted by an admin only', () => {
 
   beforeAll(async () => {
     [B, M, AD] = await Promise.all([
-      createUser('merchant'),
+      // The member chose a boutique category; approval fills the name from the verified request
+      // (20261106000200_boutique_identity_followup.sql).
+      createUser('merchant', { profile: { boutique_category_slug: 'mode-femme' } }),
       createUser('M', { staffRole: 'moderator' }),
       createUser('AD', { staffRole: 'admin' }),
     ]);
@@ -232,6 +234,7 @@ describe('SAF-02 — verified badge is granted by an admin only', () => {
     const p = await adminProfile(B.id);
     expect(p.verification_level).toBe('merchant_verified');
     expect(p.is_merchant).toBe(true);
+    expect(p.boutique_name).toBe('Boutique Ndèye');
     expect((await notificationsOf(B, 'verification_result'))[0]!.data.approved).toBe(true);
     expectError(
       await AD.client.rpc('review_verification_request', { p_request_id: requestId, p_approve: false, p_note: '' }),

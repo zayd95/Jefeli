@@ -174,7 +174,13 @@ describe('SOC-03 — discovery of a non-followed seller (browse_products / searc
     [seller, buyer] = await Promise.all([
       createUser('seller', {
         displayName: `Couture Sénégal ${tok}`,
-        profile: { city: 'Thiès', onboarded_at: new Date().toISOString(), is_merchant: true },
+        profile: {
+          city: 'Thiès',
+          onboarded_at: new Date().toISOString(),
+          is_merchant: true,
+          boutique_name: `Couture Sénégal ${tok}`,
+          boutique_category_slug: 'mode-femme',
+        },
       }),
       createUser('buyer'),
     ]);

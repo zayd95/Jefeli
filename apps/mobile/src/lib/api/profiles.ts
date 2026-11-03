@@ -34,6 +34,8 @@ export type ProfilePatch = Partial<
     | 'interests'
     | 'is_private'
     | 'is_merchant'
+    | 'boutique_name'
+    | 'boutique_category_slug'
     | 'onboarded_at'
     | 'adult_confirmed_at'
   >

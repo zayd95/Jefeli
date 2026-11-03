@@ -273,12 +273,42 @@ are adapted to Atlantic Sand, not copied.
 - **Tokens:** `typeScale.title` weight 800 → 700.
 - **Tests:** the screens spec checks Explorer by the « Toutes les catégories » tile.
 
+### Optional boutique identity (owner commit `cb21596`, follow-up `FOLLOWUP_SHA`)
+The owner added `20261106000100_optional_boutique_identity.sql`: `profiles.boutique_name` and
+`profiles.boutique_category_slug`, plus a check that opting into the merchant identity
+(`is_merchant`, « Vendeur ») requires both. CI went red: `05` set `is_merchant` without them,
+and `review_verification_request` forced `is_merchant = true` on approval. Fixes, keeping the
+owner's rule unchanged:
+- **`20261105000200_merchant_identity_prepare.sql`** (runs before the owner's migration):
+  - On a database that already has merchants (the local DÉMO data), the owner's `add
+    constraint` failed and blocked `pnpm preview:*`.
+  - Those members' « Vendeur » opt-in is cleared; no name or category is invented. Fresh
+    databases are unaffected.
+  - The launcher now runs `supabase migration up --include-all`, so this earlier-dated step
+    still applies where the owner's migration already ran.
+- **`20261106000200_boutique_identity_followup.sql`:**
+  - column grants so members can set the two fields;
+  - `review_verification_request` fills an empty boutique name with the verified business name
+    and sets `is_merchant` only when a category is chosen. The badge is granted either way.
+- **App:** onboarding and « Modifier le profil » show « Nom de la boutique » and « Catégorie
+  principale » under « Je vends régulièrement ». The step or save is blocked until both are
+  valid. Casual sellers never see the fields.
+- **Shared:** French copy for `profiles_boutique_identity_required` and
+  `profiles_boutique_name_length`.
+- **Seed:** DÉMO merchants get a boutique name and a category.
+- **Tests:**
+  - integration `14-boutique-identity` (7 tests): casual listing, opt-in rules, name length,
+    category FK, owner-only writes, public read, verification approval with and without a
+    category;
+  - `05` and `08` adapted;
+  - 1 unit test.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
 | `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass (19 unit tests) |
-| `pnpm test:integration` (with `.env.test` functions) | 234/234 |
+| `pnpm test:integration` (with `.env.test` functions) | 241/241 (after the boutique identity follow-up) |
 | `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0c71062` and again on `507f7ff`) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
