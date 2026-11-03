@@ -273,7 +273,7 @@ are adapted to Atlantic Sand, not copied.
 - **Tokens:** `typeScale.title` weight 800 → 700.
 - **Tests:** the screens spec checks Explorer by the « Toutes les catégories » tile.
 
-### Optional boutique identity (owner commit `cb21596`, follow-up `FOLLOWUP_SHA`)
+### Optional boutique identity (owner commit `cb21596`, follow-up `133ff3d`)
 The owner added `20261106000100_optional_boutique_identity.sql`: `profiles.boutique_name` and
 `profiles.boutique_category_slug`, plus a check that opting into the merchant identity
 (`is_merchant`, « Vendeur ») requires both. CI went red: `05` set `is_merchant` without them,
