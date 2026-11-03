@@ -95,7 +95,7 @@ export default function Home() {
             </View>
           ) : null}
         </View>
-        <IconButton icon={Bell} label="Notifications" badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
+        <IconButton icon={Bell} label="Notifications" variant="surface" size={20} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
       </View>
       <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
         <SearchBar onPress={() => router.push('/search')} />
@@ -250,8 +250,8 @@ function FeedSkeleton({ grid }: { grid?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: spacing.lg, paddingRight: spacing.sm, paddingTop: spacing.xs, paddingBottom: spacing.sm },
-  envTag: { backgroundColor: colors.warningSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, borderWidth: 1, borderColor: '#F0DFA8' },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
+  envTag: { backgroundColor: colors.warningSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, borderWidth: 1, borderColor: colors.warningSoft },
   chips: { paddingHorizontal: spacing.lg, gap: 6, paddingBottom: spacing.md },
   gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderColor: colors.border },

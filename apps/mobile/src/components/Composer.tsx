@@ -125,8 +125,11 @@ export function OptionRow<T extends string>({
   tone?: 'light' | 'dark';
 }) {
   const dark = tone === 'dark';
+  // Light rows without hints are a soft segmented control (owner's UI reference); rows with
+  // hints, and the dark variant used over media, keep separate boxes.
+  const segmented = !dark && options.every((o) => !o.hint);
   return (
-    <View style={styles.optionRow}>
+    <View style={segmented ? styles.segment : styles.optionRow}>
       {options.map((o) => {
         const on = o.key === value;
         const fg = dark ? (on ? colors.ink : colors.white) : on ? colors.white : colors.ink;
@@ -134,16 +137,20 @@ export function OptionRow<T extends string>({
           <Pressable
             key={o.key}
             onPress={() => onChange(o.key)}
-            style={[styles.option, on && styles.optionOn, dark && styles.optionDark, dark && on && styles.optionDarkOn]}
+            style={
+              segmented
+                ? [styles.segmentItem, on && styles.segmentOn]
+                : [styles.option, on && styles.optionOn, dark && styles.optionDark, dark && on && styles.optionDarkOn]
+            }
             accessibilityRole="radio"
             accessibilityState={{ selected: on }} aria-checked={on}
             accessibilityLabel={o.label}
           >
-            <Text variant="callout" weight="700" color={fg} align="center">
+            <Text variant="callout" weight={segmented && !on ? '500' : '700'} color={segmented && !on ? colors.textSecondary : fg} align="center" numberOfLines={2} style={segmented ? { fontSize: 13.5, lineHeight: 17 } : undefined}>
               {o.label}
             </Text>
             {o.hint ? (
-              <Text variant="micro" weight="500" color={dark ? fg : on ? '#CFE3DD' : colors.textSecondary} align="center">
+              <Text variant="micro" weight="500" color={dark ? fg : on ? colors.mintSoft : colors.textSecondary} align="center">
                 {o.hint}
               </Text>
             ) : null}
@@ -174,7 +181,10 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.xl },
   box: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.md },
   optionRow: { flexDirection: 'row', gap: spacing.sm },
-  option: { flex: 1, minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
+  segment: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: radius.xl, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  segmentItem: { flex: 1, minHeight: 42, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, paddingVertical: 4 },
+  segmentOn: { backgroundColor: colors.ink },
+  option: { flex: 1, minHeight: 48, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
   optionOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   optionDark: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.35)' },
   optionDarkOn: { backgroundColor: colors.action, borderColor: colors.action },

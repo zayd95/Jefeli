@@ -247,6 +247,32 @@ A focused refinement after the owner's Expo Go playtest. It is not a rebuild.
 - **Not verified:** nothing in this pass ran on a physical device (see `RELEASE_STATUS.md`,
   REF-*).
 
+### Visual pass from the owner's UI references (code `VISUAL_SHA`)
+The owner shared two references, a travel app and a banking app, after the refinement. They
+are adapted to Atlantic Sand, not copied.
+- **Tab bar:** a floating white pill (the active tab is a mint-soft pill with its label, the
+  others are icons with French accessibility labels) plus a separate round ink « Publier »
+  button.
+- **Headers and search:** a round white bell (`IconButton variant="surface"`, badge outside the
+  circle) and a pill-shaped white `SearchBar`.
+- **Explorer:**
+  - a location pill beside the title;
+  - a white segmented control;
+  - 4-column icon tiles (`lib/categoryIcons.ts`, short labels, full names as accessibility
+    labels) collapsed to « Tous » + 3, with « Voir tout » / « Réduire »;
+  - quiet section headers (« Nouveautés » / « Résultats »).
+- **Cards and prices:**
+  - `ListingCard` is a white card with an inset photo, then the title, a pin + location line,
+    the price and the DÉMO seller.
+  - `PriceLabel` shows strong digits and a quiet « F CFA » / « · à discuter » in the app
+    (cards, product, posts, boutique preview). The web `PriceText` does the same.
+- **Product page:** details in a grouped rounded list with mint icon bubbles.
+- **Forms:** `OptionRow` without hints becomes a segmented control. Fields get rounder corners
+  and keep `borderStrong` for contrast. The web focus ring inside fields is removed via
+  `outlineStyle: 'none'`; `outlineWidth: 0` was not enough in Chromium.
+- **Tokens:** `typeScale.title` weight 800 → 700.
+- **Tests:** the screens spec checks Explorer by the « Toutes les catégories » tile.
+
 ## Commands that were run (latest results)
 
 | Command | Result |

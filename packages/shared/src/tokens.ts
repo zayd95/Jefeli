@@ -46,7 +46,7 @@ export const radius = { xs: 6, sm: 8, md: 12, lg: 14, xl: 20, pill: 999 } as con
 
 export const typeScale = {
   display: { size: 30, line: 36, weight: '800' as const, tracking: -0.8 },
-  title: { size: 22, line: 28, weight: '800' as const, tracking: -0.5 },
+  title: { size: 22, line: 28, weight: '700' as const, tracking: -0.4 },
   headline: { size: 17, line: 23, weight: '700' as const, tracking: -0.2 },
   price: { size: 20, line: 26, weight: '800' as const, tracking: -0.4 },
   body: { size: 15, line: 22, weight: '400' as const, tracking: 0 },

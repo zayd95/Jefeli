@@ -37,7 +37,7 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 
 ## 2. Publier comme vendeuse (B) (5 min)
 
-1. Bouton central **Publier** : quatre choix (Publication, Statut, Article, Live « Bientôt »).
+1. Bouton rond **+** en bas à droite (Publier) : quatre choix (Publication, Statut, Article, Live « Bientôt »).
    Touchez **Article**.
 2. **Étape 1 sur 3 · L’essentiel** : une photo (appareil photo ou galerie), un titre,
    « Vente ou troc », puis le prix : **Prix affiché** (par exemple 35 000), **Prix sur
@@ -116,7 +116,10 @@ pour avoir deux comptes A (acheteuse) et B (vendeuse).
 6. **Modifier le profil** → **Photo de couverture** → ajoutez une image.
 7. Dans le fil, sur une publication qui identifie un article d’un autre membre → **Écrire** :
    la conversation s’ouvre avec la fiche de l’article.
-8. **Explorer** : « Tout / Neuf / Occasion / Troc », catégories avec **Tous** par défaut et
+8. **Navigation** : la barre du bas flotte au-dessus du contenu, l’onglet actif affiche son
+   nom, les autres seulement leur icône ; le bouton rond **+** ouvre Publier. Dites si les
+   icônes seules vous semblent claires et si la barre gêne près du bas de l’écran.
+9. **Explorer** : « Tout / Neuf / Occasion / Troc », catégories avec **Tous** par défaut et
    **Voir tout**, bouton ville (« Près de moi »), **Effacer les filtres**.
 
 ## 6. Live (si activé)

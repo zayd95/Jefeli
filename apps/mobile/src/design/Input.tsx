@@ -1,6 +1,6 @@
 import { Search, X } from 'lucide-react-native';
 import { forwardRef, useState, type ComponentRef } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View, type TextInputProps, type TextStyle } from 'react-native';
 
 import { Text } from './Text';
 import { colors, fonts, radius, spacing } from './theme';
@@ -127,13 +127,17 @@ export function SearchBar({
   return content;
 }
 
+// Chromium's `outline-style: auto` focus ring ignores outline-width, so the style itself is
+// removed on web (react-native-web passes it through; the native types don't list 'none').
+const WEB_NO_OUTLINE = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as TextStyle;
+
 const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   box: {
     minHeight: 50,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: colors.borderStrong, // visible field edge on the sand canvas (non-text contrast)
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     flexDirection: 'row',
@@ -141,17 +145,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   // On web the box border already turns ink on focus; drop the browser's second focus ring inside it.
-  input: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 10, minHeight: 24, ...(Platform.OS === 'web' ? { outlineWidth: 0 } : null) },
+  input: { flex: 1, fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 10, minHeight: 24, ...WEB_NO_OUTLINE },
+  // Pill-shaped white search field on the sand canvas (owner's UI reference).
   search: {
-    height: 46,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSubtle,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 15, color: colors.ink, paddingVertical: 8 },
+  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 15, color: colors.ink, paddingVertical: 8, ...WEB_NO_OUTLINE },
 });

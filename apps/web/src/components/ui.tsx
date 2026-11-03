@@ -98,6 +98,16 @@ export function priceLabel(p: PricedListing, compact = false): string {
 /** The price label, with a trailing « · à discuter » set in a quieter style. Text is unchanged. */
 export function PriceText({ product, compact = false }: { product: PricedListing; compact?: boolean }) {
   const label = priceLabel(product, compact);
+  // Strong digits, quiet currency and « · à discuter » (same as the app's PriceLabel).
+  const m = /^(.*\d)(\u00A0F(?: CFA)?)(.*)$/.exec(label);
+  if (m) {
+    return (
+      <>
+        {m[1]}
+        <span className="price-note">{(m[2] ?? '') + (m[3] ?? '')}</span>
+      </>
+    );
+  }
   const cut = label.indexOf(' · ');
   if (cut < 0) return <>{label}</>;
   return (

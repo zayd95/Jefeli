@@ -1,4 +1,4 @@
-import { FEED_REASON_LABELS, formatCount, formatListingPrice, hasDisplayedPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
+import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Bookmark, HandHelping, MessageCircle, MessageCircleQuestionMark, MoreHorizontal, Pin, Search, Send, type LucideIcon } from 'lucide-react-native';
@@ -15,6 +15,7 @@ import type { CommentPreview, PostCardData } from '@/lib/types';
 
 import { ContentMenu } from './ContentMenu';
 import { MediaCarousel, Thumb } from './Media';
+import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { VoteControl } from './VoteControl';
 
@@ -200,15 +201,7 @@ function PostCardInner({
                       <Text variant="callout" weight="600" numberOfLines={1}>
                         {p.title}
                       </Text>
-                      {hasDisplayedPrice(p) ? (
-                        <Text variant="price" style={{ fontSize: 18, lineHeight: 23 }} numberOfLines={1}>
-                          {formatListingPrice(p)}
-                        </Text>
-                      ) : (
-                        <Text variant="callout" tone="secondary" weight="600">
-                          {formatListingPrice(p)}
-                        </Text>
-                      )}
+                      <PriceLabel product={p} size="inline" />
                       {p.status !== 'active' ? (
                         <Text variant="caption" tone="secondary" weight="600">
                           {p.status === 'sold' ? 'Vendu' : p.status === 'reserved' ? 'Réservé' : ''}

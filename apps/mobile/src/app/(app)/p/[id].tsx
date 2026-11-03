@@ -1,7 +1,6 @@
 import {
   CONDITION_LABELS,
   DELIVERY_LABELS,
-  formatListingPrice,
   hasDisplayedPrice,
   LISTING_MODE_LABELS,
   PLATFORM_DISCLAIMER,
@@ -18,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentMenu } from '@/components/ContentMenu';
 import { MediaCarousel } from '@/components/Media';
+import { PriceLabel } from '@/components/PriceLabel';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, Button, colors, EmptyState, ErrorState, Header, IconButton, radius, Screen, Skeleton, spacing, Tag, Text, useToast } from '@/design';
 import { messageAboutProduct } from '@/lib/api/messages';
@@ -156,7 +156,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               </Text>
             </View>
           ) : null}
-          <Text variant={hasDisplayedPrice(product) ? 'display' : 'title'}>{formatListingPrice(product)}</Text>
+          <PriceLabel product={product} size="display" />
           {product.listing_mode === 'trade' && hasDisplayedPrice(product) ? (
             <Text variant="caption" tone="secondary">
               Valeur estimée par le vendeur
@@ -175,9 +175,15 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           {product.description ? <Text style={{ marginTop: spacing.md }}>{product.description}</Text> : null}
 
           <View style={styles.detailList}>
-            {product.city ? <Detail icon={MapPin} label={[product.neighborhood, product.city].filter(Boolean).join(', ')} hint="Localisation approximative" /> : null}
-            <Detail icon={Truck} label={product.delivery_options.map((d) => DELIVERY_LABELS[d] ?? d).join(' · ')} hint={product.delivery_notes || undefined} />
-            {product.listing_mode !== 'sale' ? <Detail icon={Repeat} label="Le vendeur accepte les propositions d’échange" /> : null}
+            {[
+              product.city ? { key: 'where', icon: MapPin, label: [product.neighborhood, product.city].filter(Boolean).join(', '), hint: 'Localisation approximative' } : null,
+              { key: 'handover', icon: Truck, label: product.delivery_options.map((d) => DELIVERY_LABELS[d] ?? d).join(' · '), hint: product.delivery_notes || undefined },
+              product.listing_mode !== 'sale' ? { key: 'trade', icon: Repeat, label: 'Le vendeur accepte les propositions d’échange', hint: undefined } : null,
+            ]
+              .filter((d): d is NonNullable<typeof d> => d !== null)
+              .map((d, i) => (
+                <Detail key={d.key} icon={d.icon} label={d.label} hint={d.hint} first={i === 0} />
+              ))}
           </View>
           <Text variant="caption" tone="secondary" style={{ marginTop: spacing.sm }}>
             Publié {timeAgo(product.created_at)}
@@ -304,10 +310,13 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   );
 }
 
-function Detail({ icon: Icon, label, hint }: { icon: typeof MapPin; label: string; hint?: string }) {
+/** One row of the grouped detail list: a round icon bubble, the value and an optional hint. */
+function Detail({ icon: Icon, label, hint, first }: { icon: typeof MapPin; label: string; hint?: string; first?: boolean }) {
   return (
-    <View style={styles.detail}>
-      <Icon size={18} color={colors.textSecondary} />
+    <View style={[styles.detail, !first && styles.detailDivider]}>
+      <View style={styles.detailIcon}>
+        <Icon size={17} color={colors.ink} strokeWidth={2.1} />
+      </View>
       <View style={{ flex: 1 }}>
         <Text variant="callout">{label}</Text>
         {hint ? (
@@ -336,8 +345,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSubtle,
   },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: spacing.md },
-  detailList: { marginTop: spacing.lg, gap: spacing.md, borderTopWidth: 1, borderColor: colors.border, paddingTop: spacing.lg },
-  detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
+  detailList: { marginTop: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md },
+  detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'center', paddingVertical: spacing.md },
+  detailDivider: { borderTopWidth: 1, borderTopColor: colors.border },
+  detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
   seller: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
   safety: { flexDirection: 'row', gap: spacing.sm, margin: spacing.lg, padding: spacing.md, backgroundColor: colors.mintSoft, borderRadius: radius.md },
   cta: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.background, borderTopWidth: 1, borderColor: colors.border },

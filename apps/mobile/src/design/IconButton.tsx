@@ -44,7 +44,7 @@ export function IconButton({
     >
       <Icon size={size} color={color} strokeWidth={2} fill={filled ? (fillColor ?? color) : 'transparent'} />
       {badge ? (
-        <View style={styles.badge} accessibilityLabel={`${badge} non lus`}>
+        <View style={[styles.badge, variant === 'surface' && styles.badgeOnSurface]} accessibilityLabel={`${badge} non lus`}>
           <Text variant="micro" color={colors.white} weight="700">
             {badge > 99 ? '99+' : String(badge)}
           </Text>
@@ -58,6 +58,7 @@ const styles = StyleSheet.create({
   base: { width: touchTarget, height: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: touchTarget / 2 },
   surface: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   overlay: { backgroundColor: 'rgba(16,37,44,0.45)' },
+  badgeOnSurface: { top: -4, right: -4 },
   badge: {
     position: 'absolute',
     top: 5,

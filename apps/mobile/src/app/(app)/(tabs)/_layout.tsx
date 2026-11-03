@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, Text } from '@/design';
+import { colors, radius, shadow, spacing, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 
@@ -22,6 +22,11 @@ type TabBarProps = {
   insets: { bottom: number };
 };
 
+/**
+ * Floating pill navigation (owner's UI reference): the active tab is a soft mint pill with its
+ * label, the others are icons (each keeps its French accessibility label), and « Publier » is a
+ * separate round button so creating content is always one tap away.
+ */
 function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
   const { userId } = useAuth();
   const unread = useQuery({
@@ -32,56 +37,51 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
   });
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]} accessibilityRole="tablist">
-      {state.routes.map((route, i) => {
-        const meta = TAB_META[route.name];
-        if (!meta) return null;
-        const focused = state.index === i;
-        const Icon = meta.icon;
-        if (route.name === 'publish') {
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      <View style={styles.pill} accessibilityRole="tablist">
+        {state.routes.map((route, i) => {
+          const meta = TAB_META[route.name];
+          if (!meta || route.name === 'publish') return null;
+          const focused = state.index === i;
+          const Icon = meta.icon;
+          const badge = route.name === 'messages' ? (unread.data ?? 0) : 0;
           return (
             <Pressable
               key={route.key}
-              onPress={() => router.push('/publish')}
-              accessibilityRole="button"
-              accessibilityLabel="Publier : publication, statut, article ou live"
-              style={styles.item}
+              onPress={() => navigateToTab(route.key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: focused }}
+              aria-selected={focused}
+              accessibilityLabel={badge ? `${meta.label}, ${badge} non lus` : meta.label}
+              style={({ pressed }) => [styles.item, focused && styles.itemOn, pressed && !focused && { opacity: 0.6 }]}
             >
-              <View style={styles.create}>
-                <Plus size={24} color={colors.action} strokeWidth={2.6} />
+              <View>
+                <Icon size={22} color={focused ? colors.ink : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
+                {badge > 0 ? (
+                  <View style={styles.badge}>
+                    <Text variant="micro" weight="700" color={colors.white} style={{ fontSize: 10, lineHeight: 12 }}>
+                      {badge > 99 ? '99+' : badge}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
-              <Text variant="micro" weight="600" tone="secondary" style={styles.label}>
-                {meta.label}
-              </Text>
+              {focused ? (
+                <Text variant="callout" weight="700" numberOfLines={1}>
+                  {meta.label}
+                </Text>
+              ) : null}
             </Pressable>
           );
-        }
-        const badge = route.name === 'messages' ? (unread.data ?? 0) : 0;
-        return (
-          <Pressable
-            key={route.key}
-            onPress={() => navigateToTab(route.key)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: focused }} aria-selected={focused}
-            accessibilityLabel={badge ? `${meta.label}, ${badge} non lus` : meta.label}
-            style={styles.item}
-          >
-            <View>
-              <Icon size={23} color={focused ? colors.ink : colors.textSecondary} strokeWidth={focused ? 2.4 : 1.9} />
-              {badge > 0 ? (
-                <View style={styles.badge}>
-                  <Text variant="micro" weight="800" color={colors.white} style={{ fontSize: 10, lineHeight: 12 }}>
-                    {badge > 99 ? '99+' : badge}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-            <Text variant="micro" weight={focused ? '700' : '500'} color={focused ? colors.ink : colors.textSecondary} style={styles.label}>
-              {meta.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+        })}
+      </View>
+      <Pressable
+        onPress={() => router.push('/publish')}
+        accessibilityRole="button"
+        accessibilityLabel="Publier : publication, statut, article ou live"
+        style={({ pressed }) => [styles.create, pressed && { backgroundColor: colors.inkSoft }]}
+      >
+        <Plus size={26} color={colors.action} strokeWidth={2.6} />
+      </Pressable>
     </View>
   );
 }
@@ -104,26 +104,40 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    backgroundColor: '#FFFEFC',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: 6,
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    backgroundColor: colors.background,
   },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', minHeight: 50, gap: 3 },
-  label: { fontSize: 10.5 },
+  pill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 60,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.card,
+  },
+  item: { minWidth: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
+  itemOn: { backgroundColor: colors.mintSoft, paddingHorizontal: spacing.lg },
   create: {
-    width: 44,
-    height: 38,
-    borderRadius: 13,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -2,
+    ...shadow.floating,
   },
   badge: {
     position: 'absolute',
-    top: -5,
-    right: -11,
+    top: -6,
+    right: -10,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
@@ -132,6 +146,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFEFC',
+    borderColor: colors.surface,
   },
 });

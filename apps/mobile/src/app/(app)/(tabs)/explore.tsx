@@ -1,14 +1,14 @@
 /**
  * Explorer: one compact filter hierarchy instead of several horizontal carousels.
- *   1. What: Tout · Neuf · Occasion · Troc (segmented, one row)
- *   2. Category: « Tous » by default, the main categories, « Voir tout » expands the rest
- *   3. Where: one city button (all cities, my city, or an active city) in a sheet
+ *   1. Where: a location pill next to the title (all cities, my city, or an active city)
+ *   2. What: Tout · Neuf · Occasion · Troc (segmented, one row)
+ *   3. Category: icon tiles, « Tous » by default; « Voir tout » expands the 4-column grid
  * Every filter maps to the existing browse_products RPC (mode / condition / category / city).
  */
 import { toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Check, ChevronDown, Globe2, MapPin, Navigation, PackageSearch } from 'lucide-react-native';
+import { Check, ChevronDown, Globe2, MapPin, Navigation, PackageSearch, type LucideIcon } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -16,6 +16,7 @@ import { gridItemWidth, ListingCard } from '@/components/ListingCard';
 import { colors, EmptyState, ErrorState, radius, Screen, SearchBar, Sheet, SheetAction, Skeleton, spacing, Text } from '@/design';
 import { browseProducts, fetchActiveCities, fetchCategories, PRODUCT_PAGE, type BrowseMode } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { ALL_CATEGORIES_TILE, categoryTile } from '@/lib/categoryIcons';
 import type { ProductCard } from '@/lib/types';
 
 type Kind = 'all' | 'new' | 'used' | 'trade';
@@ -25,7 +26,8 @@ const KINDS: { key: Kind; label: string }[] = [
   { key: 'used', label: 'Occasion' },
   { key: 'trade', label: 'Troc' },
 ];
-const FEATURED = 5;
+const FEATURED = 3; // + « Tous » = one row of 4 tiles when collapsed
+const TILE_COLUMNS = 4;
 
 function browseArgs(kind: Kind): { mode: BrowseMode; condition: string | null } {
   if (kind === 'new') return { mode: 'recent', condition: 'new' };
@@ -64,13 +66,32 @@ export default function Explore() {
 
   const cats = categories.data ?? [];
   const selectedCat = cats.find((c) => c.slug === category);
-  const shownCats = allCategories ? cats : cats.slice(0, FEATURED).concat(selectedCat && cats.indexOf(selectedCat) >= FEATURED ? [selectedCat] : []);
+  // Collapsed: « Tous » + 3 tiles (the selected category replaces the third if it is further down).
+  const collapsed = selectedCat && cats.indexOf(selectedCat) >= FEATURED ? [...cats.slice(0, FEATURED - 1), selectedCat] : cats.slice(0, FEATURED);
+  const shownCats = allCategories ? cats : collapsed;
+  const tileW = Math.floor((Math.min(width, 720) - spacing.lg * 2 - spacing.sm * (TILE_COLUMNS - 1)) / TILE_COLUMNS);
   const filtered = kind !== 'all' || !!category || !!city;
 
   const header = (
     <View>
       <View style={styles.top}>
-        <Text variant="title">Explorer</Text>
+        <Text variant="title" weight="700" accessibilityRole="header">
+          Explorer
+        </Text>
+        <Pressable
+          onPress={() => setCitySheet(true)}
+          style={({ pressed }) => [styles.location, pressed && { backgroundColor: colors.surfaceSubtle }]}
+          accessibilityRole="button"
+          accessibilityLabel={`Ville : ${city ?? 'toutes les villes'}. Changer`}
+        >
+          <View style={styles.locationIcon}>
+            <MapPin size={14} color={colors.ink} strokeWidth={2.4} />
+          </View>
+          <Text variant="callout" weight="600" numberOfLines={1} style={{ flexShrink: 1 }}>
+            {city ?? 'Toutes les villes'}
+          </Text>
+          <ChevronDown size={16} color={colors.textSecondary} />
+        </Pressable>
       </View>
       <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
         <SearchBar onPress={() => router.push('/search')} placeholder="Produits, vendeurs, quartiers…" />
@@ -89,7 +110,7 @@ export default function Explore() {
               aria-selected={on}
               accessibilityLabel={k.label}
             >
-              <Text variant="callout" weight="700" color={on ? colors.white : colors.ink}>
+              <Text variant="callout" weight={on ? '700' : '500'} color={on ? colors.white : colors.textSecondary}>
                 {k.label}
               </Text>
             </Pressable>
@@ -97,24 +118,30 @@ export default function Explore() {
         })}
       </View>
 
-      <View style={styles.cats}>
-        <CategoryChip label="Tous" selected={!category} onPress={() => setCategory(null)} />
-        {shownCats.map((c) => (
-          <CategoryChip key={c.slug} label={c.name} selected={category === c.slug} onPress={() => setCategory(category === c.slug ? null : c.slug)} />
-        ))}
+      <View style={styles.sectionHeader}>
+        <Text variant="headline" weight="600">
+          Catégories
+        </Text>
         {cats.length > FEATURED ? (
-          <CategoryChip label={allCategories ? 'Moins' : 'Voir tout'} subtle onPress={() => setAllCategories((x) => !x)} />
+          <Pressable onPress={() => setAllCategories((x) => !x)} hitSlop={10} accessibilityRole="button" accessibilityLabel={allCategories ? 'Réduire les catégories' : `Voir toutes les catégories (${cats.length})`}>
+            <Text variant="callout" weight="500" tone="secondary">
+              {allCategories ? 'Réduire' : 'Voir tout'}
+            </Text>
+          </Pressable>
         ) : null}
       </View>
+      <View style={styles.tiles}>
+        <CategoryTile width={tileW} icon={ALL_CATEGORIES_TILE.icon} label={ALL_CATEGORIES_TILE.short} a11y="Toutes les catégories" selected={!category} onPress={() => setCategory(null)} />
+        {shownCats.map((c) => {
+          const t = categoryTile(c.slug, c.name);
+          return <CategoryTile key={c.slug} width={tileW} icon={t.icon} label={t.short} a11y={c.name} selected={category === c.slug} onPress={() => setCategory(category === c.slug ? null : c.slug)} />;
+        })}
+      </View>
 
-      <View style={styles.resultHeader}>
-        <Pressable onPress={() => setCitySheet(true)} style={styles.cityButton} accessibilityRole="button" accessibilityLabel={`Ville : ${city ?? 'toutes les villes'}. Changer`}>
-          <MapPin size={16} color={colors.ink} />
-          <Text variant="callout" weight="700">
-            {city ?? 'Toutes les villes'}
-          </Text>
-          <ChevronDown size={16} color={colors.textSecondary} />
-        </Pressable>
+      <View style={styles.sectionHeader}>
+        <Text variant="headline" weight="600">
+          {filtered ? 'Résultats' : 'Nouveautés'}
+        </Text>
         {filtered ? (
           <Pressable
             onPress={() => {
@@ -125,7 +152,7 @@ export default function Explore() {
             hitSlop={10}
             accessibilityRole="button"
           >
-            <Text variant="callout" weight="600" tone="secondary">
+            <Text variant="callout" weight="500" tone="secondary">
               Effacer les filtres
             </Text>
           </Pressable>
@@ -220,17 +247,18 @@ export default function Explore() {
   );
 }
 
-function CategoryChip({ label, selected, subtle, onPress }: { label: string; selected?: boolean; subtle?: boolean; onPress: () => void }) {
+function CategoryTile({ width, icon: Icon, label, a11y, selected, onPress }: { width: number; icon: LucideIcon; label: string; a11y: string; selected: boolean; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.cat, selected && styles.catOn, subtle && styles.catSubtle, pressed && !selected && { backgroundColor: colors.surfaceSubtle }]}
+      style={({ pressed }) => [styles.tile, { width }, selected && styles.tileOn, pressed && !selected && { backgroundColor: colors.surfaceSubtle }]}
       accessibilityRole="button"
-      accessibilityState={{ selected: !!selected }}
-      aria-selected={!!selected}
-      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      aria-selected={selected}
+      accessibilityLabel={a11y}
     >
-      <Text variant="caption" weight="700" color={selected ? colors.white : colors.ink}>
+      <Icon size={22} color={colors.ink} strokeWidth={selected ? 2.3 : 1.9} />
+      <Text variant="caption" weight={selected ? '700' : '500'} numberOfLines={1} align="center" style={{ fontSize: 11.5 }}>
         {label}
       </Text>
     </Pressable>
@@ -238,15 +266,15 @@ function CategoryChip({ label, selected, subtle, onPress }: { label: string; sel
 }
 
 const styles = StyleSheet.create({
-  top: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
-  segment: { flexDirection: 'row', marginHorizontal: spacing.lg, padding: 3, borderRadius: radius.md, backgroundColor: colors.surfaceSubtle },
-  segmentItem: { flex: 1, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
+  location: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1, minHeight: 40, paddingLeft: 4, paddingRight: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  locationIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  segment: { flexDirection: 'row', marginHorizontal: spacing.lg, padding: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  segmentItem: { flex: 1, minHeight: 36, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill },
   segmentOn: { backgroundColor: colors.ink },
-  cats: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  cat: { paddingHorizontal: 11, minHeight: 34, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, justifyContent: 'center' },
-  catOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-  catSubtle: { backgroundColor: colors.surfaceSubtle, borderColor: colors.surfaceSubtle },
-  resultHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.lg, marginBottom: spacing.md },
-  cityButton: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, marginTop: spacing.lg, marginBottom: spacing.sm },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingHorizontal: spacing.lg },
+  tile: { height: 74, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 4 },
+  tileOn: { backgroundColor: colors.mintSoft, borderColor: colors.action },
+  gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.md },
 });

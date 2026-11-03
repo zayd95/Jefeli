@@ -68,6 +68,7 @@ import { ContentMenu, confirmAsync } from './ContentMenu';
 import { gridItemWidth, ListingCard } from './ListingCard';
 import { Thumb } from './Media';
 import { PostCard } from './PostCard';
+import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { fill } from '@/design/fill';
 import { goBack } from '@/lib/nav';
@@ -601,9 +602,7 @@ function BoutiquePreview({
                 </View>
               ) : null}
             </View>
-            <Text variant="caption" weight="800" style={{ marginTop: 5 }} numberOfLines={1}>
-              {formatListingPrice(p, { compact: true })}
-            </Text>
+            <PriceLabel product={p} size="card" compact style={{ marginTop: 5, fontSize: 13.5, lineHeight: 18 }} />
           </Pressable>
         ))}
         {products.length < 3 ? Array.from({ length: 3 - products.length }).map((_, i) => <View key={i} style={{ flex: 1 }} />) : null}

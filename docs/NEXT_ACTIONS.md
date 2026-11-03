@@ -22,6 +22,9 @@ pnpm preview:expo-go --reset-demo
   one conversation, Explorer).
 - Please note, with screenshots: anything cut off at your iPhone size, the keyboard covering a
   field, the gallery picker, and whether the three price choices are clear without explanation.
+- New look from your two references (floating tab bar with a round « + », icon category tiles,
+  white cards, quiet « F CFA »): say whether the icon-only tabs are clear and whether the
+  floating bar sits well above the iPhone's home indicator.
 
 ## Owner: playtest in the browser (optional)
 

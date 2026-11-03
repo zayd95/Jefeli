@@ -34,7 +34,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '03-home-occasions');
 
     await page.goto('/explore');
-    await expect(page.getByRole('button', { name: 'Tous', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('button', { name: 'Toutes les catégories', exact: true })).toHaveAttribute('aria-selected', 'true');
     await capture(page, device, '04-explore');
 
     await page.goto('/u/awa_couture');

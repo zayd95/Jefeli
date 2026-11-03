@@ -38,6 +38,27 @@ App header, search input, feed tabs, story rings, social post, video preview, li
 - Messages: calm spacious thread with pinned linked product context; actual composer with attachments and voice input states.
 - Live: full-frame media, unobtrusive comments overlay, visible true `EN DIRECT`, current pinned item, safety control.
 
+## Patterns from the owner's UI references (post-playtest refinement)
+The owner shared two references, a travel app and a banking app. They guide composition,
+spacing and interaction patterns. They are **not** copied: colours stay Atlantic Sand.
+
+| Pattern | Where | Rule |
+|---|---|---|
+| Floating pill navigation | Tab bar (`(tabs)/_layout.tsx`) | A white pill on the canvas. The active tab is a mint-soft pill with its label; the others show icons only and keep their French accessibility label. « Publier » is a separate round ink button with a mint `+` |
+| Round icon buttons | Header bell (`IconButton variant="surface"`) | White circle with a hairline border. Counters sit outside the circle |
+| Pill search | `SearchBar` | White, fully rounded, hairline border, on the sand canvas |
+| Location pill | Explorer header | Small mint icon disc, the city (or « Toutes les villes »), and a chevron. Opens the city sheet |
+| Segmented control | Explorer type, `OptionRow` without hints | White rounded container. The selected option is ink with white text, the others are secondary text. Two-line labels are allowed at 375 pt |
+| Icon tiles | Explorer categories (`lib/categoryIcons.ts`) | 4 columns, a lucide line icon and a short label, with the full category name as the accessibility label. Selected = mint-soft fill with a mint border. « Voir tout » / « Réduire » in the section header |
+| Quiet section headers | Explorer, lists | `headline` at weight 600. The secondary action (« Voir tout », « Effacer les filtres ») is secondary text, never a button |
+| Inset-image cards | `ListingCard` | A white card (radius 19) with the photo inset by 5 pt (radius 12). Below: title, a pin + location line, the price and the DÉMO seller label |
+| Quiet currency | `PriceLabel` (app), `PriceText` (web) | Strong digits with a secondary « F CFA ». « · à discuter » is secondary too. Labels such as « Prix sur demande » replace the number; never « 0 F » |
+| Grouped detail list | Product page | One rounded white container. Each row has a round mint-soft icon bubble, the value and a hint, with hairline dividers |
+
+Field edges keep `borderStrong` so they stay visible on the sand canvas (non-text contrast).
+On web, the browser's own focus ring inside fields is removed because the field border
+already turns ink on focus.
+
 ## UX writing
 French, short, plain and locally natural. Examples: `Pour toi`, `À proximité`, `Occasions`, `Troc`, `Faire une offre`, `Envoyer un message`, `Vendu`, `Réservé`, `Proposer un échange`, `Votre statut`, `En direct`. Prices: `25 000 F CFA` (or compact `25 000 F` with clear currency context). Never show invented activity stats as actual.
 
