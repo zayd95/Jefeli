@@ -205,15 +205,56 @@ module and no new navigation. The details, ranking table and playtest metrics ar
 - **Not verified:** the app was not run in Expo Go on a physical iPhone; no device is available
   here.
 
+### Post-playtest UX and social-commerce refinement (code `0c71062`)
+A focused refinement after the owner's Expo Go playtest. It is not a rebuild.
+- **Migration `20261105000100_refinement.sql`:**
+  - `products.price_mode` (`fixed` / `on_request` / `negotiable`) with table rules. A price is
+    never 0 F, is required only for « Prix affiché » sales, and is never stored for « sur
+    demande ». Existing 0 F listings became « sur demande ».
+  - `create_listing` takes `p_price_mode`. The owner can update `price_mode` through a column
+    grant. The offer snapshot keeps the mode.
+  - `posts.pinned_at` / `products.pinned_at` and `set_pinned()`: owner only, at most 3 per
+    kind, no direct write path.
+  - Upvotes count only from active, onboarded members, with a recount trigger.
+  - `get_feed` v4: distinct meaningful commenters, and repeated text or product ads sink.
+- **Shared:** `formatListingPrice()` / `hasDisplayedPrice()` drive every price label (app, web,
+  chat, offers, statuses, live). Also `PRICE_MODES`, `formatMemberSince()`, and the error keys
+  `price_required`, `invalid_price_mode`, `pin_limit`.
+- **Mobile:**
+  - Publier is a 2×2 icon grid, and « Demande à la communauté » is removed.
+  - The Publication composer puts the text first, with an optional type and optional
+    product tagging.
+  - The home feed loses the intent shortcuts.
+  - Nouvel article is a 3-step wizard with the draft kept.
+  - `listing-edit` handles the price modes.
+  - Explorer is rebuilt (segmented type, « Tous » + « Voir tout », city sheet).
+  - Profile: cover picker, « Membre depuis », rating link, a share sheet with WhatsApp, pinned
+    posts first, pin markers, « Écrire au vendeur » in the boutique preview.
+  - PostCard: « Écrire » on tagged articles, plus pin and unpin in the owner menu.
+  - Chat: `ProductPicker` (several articles, one card each).
+  - Web inputs lose the double focus ring.
+- **Web:** share pages use the shared price labels. They also show pins first with « Épinglé »,
+  a WhatsApp text that includes the price label, the cover photo, and a one-line sticky
+  contact bar.
+- **Seed:** DÉMO « Prix sur demande » and « À discuter » listings, pins, and Awa's cover.
+- **Tests:**
+  - integration `13-refinement` (35 tests), with `03`/`12` adapted to the onboarded-voter rule;
+  - E2E `pricing.spec.ts` (6 tests);
+  - `journey`, `community` and `screens` updated for the wizard, the composer and Explorer;
+  - 2 new unit tests (`formatMemberSince`).
+- **Expo Go gear:** this is Expo Go's own developer tools button, so app code cannot hide it.
+  It is documented in the launcher output and in `TEST_IPHONE_FR.md`.
+- **Not verified:** nothing in this pass ran on a physical device (see `RELEASE_STATUS.md`,
+  REF-*).
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass |
-| `pnpm test:integration` (with `.env.test` functions) | 196/196 |
-| `pnpm test:e2e journey` | 11/11 |
-| `pnpm test:e2e community` | 5/5 |
-| `pnpm test:e2e screens` | 3/3 sizes |
-| `pnpm --filter @jefeli/web build` | pass (web workstream) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass (19 unit tests) |
+| `pnpm test:integration` (with `.env.test` functions) | 234/234 |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 |
+| `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
+| `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |
 | `npx expo-doctor` | 18/20 (2 need blocked network) |

@@ -4,7 +4,7 @@
 Public release is **not authorised**.
 
 - Branch `claude/jefeli-pilot`, draft PR #1 → `main` (main holds only the owner's spec package)
-- Verified on commit `2c996e9` (code) plus a later docs-only commit. Re-run the suites on the final SHA before relying on this table.
+- Latest verification: code commit `0c71062` (post-playtest refinement), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
 - Environment: Ubuntu 24.04 cloud container, local Supabase CLI 2.122 stack (Postgres 17,
   GoTrue, PostgREST, Realtime, Storage, Edge Runtime). The Expo SDK 58 **web build** was driven
   by Playwright/Chromium 1.63. The Next.js 16 web app ran in dev mode.
@@ -37,7 +37,7 @@ executed here.
 | LIVE-02 | Provider auth + moderation | **PASS** (server side, fake credentials) · **BLOCKED_EXTERNAL** (real provider) | integration `11-edge-functions`: tokens signed for the caller only, ≤ 1 h; blocked viewer gets 404; non-host cannot end; bad webhook signature/API key rejected; only signed events set EN DIRECT, viewer counts and end. Integration `09`: comment/pin/mute rules |
 | SAF-01 | Report, block, admin queue | **PASS** | E2E `SAF-01` (report → moderator hides it in `/admin` → listing unavailable → block → profile hidden); integration `08` |
 | SAF-02 | No fake badge; reviews only after a completed agreement | **PASS** | integration `01`, `07`, `08` (verification only via admin RPC; review refused before both confirmations) |
-| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **199/199** (162 before the feed pass). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
+| SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **234/234** (199 after the feed pass, 162 before it). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
 | DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart PASS | Reload persistence PASS. Upload retry/backoff, cancel, local drafts and French permission-denied messages are implemented but NOT_TESTED under real network loss or denied OS permissions |
 | DEV-02 | Real iOS/Android captures, safe areas, keyboard | **BLOCKED_EXTERNAL** (devices) · web renders PASS | `docs/evidence/e2e/screens/{iphone-se,iphone-15-pro-max,pixel-7}` (16 screens each, browser renders, no overflow). Real safe areas and keyboard behaviour need devices |
 | REL-01 | Clean install / migrate / test | **PASS** | Locally: `supabase db reset` → seed → `pnpm check` → integration → E2E. GitHub Actions on PR #1 (head `f18c9dd`): both jobs green, with the typecheck/lint/unit/web build plus all 162 integration tests on a fresh Supabase stack ([run 41378067524](https://github.com/zayd95/Jefeli/actions/runs/41378067524)) |
@@ -65,6 +65,38 @@ Also in this pass:
   caught one during this pass.
 - Selected and checked states now reach the web build's accessibility tree: `aria-*` props are
   set next to `accessibilityState` in 16 places.
+
+### Post-playtest refinement pass (migration `…20261105000100_refinement.sql`)
+
+Verified on code commit `0c71062` on a local stack rebuilt with `supabase db reset` (integration 234/234, E2E 25/25, `pnpm check`, web `next build`). Browser renders only: nothing in
+this pass was observed on a physical device.
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| REF-01 | One Publication composer with an optional type; « Demande à la communauté » and the home-feed shortcuts removed | **PASS** | E2E `community` (Publier → Publication → type « Je cherche » → published with its label); screenshots 01–03 |
+| REF-02 | Publier: compact icon-led grid; Live honestly disabled | **PASS** | E2E `screens` (Live tile `aria-disabled`); screenshot 02 |
+| REF-03 | Price modes Prix affiché / Prix sur demande / À discuter; price optional for the non-numeric modes, never 0 F | **PASS** | integration `13-refinement` (create/update rules, `price_required`, `invalid_amount`, `invalid_price_mode`, on-request never stores a price, visitors read `price_mode`, `browse_products`); unit `formatListingPrice`; E2E `pricing` (no « 0 F » on product, boutique, chat and web pages) |
+| REF-04 | Offers, counter-offers, barter and agreements on listings without a displayed price | **PASS** | integration `13-refinement` (offer → agreement on « sur demande » and on « à discuter » without a price; barter snapshot keeps `price_mode`); E2E `pricing` (numeric offer on a « Prix sur demande » article); E2E `journey` MKT-02/03 unchanged |
+| REF-05 | 3-step article composer with drafts and per-step validation | **PASS** (browser) · **NOT_TESTED** (draft restore after an app kill on a device) | E2E `journey` PROF-01/MKT-03 and `pricing` use the wizard; « Prix affiché » without a price is blocked at step 1 |
+| REF-06 | Explorer: Tout/Neuf/Occasion/Troc, « Tous » default, « Voir tout », city sheet, clear filters | **PASS** (browser) | E2E `screens` (« Tous » selected by default); screenshots 06–07 at 3 sizes |
+| REF-07 | Ranking v4: genuine upvotes (active and onboarded members), distinct meaningful commenters, repeated text and product ads sink | **PASS** | integration `13-refinement` (votes from members who never onboarded neither count nor rank; recount on onboarding; one member's 3 comments count once; repeated text −2.5, repeated product −1.5 vs controls). Downvotes stay personal (`12-feed-engagement` unchanged and green) |
+| REF-08 | Seller visibility: cover photo, « Membre depuis », rating link, pinned posts and products (max 3 per kind), WhatsApp share, « Écrire » from a tagged article | **PASS** (backend + browser) · **NOT_TESTED** (cover upload from the iPhone photo library) | integration `set_pinned` (owner only, `pin_limit`, idempotent, no direct write path); web pages verified on DÉMO data (cover, « Épinglé », WhatsApp text with the price label); screenshots 08–10, 15–16 |
+| REF-09 | Multi-article selection in a conversation (no cart, nothing reserved) | **PASS** | E2E `pricing` (buyer sends 2 articles; the seller receives both cards). Uses the existing `messages` RLS and insert trigger. Design note: `docs/CONVERSATION_COMMERCE.md` |
+| REF-10 | Expo Go floating tools gear | **Documented** | It is Expo Go's own developer tools button, which app code cannot reach. Hide it from Expo Go's developer menu (shake). The launcher and `TEST_IPHONE_FR.md` explain how. A development build can disable it with the `expo-dev-client` `toolsButton` option (not installed yet) |
+| REF-11 | Before/after at phone sizes | **PASS** (browser renders) | `docs/evidence/refinement/{before,after}/{iphone-se,iphone-15,pixel-7}` (see its README) |
+
+Defects found and fixed during this pass:
+- A button nested inside a button (« Écrire » inside the tagged-article row) triggered a web
+  error. It is now two sibling buttons.
+- On a phone, the public product page's sticky contact bar covered the price. Its note is now
+  one line, and the full explanation moved below it.
+- A second focus ring appeared inside focused fields on web.
+- Grid cards cut off « · à discuter ».
+
+**Not tested on a device in this pass:** Expo Go on the iPhone for all of the new screens; the
+gallery and camera in the article composer and the cover picker; keyboard behaviour in the
+3-step composer; safe areas; WhatsApp opening from `wa.me` links; the native share sheet;
+draft restore after the app is killed.
 
 ### Other workstreams
 
