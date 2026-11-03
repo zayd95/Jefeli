@@ -247,7 +247,7 @@ A focused refinement after the owner's Expo Go playtest. It is not a rebuild.
 - **Not verified:** nothing in this pass ran on a physical device (see `RELEASE_STATUS.md`,
   REF-*).
 
-### Visual pass from the owner's UI references (code `VISUAL_SHA`)
+### Visual pass from the owner's UI references (code `507f7ff`)
 The owner shared two references, a travel app and a banking app, after the refinement. They
 are adapted to Atlantic Sand, not copied.
 - **Tab bar:** a floating white pill (the active tab is a mint-soft pill with its label, the
@@ -279,7 +279,7 @@ are adapted to Atlantic Sand, not copied.
 |---|---|
 | `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass (19 unit tests) |
 | `pnpm test:integration` (with `.env.test` functions) | 234/234 |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0c71062` and again on `507f7ff`) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |

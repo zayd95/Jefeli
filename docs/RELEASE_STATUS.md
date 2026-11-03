@@ -4,7 +4,7 @@
 Public release is **not authorised**.
 
 - Branch `claude/jefeli-pilot`, draft PR #1 → `main` (main holds only the owner's spec package)
-- Latest verification: code commit `0c71062` (post-playtest refinement), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
+- Latest verification: code commits `0c71062` (post-playtest refinement) and `507f7ff` (visual pass), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
 - Environment: Ubuntu 24.04 cloud container, local Supabase CLI 2.122 stack (Postgres 17,
   GoTrue, PostgREST, Realtime, Storage, Edge Runtime). The Expo SDK 58 **web build** was driven
   by Playwright/Chromium 1.63. The Next.js 16 web app ran in dev mode.
@@ -83,7 +83,7 @@ this pass was observed on a physical device.
 | REF-08 | Seller visibility: cover photo, « Membre depuis », rating link, pinned posts and products (max 3 per kind), WhatsApp share, « Écrire » from a tagged article | **PASS** (backend + browser) · **NOT_TESTED** (cover upload from the iPhone photo library) | integration `set_pinned` (owner only, `pin_limit`, idempotent, no direct write path); web pages verified on DÉMO data (cover, « Épinglé », WhatsApp text with the price label); screenshots 08–10, 15–16 |
 | REF-09 | Multi-article selection in a conversation (no cart, nothing reserved) | **PASS** | E2E `pricing` (buyer sends 2 articles; the seller receives both cards). Uses the existing `messages` RLS and insert trigger. Design note: `docs/CONVERSATION_COMMERCE.md` |
 | REF-10 | Expo Go floating tools gear | **Documented** | It is Expo Go's own developer tools button, which app code cannot reach. Hide it from Expo Go's developer menu (shake). The launcher and `TEST_IPHONE_FR.md` explain how. A development build can disable it with the `expo-dev-client` `toolsButton` option (not installed yet) |
-| REF-12 | Visual pass from the owner's two UI references (floating pill tab bar + round Publier button, pill search, round icon buttons, Explorer icon tiles, inset-image cards, quiet currency in app and web, grouped product details, segmented option rows) | **PASS** (browser renders) · **NOT_TESTED** (Expo Go: tab bar above the home indicator, touch targets) | `docs/DESIGN_SYSTEM.md` › patterns; screenshots `docs/evidence/refinement/after`; E2E suite re-run after the pass |
+| REF-12 | Visual pass from the owner's two UI references (floating pill tab bar + round Publier button, pill search, round icon buttons, Explorer icon tiles, inset-image cards, quiet currency in app and web, grouped product details, segmented option rows) | **PASS** (browser renders) · **NOT_TESTED** (Expo Go: tab bar above the home indicator, touch targets) | `docs/DESIGN_SYSTEM.md` › patterns; screenshots `docs/evidence/refinement/after`; on `507f7ff`: E2E 25/25, `pnpm check`, web `next build` (no database change, so integration still 234/234 from `0c71062`) |
 | REF-11 | Before/after at phone sizes | **PASS** (browser renders) | `docs/evidence/refinement/{before,after}/{iphone-se,iphone-15,pixel-7}` (see its README) |
 
 Defects found and fixed during this pass:
