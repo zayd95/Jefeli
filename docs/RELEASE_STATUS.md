@@ -4,6 +4,10 @@
 Public release is **not authorised**.
 
 - Branch `claude/jefeli-pilot`, draft PR #1 → `main` (main holds only the owner's spec package)
+- Branch `feature/lovable-native-parity-20261104`, draft PR #2 → `claude/jefeli-pilot`: the
+  approved Lovable visual port in native Expo code. Verified on code commit `0b1f547` (see
+  « Lovable native parity pass » below). **Not merged; waits for the owner's screenshot and
+  iPhone review.**
 - Latest verification: code commits `0c71062` (post-playtest refinement) and `507f7ff` (visual pass), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
 - Environment: Ubuntu 24.04 cloud container, local Supabase CLI 2.122 stack (Postgres 17,
   GoTrue, PostgREST, Realtime, Storage, Edge Runtime). The Expo SDK 58 **web build** was driven
@@ -99,6 +103,30 @@ Defects found and fixed during this pass:
 gallery and camera in the article composer and the cover picker; keyboard behaviour in the
 3-step composer; safe areas; WhatsApp opening from `wa.me` links; the native share sheet;
 draft restore after the app is killed.
+
+### Lovable native parity pass (branch `feature/lovable-native-parity-20261104`, code `0b1f547`)
+
+Verified on a local stack rebuilt with `supabase db reset` + `pnpm seed`: `pnpm check` (4
+typechecks, mobile + web lint, 23/23 unit), integration **241/241**, E2E **25/25** (journey 11,
+community 5, pricing 6, screens at 3 sizes), and `expo export` for iOS and Android (Hermes
+bundles). No database change in this pass. UI evidence is browser renders only.
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| LOV-01 | Baseline bridge (tokens, one-screen onboarding, 5-tab dock) typechecks, lints, tests | **PASS** after fix | The E2E `signUp` helper still drove the removed 3-step onboarding (fixed in `e85f046`); onboarding no longer wipes boutique identity/interests |
+| LOV-02 | Home on #091B19, no white cards; feed queries, votes, comments, statuses, pagination kept | **PASS** (browser) | `docs/evidence/lovable-parity/compare/*-01..03-home*`; E2E community 5/5 (votes, private downvote, rollback, « Je peux aider », comment preview on the feed card) and STA-01 |
+| LOV-03 | Explorer / ListingCard / product page near-white #FAFBFA; categories, Wecci, offers, chat kept | **PASS** (browser) | `compare/*-04..06*`; E2E SOC-03, MSG-01, MKT-02, MKT-03, pricing 6/6. Home chips deep-link into Explorer filters |
+| LOV-04 | Compact dark profile: ≈136-pt cover, overlapping avatar, bio, ≤ 3 interest chips +N, Publications / Boutique only, no carousel or pinned hero; statuses, highlights, reviews, live, privacy, report/block reachable | **PASS** (browser) | `compare/*-07..09*`; E2E PROF-01 (Boutique tab count), SOC-01 (real follower count), SAF-01 (report, block from the ⋯ menu); interests editor (≤ 5, existing `profiles.interests`) |
+| LOV-05 | Publishing: Plus → Publication composer directly; Article / Statut in the switcher; article on one scroll with options collapsed; drafts, upload progress, RPCs and failure recovery kept | **PASS** (browser) · **NOT_TESTED** (draft restore after an app kill on a device) | `compare/*-10..13*`; E2E community (`/publish` → composer), journey PROF-01/MKT-03 and pricing (one-scroll form, « Prix affiché » blocked without a price, « Sur demande », « À discuter »). A failed feed share is now reported |
+| LOV-06 | Dock (5 states), status bars, safe areas, sheets, keyboard | **PASS** (browser: dock, sheets, safe-area padding code) · **NOT_TESTED** on a device (status-bar icon switching, home indicator, keyboard avoidance, Android keyboard hiding the dock) | `native/` at 360/390/412; `useDarkStatusBar()` is a no-op on web |
+| LOV-07 | Email login kept; SMS Senegal-only (+221) and visibly gated until a provider exists; no billing | **PASS** | unit `toSenegalE164`; welcome screen `states/*-00-welcome-osdark.png`; `phone_auth` flag off locally |
+| LOV-08 | Screenshots at 360 / 390 / 412, light and dark surfaces, real empty and loading states | **PASS** (browser renders) | `docs/evidence/lovable-parity/{native,states,compare}`; OS dark-mode emulation leaves the app's own surfaces |
+| LOV-09 | Two-user journey through the real UI | **PASS** | E2E journey 11/11 (two isolated browser contexts + moderation console) |
+| LOV-10 | Native compile | **PASS** (bundles) · **NOT_TESTED** (running on iOS/Android) | `npx expo export --platform ios --platform android` |
+
+**Not tested in this pass:** everything that needs a device or simulator — real status bars,
+notches and home indicators, keyboard avoidance, gestures, the photo library and camera,
+haptics, font rendering on iOS/Android. The owner's iPhone review is required before merge.
 
 ### Other workstreams
 

@@ -55,6 +55,19 @@ The original native DESIGN_SYSTEM.md is older than the approved Lovable feedback
 
 These are an INITIAL PORT, not complete visual parity. Claude Code must complete Home/Explorer/Profile/Product/Composer and produce native screenshots before this PR is merged.
 
+### Native port pass (Nov 4, 2026) — done on this branch, still a draft
+
+Ported in Expo/React Native code from the pinned Lovable files (no browser code, no Lovable
+backend imported): Lovable type (Fraunces + Hanken Grotesk), `dark` tokens, floating dock,
+dark Home + post cards + story rail, near-white Explorer + product cards + product page,
+compact dark profile, direct publishing switcher + one-scroll article form, dark inbox and
+thread, glass action sheets. Every screen keeps its native queries, RPCs and RLS. Details,
+commit list and evidence: `docs/IMPLEMENTATION_LOG.md` › « Lovable native parity pass » and
+`docs/evidence/lovable-parity/README.md`.
+
+Still required before merge: the owner reviews the native screenshots (side-by-side with the
+Lovable reference) and runs the app on an iPhone; no device or simulator was available here.
+
 ## Claude Code workflow — do this end to end
 
 1. Start from this branch and inspect Lovable's exact pinned files, including composition, CSS and real screenshots. First take baseline Expo screenshots at small iPhone, large iPhone and Android size.

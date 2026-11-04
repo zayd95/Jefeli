@@ -1,5 +1,21 @@
 # Next actions
 
+## Owner (now): review the Lovable native port — branch `feature/lovable-native-parity-20261104`, draft PR #2
+
+1. Look at the side-by-side images first: `docs/evidence/lovable-parity/compare/` (Lovable on the
+   left, native on the right, 390 and 360 pt), then `native/` (360 / 390 / 412) and `states/`
+   (loading, empty, validation). The README there lists every deliberate difference.
+2. On the Mac (Docker Desktop running): `git fetch && git checkout feature/lovable-native-parity-20261104`,
+   `pnpm install`, `pnpm preview:expo-go --reset-demo`, then open it on the iPhone with Expo Go.
+3. Check on the iPhone, with screenshots of anything wrong:
+   - Accueil, Messages and Profil are dark; Explorer, article pages and forms are near-white;
+     the status-bar icons are light on the dark screens and dark on the light ones;
+   - the floating dock clears the home indicator and Plus opens « Publication » directly;
+   - the article form scrolls in one page and the keyboard never hides the field you type in;
+   - « Plus d’infos » on a profile opens reviews, statuses and lives.
+4. Decide: approve the visual parity (then the PR can leave draft), or list the changes.
+
+
 ## Owner (now): next Expo Go playtest — post-playtest refinement
 On the Mac (Docker Desktop running):
 

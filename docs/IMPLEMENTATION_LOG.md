@@ -303,13 +303,48 @@ owner's rule unchanged:
   - `05` and `08` adapted;
   - 1 unit test.
 
+### Lovable native parity pass (branch `feature/lovable-native-parity-20261104`, draft PR #2)
+
+Visual authority: `zayd95/galsen-visual-playground@806a26f` (`src/lab/LabApp.tsx`,
+`LabPages.tsx`, `index.css`, `docs/LOVABLE_PARITY.md`), rendered locally with its own Vite
+build for reference screenshots. Functional authority: this repository. No Lovable browser
+code, CSS, DOM, `live/backend.ts` or Supabase client was copied; every screen keeps its native
+queries, RPCs, RLS and storage. Nothing was merged across repositories.
+
+| Commit | Change |
+|---|---|
+| `e85f046` | **Baseline regression fixed:** the E2E `signUp` helper still drove the removed 3-step onboarding. Bridge onboarding no longer overwrites `is_merchant`/boutique/interests and picks the city from the shared list. `suggestHandle()` and Senegal-only `toSenegalE164()` (+ unit tests); welcome screen shows SMS (+221) as visibly gated |
+| `92ef3aa` | Foundation: Fraunces + Hanken Grotesk (Inter removed), `dark` token group, serif wordmark with gold stop, glass `IconButton`, `<Motif />`, dark Skeleton/EmptyState/ErrorState/DemoBadge, `useDarkStatusBar()`, floating dock + `useDockSpace()` |
+| `0bcf6d2` | Dark Home, PostCard, StoryRail, VoteControl, PriceLabel (Lovable PriceLine), dark post detail and saved posts |
+| `95a2689` | Near-white Explorer (night intro, tiles, pills, lead card), ListingCard, image-led product page with sticky glass CTA |
+| `029e8e2` | Compact dark profile (cover, avatar, bio, ≤ 3 interests, two tabs, « Plus d'infos », review/live sheets); business-interest editor (≤ 5) in edit-profile |
+| `69e68ba` | Publishing: direct Publication · Article · Statut switcher (`/publish` redirects), one-scroll article form, reported feed-share failure, honest Live entry |
+| `2717212` | Dark inbox (local search) and chat thread |
+| `86e891b` | Glass action sheets (`Sheet tone="dark"`), onboarding typography |
+| `0b1f547` | `app.json` cream → `#FAFBFA`; E2E opens products through the Boutique tab |
+
+Defects found and fixed during the pass:
+- E2E onboarding helper broken by the bridge (see `e85f046`).
+- Bridge onboarding could wipe a returning member's boutique identity and interests.
+- Phone OTP accepted any international number; now +221 only.
+- A failed « Partager aussi dans mon fil » was silently swallowed after publishing an article.
+- Compact prices rendered « 28 000 F CFA F » (NBSP before « F CFA » not matched).
+- `app.json` still used the retired cream canvas.
+- Metro had been started with `CI=1` (no reload) during the first check; restarted.
+
+Verification on the final code (local Supabase CLI stack, `supabase db reset` + `pnpm seed`):
+see « Commands that were run » below and `docs/RELEASE_STATUS.md` › « Lovable native parity ».
+Screenshots and the side-by-side comparison: `docs/evidence/lovable-parity/` (README lists the
+deliberate differences from the reference).
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass (19 unit tests) |
-| `pnpm test:integration` (with `.env.test` functions) | 241/241 (after the boutique identity follow-up) |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0c71062` and again on `507f7ff`) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 23 unit tests (on `0b1f547`, Lovable parity pass) |
+| `pnpm test:integration` (with `.env.test` functions) | 241/241 (on `0b1f547`, after `supabase db reset`) |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0b1f547` after `supabase db reset` + `pnpm seed`; earlier on `0c71062` and `507f7ff`) |
+| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) with the Fraunces / Hanken Grotesk assets (on `0b1f547`) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |

@@ -25,6 +25,31 @@ Implement semantic tokens: background, surface, subtle surface, ink, secondary t
 - Plus opens post composer directly; article and status available nearby; listing is one scrolling form with optional details collapsed.
 - Lovable implementation at the pinned SHA in docs/LOVABLE_NATIVE_HANDOFF.md is authoritative for visual compositions; native RLS, auth, privacy and stored data stay authoritative for behavior.
 
+## Native port of the Lovable lab (Nov 4, 2026, branch feature/lovable-native-parity-20261104)
+
+Implemented in Expo/React Native from the pinned Lovable source (806a26f). Where this table and
+the older « Patterns » table below disagree, this table wins.
+
+| Lovable | Native implementation |
+|---|---|
+| `font-display` Fraunces, `font-lab` Hanken Grotesk | `@expo-google-fonts/fraunces` 400/600 and `hanken-grotesk` 400–800 (per-weight imports). `<Text serif>` for headings, quotes and the wordmark; body stays Hanken Grotesk 15/22. Inter removed |
+| `--lab-night/deep/fog/mint/gold/line` | `palette` + `colors` (light) and the new `dark` token group in `packages/shared/src/tokens.ts` (fog tints ≥ 0.62 for body, ≥ 0.48 for bold meta on #091B19). No colour outside tokens/theme |
+| `.lab-glass` / `.lab-glass-light` | `IconButton variant="glass"`, `dark.glass`, `colors.glassLight`; `Sheet tone="dark"` for action sheets. No backdrop blur on native: opacities raised (0.92–0.96) for legibility |
+| `.lab-motif` | `<Motif />` (react-native-svg pattern: mint chevrons 7 %, gold dots 18 %, 28-pt tile) |
+| Wordmark « Jëfëli. » | `Wordmark`: Fraunces semibold + gold full stop |
+| Floating five-tab dock | Absolutely positioned over the scene; dark (`dark.dock`) everywhere except Explorer (`colors.dockLight`); 58-pt items, mint active pill, labels always visible; hidden while the Android keyboard is open. Screens pad with `useDockSpace()` |
+| Status bar | `useDarkStatusBar()` sets light icons while a night screen (Home, Profile, Messages, chat, post, Explorer's night strip) is focused |
+| Home / PostCard | No white card; eyebrow with dot; serif quote card with motif for text posts; full-bleed media at true aspect; glass tagged-article chip; vote pill (mint up, gold private down) |
+| Explorer / ListingCard | Night intro with motif; 84-pt tiles (« Tous » on night); Tout / Neuf / Occasion / Wecci pills (real `browse_products` filters — no price-mode filter exists server-side, so none is faked); lead card + 2 columns; paper card with `shadow.paper` |
+| Product | Full-bleed square photo, glass controls, 28-pt near-white sheet, night/gold Wecci chip, serif title, seller card, disclaimer box, sticky light-glass CTA |
+| Profile | ≈136-pt cover, overlapping ringed avatar, serif name, counts, bio, ≤ 3 interest chips (+N), one action row, « Plus d'infos », sticky Publications / Boutique tabs (3 previews / 4 dark tiles) |
+| Publishing | `PublishHeader` (« ← Publier » + Publication · Article · Statut switcher), `ChoicePills`, one-scroll article form with « Lieu, état et remise » collapsed |
+| Messages / chat | Night inbox and thread, mint (mine) / deep (theirs) 21-pt bubbles, glass composer. Offer and agreement cards stay light paper for legible terms |
+
+OS dark mode: `userInterfaceStyle` stays `light`; the app always renders its own Lovable
+surfaces (verified with a `prefers-color-scheme: dark` browser emulation). Native splash and
+root background are now `#FAFBFA` (the old cream `#F6F5F1` is gone).
+
 ## Component vocabulary
 App header, search input, feed tabs, story rings, social post, video preview, listing card, price label, verified state, follow button, icon row, profile header, shop strip, product tile, category chip, message bubble, barter proposal card, live host/control panel, share sheet trigger, modal bottom sheet, toast, validation, upload progress, contextual action menu, report flow, skeleton and empty state.
 
