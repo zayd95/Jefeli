@@ -39,6 +39,12 @@ export function fontFor(weight: TextStyle['fontWeight']): string {
 }
 
 export const shadow = {
+  /** Lovable light product card: `0 8px 24px -16px ink/35`. */
+  paper: Platform.select<ViewStyle>({
+    ios: { shadowColor: '#10252C', shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } },
+    android: { elevation: 2 },
+    default: { boxShadow: '0 8px 24px -16px rgba(16,37,44,0.35)' } as ViewStyle,
+  }),
   card: Platform.select<ViewStyle>({
     ios: { shadowColor: '#10252C', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
     android: { elevation: 1 },

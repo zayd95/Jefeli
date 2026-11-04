@@ -10,7 +10,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Heart, MapPin, MessageCircle, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Heart, MapPin, MessageCircle, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,10 +19,10 @@ import { ContentMenu } from '@/components/ContentMenu';
 import { MediaCarousel } from '@/components/Media';
 import { PriceLabel } from '@/components/PriceLabel';
 import { ProfileName } from '@/components/ProfileName';
-import { Avatar, Button, colors, EmptyState, ErrorState, Header, IconButton, radius, Screen, Skeleton, spacing, Tag, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct } from '@/lib/api/messages';
 import { setPinned } from '@/lib/api/posts';
-import { deleteListing, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
+import { deleteListing, fetchCategories, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
@@ -37,7 +37,7 @@ export default function ProductScreen() {
     return (
       <Screen>
         <Header title="Article" />
-        <Skeleton height={360} radius={0} />
+        <Skeleton height={340} radius={0} />
         <View style={{ padding: spacing.lg, gap: spacing.md }}>
           <Skeleton height={28} width="45%" />
           <Skeleton height={18} width="70%" />
@@ -72,12 +72,16 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [ctaHeight, setCtaHeight] = useState(140);
   const saved = useQuery({ queryKey: ['product-saved', product.id], queryFn: () => isProductSaved(userId ?? '', product.id), enabled: !!userId && !isOwner });
+  const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity });
+  const category = categories.data?.find((c) => c.slug === product.category_slug);
   const seller = product.seller;
   const unavailable = product.status !== 'active';
   const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade';
   const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale';
   const mediaW = Math.min(width, 640);
+  const wecci = product.listing_mode !== 'sale';
 
   async function toggleSave() {
     const next = !saved.data;
@@ -119,24 +123,16 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
     }
   }
 
+  const offer = () => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'price' } });
+  const barter = () => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'barter' } });
+
   return (
-    <Screen edges={['top']}>
-      <Header
-        title="Article"
-        right={
-          <>
-            <IconButton icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} />
-            {!isOwner ? (
-              <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : colors.ink} onPress={toggleSave} />
-            ) : null}
-            <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} />
-          </>
-        }
-      />
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
-        <View style={{ alignItems: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: ctaHeight + spacing.lg }} showsVerticalScrollIndicator={false}>
+        {/* Image-led, full-bleed (Lovable aspect-square) with glass controls over the photo. */}
+        <View style={{ alignItems: 'center', backgroundColor: colors.night }}>
           <View>
-            <MediaCarousel media={product.media} bucket="public-media" width={mediaW} height={Math.round(mediaW * 0.95)} />
+            <MediaCarousel media={product.media} bucket="public-media" width={mediaW} height={mediaW} />
             {unavailable ? (
               <View style={styles.statusBanner}>
                 <Text variant="callout" weight="800" color={colors.white}>
@@ -147,7 +143,14 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           </View>
         </View>
 
-        <View style={styles.info}>
+        <View style={styles.sheet}>
+          <View style={styles.tags}>
+            <Chip label={CONDITION_LABELS[product.condition]} />
+            {category ? <Chip label={category.name} /> : null}
+            <Chip label={LISTING_MODE_LABELS[product.listing_mode]} wecci={wecci} />
+            {product.quantity > 1 ? <Chip label={`${product.quantity} disponibles`} /> : null}
+            {unavailable ? <Chip label={PRODUCT_STATUS_LABELS[product.status]} warning /> : null}
+          </View>
           {product.pinned_at ? (
             <View style={styles.pinned}>
               <Pin size={13} color={colors.accentDeep} />
@@ -156,42 +159,62 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               </Text>
             </View>
           ) : null}
+          <Text serif weight="600" accessibilityRole="header" style={styles.title}>
+            {product.title}
+          </Text>
           <PriceLabel product={product} size="display" />
           {product.listing_mode === 'trade' && hasDisplayedPrice(product) ? (
             <Text variant="caption" tone="secondary">
               Valeur estimée par le vendeur
             </Text>
           ) : null}
-          <Text variant="headline" style={{ marginTop: 2 }}>
-            {product.title}
-          </Text>
-          <View style={styles.tags}>
-            <Tag label={CONDITION_LABELS[product.condition]} />
-            <Tag label={LISTING_MODE_LABELS[product.listing_mode]} tone={product.listing_mode === 'sale' ? 'neutral' : 'mint'} />
-            {product.quantity > 1 ? <Tag label={`${product.quantity} disponibles`} /> : null}
-            {unavailable ? <Tag label={PRODUCT_STATUS_LABELS[product.status]} tone="warning" /> : null}
-          </View>
 
-          {product.description ? <Text style={{ marginTop: spacing.md }}>{product.description}</Text> : null}
+          {seller ? (
+            <Pressable
+              onPress={() => router.push(`/u/${seller.handle}`)}
+              style={({ pressed }) => [styles.seller, pressed && { transform: [{ scale: 0.98 }] }]}
+              accessibilityRole="button"
+              accessibilityLabel={`Voir la boutique de ${seller.display_name}`}
+            >
+              <Avatar path={seller.avatar_path} name={seller.display_name} size={44} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <ProfileName profile={seller} />
+                <Text variant="caption" tone="secondary" numberOfLines={1}>
+                  {[seller.city, 'voir le profil et la boutique'].filter(Boolean).join(' · ')}
+                </Text>
+                {seller.rating_count ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                    <Star size={13} color={colors.ink} fill={colors.ink} />
+                    <Text variant="caption" weight="700">
+                      {((seller.rating_sum ?? 0) / seller.rating_count).toFixed(1).replace('.', ',')} · {seller.rating_count} avis
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <ArrowRight size={16} color={colors.textSecondary} />
+            </Pressable>
+          ) : null}
+
+          {product.description ? (
+            <Text style={styles.description}>{product.description}</Text>
+          ) : null}
 
           <View style={styles.detailList}>
             {[
               product.city ? { key: 'where', icon: MapPin, label: [product.neighborhood, product.city].filter(Boolean).join(', '), hint: 'Localisation approximative' } : null,
               { key: 'handover', icon: Truck, label: product.delivery_options.map((d) => DELIVERY_LABELS[d] ?? d).join(' · '), hint: product.delivery_notes || undefined },
-              product.listing_mode !== 'sale' ? { key: 'trade', icon: Repeat, label: 'Le vendeur accepte les propositions d’échange', hint: undefined } : null,
+              wecci ? { key: 'trade', icon: Repeat, label: 'Wecci : le vendeur accepte les propositions d’échange', hint: undefined } : null,
             ]
               .filter((d): d is NonNullable<typeof d> => d !== null)
               .map((d, i) => (
                 <Detail key={d.key} icon={d.icon} label={d.label} hint={d.hint} first={i === 0} />
               ))}
           </View>
-          <Text variant="caption" tone="secondary" style={{ marginTop: spacing.sm }}>
-            Publié {timeAgo(product.created_at)}
-          </Text>
+
           <View style={styles.shareRow}>
             <Pressable
               onPress={() => whatsappLinks.product(product)}
-              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceMuted }]}
+              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceSubtle }]}
               accessibilityRole="button"
               accessibilityLabel="Partager sur WhatsApp"
             >
@@ -202,7 +225,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
             </Pressable>
             <Pressable
               onPress={() => shareLinks.product(product)}
-              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceMuted }]}
+              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceSubtle }]}
               accessibilityRole="button"
               accessibilityLabel="Partager ailleurs (Facebook, Instagram, TikTok…)"
             >
@@ -211,70 +234,67 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
                 Partager
               </Text>
             </Pressable>
-          </View>
-        </View>
-
-        {seller ? (
-          <Pressable onPress={() => router.push(`/u/${seller.handle}`)} style={styles.seller} accessibilityRole="button" accessibilityLabel={`Voir la boutique de ${seller.display_name}`}>
-            <Avatar path={seller.avatar_path} name={seller.display_name} size={48} />
-            <View style={{ flex: 1 }}>
-              <ProfileName profile={seller} />
-              <Text variant="caption" tone="secondary">
-                {[seller.city, seller.products_count ? `${seller.products_count} article${seller.products_count > 1 ? 's' : ''}` : null].filter(Boolean).join(' · ')}
-              </Text>
-              {seller.rating_count ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                  <Star size={13} color={colors.ink} fill={colors.ink} />
-                  <Text variant="caption" weight="700">
-                    {((seller.rating_sum ?? 0) / seller.rating_count).toFixed(1).replace('.', ',')} · {seller.rating_count} avis
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-            <Text variant="callout" weight="700">
-              Voir sa boutique →
+            <Text variant="caption" tone="secondary" style={{ marginLeft: 'auto' }}>
+              Publié {timeAgo(product.created_at)}
             </Text>
-          </Pressable>
-        ) : null}
+          </View>
 
-        <View style={styles.safety}>
-          <ShieldCheck size={18} color={colors.accentDeep} />
-          <Text variant="caption" tone="secondary" style={{ flex: 1 }}>
-            {PLATFORM_DISCLAIMER}
-          </Text>
+          {/* No Jëfëli-held payment: the members settle it between themselves. */}
+          <View style={styles.safety}>
+            <ShieldCheck size={16} color={colors.textSecondary} />
+            <Text variant="caption" tone="secondary" style={{ flex: 1, lineHeight: 18 }}>
+              Le paiement se règle directement entre vous (Wave, Orange Money, espèces…). {PLATFORM_DISCLAIMER}
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
-      <View style={[styles.cta, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-        {isOwner ? (
-          <View style={{ gap: spacing.sm }}>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 10) }]} pointerEvents="box-none">
+        <IconButton icon={ArrowLeft} label="Retour" variant="glass" size={20} color={dark.text} onPress={() => goBack()} />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} />
+          {!isOwner ? (
+            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} variant="glass" size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : dark.text} onPress={toggleSave} />
+          ) : null}
+          <IconButton icon={MoreHorizontal} label="Plus d’options" variant="glass" size={19} color={dark.text} onPress={() => setMenu(true)} />
+        </View>
+      </View>
+
+      {/* Sticky Lovable CTA: a light glass bar with the main action in ink. */}
+      <View style={[styles.ctaWrap, { paddingBottom: Math.max(insets.bottom, spacing.md) }]} onLayout={(e) => setCtaHeight(e.nativeEvent.layout.height)}>
+        <View style={[styles.cta, shadow.floating]}>
+          {isOwner ? (
+            <View style={styles.ctaRow}>
               {product.status === 'active' ? (
                 <>
-                  <Button label="Marquer réservé" variant="outline" style={{ flex: 1 }} loading={busy === 'reserved'} onPress={() => changeStatus('reserved')} />
-                  <Button label="Marquer vendu" variant="primary" style={{ flex: 1 }} loading={busy === 'sold'} onPress={() => changeStatus('sold')} />
+                  <Button label="Marquer réservé" variant="outline" style={styles.ctaSecondary} loading={busy === 'reserved'} onPress={() => changeStatus('reserved')} />
+                  <Button label="Marquer vendu" variant="primary" size="lg" style={styles.ctaPrimary} loading={busy === 'sold'} onPress={() => changeStatus('sold')} />
                 </>
               ) : (
                 <>
-                  {product.status === 'reserved' ? <Button label="Marquer vendu" variant="primary" style={{ flex: 1 }} loading={busy === 'sold'} onPress={() => changeStatus('sold')} /> : null}
-                  <Button label="Remettre en vente" variant="cta" style={{ flex: 1 }} loading={busy === 'active'} onPress={() => changeStatus('active')} />
+                  {product.status === 'reserved' ? <Button label="Marquer vendu" variant="primary" size="lg" style={styles.ctaPrimary} loading={busy === 'sold'} onPress={() => changeStatus('sold')} /> : null}
+                  <Button label="Remettre en vente" variant="cta" size="lg" style={styles.ctaPrimary} loading={busy === 'active'} onPress={() => changeStatus('active')} />
                 </>
               )}
             </View>
-          </View>
-        ) : product.status === 'active' ? (
-          <View style={{ gap: spacing.sm }}>
-            <Button label="Envoyer un message" variant="cta" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} />
-            {canOffer || canTrade ? (
-              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-                {canOffer ? <Button label="Faire une offre" variant="outline" style={{ flex: 1 }} onPress={() => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'price' } })} /> : null}
-                {canTrade ? <Button label="Proposer un troc" variant="outline" accessibilityLabel="Proposer un échange (troc)" style={{ flex: 1 }} onPress={() => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'barter' } })} /> : null}
+          ) : product.status === 'active' ? (
+            <View style={{ gap: 8 }}>
+              <View style={styles.ctaRow}>
+                <Button label="Envoyer un message" variant="primary" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} style={styles.ctaPrimary} />
+                {canOffer && !canTrade ? <Button label="Faire une offre" variant="outline" size="lg" style={styles.ctaSecondary} onPress={offer} /> : null}
+                {canTrade && !canOffer ? <Button label="Proposer un troc" variant="outline" size="lg" accessibilityLabel="Proposer un échange (troc)" style={styles.ctaSecondary} onPress={barter} /> : null}
               </View>
-            ) : null}
-          </View>
-        ) : (
-          <Button label="Envoyer un message au vendeur" variant="outline" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} />
-        )}
+              {canOffer && canTrade ? (
+                <View style={styles.ctaRow}>
+                  <Button label="Faire une offre" variant="outline" style={styles.ctaHalf} onPress={offer} />
+                  <Button label="Proposer un troc" variant="outline" accessibilityLabel="Proposer un échange (troc)" style={styles.ctaHalf} onPress={barter} />
+                </View>
+              ) : null}
+            </View>
+          ) : (
+            <Button label="Envoyer un message au vendeur" variant="outline" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} style={{ borderRadius: 18 }} />
+          )}
+        </View>
       </View>
 
       <ContentMenu
@@ -306,7 +326,19 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           goBack();
         }}
       />
-    </Screen>
+    </View>
+  );
+}
+
+/** Lovable product chip: paper with a hairline; Wecci in night with a gold label. */
+function Chip({ label, wecci, warning }: { label: string; wecci?: boolean; warning?: boolean }) {
+  return (
+    <View style={[styles.chip, wecci && styles.chipWecci, warning && styles.chipWarning]}>
+      {wecci ? <Repeat size={11} color={colors.gold} strokeWidth={2.6} /> : null}
+      <Text variant="caption" weight={wecci ? '700' : '600'} color={wecci ? colors.gold : warning ? colors.warning : colors.textSecondary} style={{ fontSize: 11.5 }}>
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -331,25 +363,29 @@ function Detail({ icon: Icon, label, hint, first }: { icon: typeof MapPin; label
 
 
 const styles = StyleSheet.create({
-  statusBanner: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,37,44,0.75)', paddingVertical: 10, alignItems: 'center' },
-  info: { padding: spacing.lg, gap: 2 },
-  pinned: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
-  shareRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  sharePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: spacing.md },
-  detailList: { marginTop: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md },
+  statusBanner: { position: 'absolute', left: 0, right: 0, bottom: 24, backgroundColor: dark.scrim, paddingVertical: 10, alignItems: 'center' },
+  topBar: { position: 'absolute', left: 0, right: 0, top: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg },
+  // Lovable: rounded near-white sheet overlapping the photo by 24 pt.
+  sheet: { marginTop: -24, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 20, gap: 4 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  chipWecci: { backgroundColor: colors.night, borderColor: colors.night },
+  chipWarning: { backgroundColor: colors.warningSoft, borderColor: colors.warningSoft },
+  pinned: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm },
+  title: { marginTop: spacing.md, fontSize: 28, lineHeight: 33, color: colors.ink },
+  seller: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: 20, padding: spacing.md, backgroundColor: colors.surface, borderRadius: 19, borderWidth: 1, borderColor: colors.border },
+  description: { marginTop: 20, fontSize: 15, lineHeight: 24, color: colors.inkSoft },
+  detailList: { marginTop: 20, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md },
   detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'center', paddingVertical: spacing.md },
   detailDivider: { borderTopWidth: 1, borderTopColor: colors.border },
   detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
-  seller: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
-  safety: { flexDirection: 'row', gap: spacing.sm, margin: spacing.lg, padding: spacing.md, backgroundColor: colors.mintSoft, borderRadius: radius.md },
-  cta: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.background, borderTopWidth: 1, borderColor: colors.border },
+  shareRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg },
+  sharePill: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  safety: { flexDirection: 'row', gap: spacing.sm, marginTop: 20, padding: spacing.md, backgroundColor: colors.inkWash, borderRadius: 16 },
+  ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.lg },
+  cta: { maxWidth: 520, width: '100%', alignSelf: 'center', padding: 8, borderRadius: radius.xxl, backgroundColor: colors.glassLight, borderWidth: 1, borderColor: colors.border },
+  ctaRow: { flexDirection: 'row', gap: 8 },
+  ctaPrimary: { flex: 1, borderRadius: 18 },
+  ctaSecondary: { borderRadius: 18, backgroundColor: colors.surface },
+  ctaHalf: { flex: 1, borderRadius: 18, backgroundColor: colors.surface },
 });
