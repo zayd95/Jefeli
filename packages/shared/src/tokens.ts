@@ -3,12 +3,15 @@
  * Single source of truth for mobile and web.
  */
 export const palette = {
-  canvas: '#F6F5F1', // warm off-white app canvas
+  canvas: '#FAFBFA', // owner-approved near-white canvas, matches latest Lovable light pages
   ink: '#10252C', // Atlantic Ink: text, dark surfaces, wordmark
   mint: '#A3E4D7', // Frosted Mint: follow / CTA / selected
   slate: '#607071', // secondary text, metadata
   surface: '#FFFFFF', // cards, sheets
-  night: '#0D1B2A', // reserved for a future dark mode (disabled for now)
+  night: '#091B19', // approved Atlantic After Dark home and social profile surface
+  deep: '#122B26', // secondary atmospheric dark-card surfaces
+  fog: '#F7F6F3', // warm-but-clean foreground on Atlantic night
+  gold: '#E3B777', // restrained editorial accent
   live: '#D93A44', // accessible red, ONLY for a real "EN DIRECT" state
 } as const;
 
@@ -16,13 +19,13 @@ export const palette = {
 export const colors = {
   background: palette.canvas,
   surface: palette.surface,
-  surfaceSubtle: '#EEF1EE', // search field, chips
+  surfaceSubtle: '#F1F4F2', // understated near-white search field and chips
   surfaceMuted: '#E6ECE8', // condition chips, skeleton base
   ink: palette.ink,
   inkSoft: '#2B4148', // pressed ink buttons, secondary dark text
   textSecondary: palette.slate, // 4.9:1 on canvas
   textTertiary: '#7C8A8B', // timestamps on white only (3.6:1 — large/bold text)
-  border: '#E3E7E3',
+  border: '#E2E6E4',
   borderStrong: '#C9D3CE',
   action: palette.mint,
   actionPressed: '#8ED8C9',
@@ -37,6 +40,10 @@ export const colors = {
   warningSoft: '#FFF4D6',
   disabled: '#B9C3C0',
   skeleton: '#E7ECE9',
+  darkBackground: palette.night,
+  darkSurface: palette.deep,
+  darkText: palette.fog,
+  gold: palette.gold,
   overlay: 'rgba(16, 37, 44, 0.55)',
   white: '#FFFFFF',
 } as const;
