@@ -1,0 +1,104 @@
+{
+  "expo": {
+    "name": "Jëfëli",
+    "slug": "jefeli",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "jefeli",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F5F1",
+    "ios": {
+      "bundleIdentifier": "sn.jefeli.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Jëfëli utilise la caméra pour prendre des photos et vidéos de vos articles, statuts et lives.",
+        "NSPhotoLibraryUsageDescription": "Jëfëli accède à vos photos pour publier des articles, des statuts et des publications.",
+        "NSMicrophoneUsageDescription": "Jëfëli utilise le micro pour les messages vocaux, les vidéos et les lives.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "sn.jefeli.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#10252C",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "Jëfëli",
+      "shortName": "Jëfëli",
+      "lang": "fr",
+      "themeColor": "#F6F5F1",
+      "backgroundColor": "#F6F5F1"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F5F1",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Jëfëli accède à vos photos pour publier des articles, des statuts et des publications.",
+          "cameraPermission": "Jëfëli utilise la caméra pour prendre des photos et vidéos de vos articles, statuts et lives.",
+          "microphonePermission": "Jëfëli utilise le micro pour enregistrer le son de vos vidéos."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Jëfëli utilise le micro pour les messages vocaux."
+        }
+      ],
+      "expo-video",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#10252C"
+        }
+      ],
+      "expo-sharing",
+      "expo-font",
+      "@stream-io/video-react-native-sdk",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Jëfëli utilise la caméra pour vos lives.",
+          "microphonePermission": "Jëfëli utilise le micro pour vos lives."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {}
+    }
+  }
+}

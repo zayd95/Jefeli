@@ -1,0 +1,17 @@
+{
+  "name": "@jefeli/integration-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jëfëli security & integration tests against a LOCAL Supabase stack (RLS, RPCs, storage, realtime).",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "@types/node": "^22.20.5",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.12"
+  }
+}

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck · lint · unit tests · web build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - name: Build web app
+        run: pnpm --filter @jefeli/web build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          NEXT_PUBLIC_ENV: local
+
+  integration:
+    name: RLS / integration tests (local Supabase)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+      - name: Start Supabase (applies all migrations)
+        run: supabase start
+      - name: Serve Edge Functions with fake provider credentials
+        run: |
+          nohup supabase functions serve --env-file supabase/functions/.env.test > functions.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -s -X POST http://127.0.0.1:54321/functions/v1/live -d '{"action":"status"}' | grep -q provider && break
+            sleep 2
+          done
+      - run: pnpm test:integration
+      - if: failure()
+        run: cat functions.log || true
