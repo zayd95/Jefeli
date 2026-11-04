@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "jefeli",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F6F5F1",
+    "backgroundColor": "#FAFBFA",
     "ios": {
       "bundleIdentifier": "sn.jefeli.app",
       "supportsTablet": false,
@@ -38,15 +38,15 @@
       "name": "Jëfëli",
       "shortName": "Jëfëli",
       "lang": "fr",
-      "themeColor": "#F6F5F1",
-      "backgroundColor": "#F6F5F1"
+      "themeColor": "#FAFBFA",
+      "backgroundColor": "#FAFBFA"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F6F5F1",
+          "backgroundColor": "#FAFBFA",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }

@@ -44,7 +44,7 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await ctxB?.close();
   });
 
-  test('a « Prix affiché » article cannot go to step 2 without a price', async () => {
+  test('a « Prix affiché » article cannot be published without a price (one-scroll form)', async () => {
     await s.goto('/publish/listing');
     await field(s, 'Titre').fill('Article sans prix');
     await btn(s, 'Publier l’article').click();

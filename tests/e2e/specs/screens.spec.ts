@@ -43,8 +43,10 @@ for (const [device, size] of Object.entries(SIZES)) {
     await page.getByRole('tab', { name: /^Boutique/ }).click();
     await capture(page, device, '06-profile-boutique-tab');
 
+    // Compact profile: products live in the « Boutique » tab (no carousel above the tabs).
     await page.goto('/u/baolmode');
-    await page.getByRole('button', { name: /Baskets blanches/ }).first().click();
+    await page.getByRole('tab', { name: /^Boutique/ }).click();
+    await page.getByRole('button', { name: /Baskets blanches.*F CFA/ }).first().click();
     await expect(page.getByText('Très bon état', { exact: true }).last()).toBeVisible();
     await capture(page, device, '07-product');
 
