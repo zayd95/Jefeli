@@ -47,9 +47,10 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
   test('a « Prix affiché » article cannot go to step 2 without a price', async () => {
     await s.goto('/publish/listing');
     await field(s, 'Titre').fill('Article sans prix');
-    await btn(s, 'Continuer').click();
+    await btn(s, 'Publier l’article').click();
     await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « Prix sur demande »/))).toBeVisible();
-    await expect(visible(s.getByText(/Étape 1 sur 3/))).toBeVisible();
+    // Still on the one-scroll form: nothing was published without a price.
+    await expect(s).toHaveURL(/\/publish\/listing$/);
     await shot(s, DIR, 'S-price-required-for-fixed');
   });
 

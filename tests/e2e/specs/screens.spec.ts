@@ -59,7 +59,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '09-status-viewer');
 
     await page.goto('/publish');
-    await expect(page.getByRole('button', { name: /^Live\./ })).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByRole('button', { name: /^Live\./ }).last()).toHaveAttribute('aria-disabled', 'true');
     await capture(page, device, '10-publish-live-disabled');
 
     await page.goto('/publish/listing');

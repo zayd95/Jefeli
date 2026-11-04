@@ -77,15 +77,19 @@ export async function pickFile(page: Page, trigger: () => Promise<void>, file: s
 }
 
 /**
- * Publishes an article through the 3-step guided composer (L’essentiel → Détails → Remise).
- * `priceMode` defaults to « Prix affiché »; `price` is optional for the other modes.
+ * Publishes an article through the one-scroll composer (Lovable « Un article, une trouvaille. »):
+ * media, title, how it is offered, price mode, category and description on one page, then the
+ * collapsed « Lieu, état et remise » options for the condition. `priceMode` defaults to
+ * « Prix affiché »; `price` is optional for the other modes.
  */
+const MODE_LABELS = { Vente: 'Vendre', 'Vente ou troc': 'Vendre ou échanger', Troc: 'Wecci seulement' } as const;
+
 export async function publishListing(
   page: Page,
   opts: {
     file: string;
     title: string;
-    mode?: 'Vente' | 'Vente ou troc' | 'Troc';
+    mode?: keyof typeof MODE_LABELS;
     priceMode?: 'Prix affiché' | 'Prix sur demande' | 'À discuter';
     price?: string;
     category: string;
@@ -94,20 +98,19 @@ export async function publishListing(
   },
 ) {
   await page.goto('/publish/listing');
-  await expect(page.getByText('Étape 1 sur 3', { exact: false }).last()).toBeVisible();
+  await expect(page.getByText('Un article, une trouvaille.').last()).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Article' }).last()).toHaveAttribute('aria-selected', 'true');
   await pickFile(page, () => btn(page, 'Ajouter depuis la galerie').click(), opts.file);
   await expect(page.getByText('Couverture', { exact: true }).last()).toBeVisible();
   await field(page, 'Titre').fill(opts.title);
-  if (opts.mode) await page.getByRole('radio', { name: opts.mode, exact: true }).click();
+  if (opts.mode) await page.getByRole('radio', { name: MODE_LABELS[opts.mode], exact: true }).click();
   if (opts.priceMode) await page.getByRole('radio', { name: opts.priceMode, exact: true }).click();
   if (opts.price) await field(page, /^Prix/).fill(opts.price);
-  await btn(page, 'Continuer').click();
-  await expect(page.getByText('Étape 2 sur 3', { exact: false }).last()).toBeVisible();
   await btn(page, opts.category).click();
-  await btn(page, opts.condition).click();
   if (opts.description) await field(page, 'Description (facultatif)').fill(opts.description);
-  await btn(page, 'Continuer').click();
-  await expect(page.getByText('Étape 3 sur 3', { exact: false }).last()).toBeVisible();
+  // Progressive disclosure: the condition lives in the collapsed options.
+  await page.getByRole('button', { name: /^Lieu, état et remise/ }).click();
+  await btn(page, opts.condition).click();
   await btn(page, 'Publier l’article').click();
   await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 60_000 });
 }

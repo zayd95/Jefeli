@@ -7,7 +7,7 @@ import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextIn
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PostCard } from '@/components/PostCard';
-import { Avatar, Button, colors, dark, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
 import { addComment, deleteComment, editPost, fetchComments, fetchPost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { patchPost } from '@/lib/postCache';
@@ -182,7 +182,7 @@ export default function PostScreen() {
               multiline
               maxLength={1000}
               autoFocus={comment === '1'}
-              style={styles.input}
+              style={[styles.input, WEB_NO_OUTLINE]}
               accessibilityLabel="Commentaire"
             />
             <Pressable onPress={send} disabled={!text.trim() || sending} style={[styles.send, (!text.trim() || sending) && { opacity: 0.4 }]} accessibilityRole="button" accessibilityLabel="Publier le commentaire">
