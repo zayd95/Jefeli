@@ -38,9 +38,9 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '04-explore');
 
     await page.goto('/u/awa_couture');
-    await expect(page.getByText('Sa boutique', { exact: true })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Publications/ })).toHaveAttribute('aria-selected', 'true');
     await capture(page, device, '05-profile-boutique');
-    await page.getByRole('tab', { name: 'Boutique' }).click();
+    await page.getByRole('tab', { name: /^Boutique/ }).click();
     await capture(page, device, '06-profile-boutique-tab');
 
     await page.goto('/u/baolmode');

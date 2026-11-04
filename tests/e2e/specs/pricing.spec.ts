@@ -89,8 +89,7 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await expect(visible(s.getByText('30 000 F CFA · à discuter', { exact: true }))).toBeVisible();
 
     await s.goto('/profile');
-    await expect(visible(s.getByText('Ma boutique', { exact: true }))).toBeVisible();
-    await btn(s, 'Voir toute la boutique').click();
+    await visible(s.getByRole('tab', { name: /^Boutique, 2/ })).click();
     await expect(visible(s.getByRole('button', { name: new RegExp(`${ON_REQUEST}, Prix sur demande`) }))).toBeVisible();
     await expect(visible(s.getByRole('button', { name: new RegExp(`${NEGOTIABLE}, 30 000 F CFA · à discuter`) }))).toBeVisible();
     await expectNoZeroPrice(s);

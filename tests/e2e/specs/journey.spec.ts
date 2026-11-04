@@ -55,10 +55,12 @@ test.describe.serial('Two-account social commerce journey', () => {
     expect(productUrl).toMatch(/\/p\/[0-9a-f-]{36}$/);
     await shot(b, DIR, 'B-product-owner-view');
 
-    // The boutique is part of the profile — created by the first listing, no wizard.
+    // The boutique is part of the profile — created by the first listing, no wizard. Lovable
+    // compact profile: it is the « Boutique » tab (with its count), not a preview carousel.
     await b.goto('/profile');
-    await expect(b.getByText('Ma boutique', { exact: true }).last()).toBeVisible();
-    await expect(b.getByText('1', { exact: true }).first()).toBeVisible();
+    await expect(b.getByRole('tab', { name: 'Boutique, 1' })).toBeVisible();
+    await b.getByRole('tab', { name: 'Boutique, 1' }).click();
+    await expect(b.getByRole('button', { name: new RegExp(`^${LISTING}, `) })).toBeVisible();
     await shot(b, DIR, 'B-profile-with-boutique');
   });
 
