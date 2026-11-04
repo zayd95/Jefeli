@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { colors, fonts, Sheet, SheetAction, spacing, Text, useToast, dark, WEB_NO_OUTLINE } from '@/design';
 
 export interface VoiceClip {
   uri: string;
@@ -108,11 +108,11 @@ export function ChatComposer({
     return (
       <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
         <Pressable onPress={() => stopRecording(false)} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Annuler l’enregistrement">
-          <Trash2 size={22} color={colors.danger} />
+          <Trash2 size={22} color={dark.danger} />
         </Pressable>
         <View style={styles.recording} accessibilityLiveRegion="polite">
           <View style={styles.recDot} />
-          <Text variant="callout" weight="600">
+          <Text variant="callout" weight="600" tone="fog">
             Enregistrement… {formatDuration(elapsed)}
           </Text>
         </View>
@@ -132,7 +132,7 @@ export function ChatComposer({
         accessibilityRole="button"
         accessibilityLabel={onPickProducts ? 'Joindre une photo ou des articles' : 'Envoyer une photo'}
       >
-        <Plus size={24} color={colors.ink} />
+        <Plus size={24} color={dark.text} />
       </Pressable>
       {onPickProducts ? (
         <Sheet visible={attach} onClose={() => setAttach(false)}>
@@ -160,11 +160,12 @@ export function ChatComposer({
           value={text}
           onChangeText={setText}
           placeholder="Écrire un message…"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={dark.textTertiary}
+          selectionColor={dark.mint}
           multiline
           maxLength={4000}
           editable={!disabled}
-          style={styles.input}
+          style={[styles.input, WEB_NO_OUTLINE]}
           accessibilityLabel="Message"
           onSubmitEditing={Platform.OS === 'web' ? send : undefined}
           blurOnSubmit={false}
@@ -172,11 +173,11 @@ export function ChatComposer({
       </View>
       {text.trim() ? (
         <Pressable onPress={send} disabled={sending || disabled} style={[styles.send, (sending || disabled) && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel="Envoyer">
-          <Send size={18} color={colors.action} />
+          <Send size={19} color={colors.mint} />
         </Pressable>
       ) : voiceEnabled ? (
         <Pressable onPress={startRecording} disabled={disabled || sending} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Enregistrer un message vocal">
-          <Mic size={22} color={colors.ink} />
+          <Mic size={22} color={dark.text} />
         </Pressable>
       ) : null}
     </View>
@@ -184,11 +185,12 @@ export function ChatComposer({
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderColor: colors.border, backgroundColor: colors.background },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  inputWrap: { flex: 1, minHeight: 44, maxHeight: 120, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, paddingHorizontal: spacing.md, justifyContent: 'center' },
-  input: { fontFamily: fonts.regular, fontSize: 16, color: colors.ink, paddingVertical: 10, maxHeight: 110 },
-  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  recording: { flex: 1, height: 44, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md, borderRadius: 22, backgroundColor: colors.dangerSoft },
-  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger },
+  // Lovable glass composer on night: fog-tinted field, ink send button with a mint arrow.
+  bar: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs, paddingHorizontal: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderColor: dark.border, backgroundColor: dark.header },
+  iconBtn: { width: 44, height: 48, alignItems: 'center', justifyContent: 'center' },
+  inputWrap: { flex: 1, minHeight: 48, maxHeight: 120, borderRadius: 16, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.subtle, paddingHorizontal: spacing.md, justifyContent: 'center' },
+  input: { fontFamily: fonts.regular, fontSize: 15, color: dark.text, paddingVertical: 12, maxHeight: 110 },
+  send: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.ink, borderWidth: 1, borderColor: dark.mintLine, alignItems: 'center', justifyContent: 'center' },
+  recording: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md, borderRadius: 16, backgroundColor: dark.subtle },
+  recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },
 });

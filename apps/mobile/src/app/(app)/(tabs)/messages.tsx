@@ -1,46 +1,100 @@
+/**
+ * Messages, ported from the approved Lovable inbox (Atlantic night): serif header, a short
+ * editorial line, a glass search over the loaded conversations, then « DISCUSSIONS ». Rows keep
+ * the native unread counts, mute state, « Vous : » prefix and realtime refresh.
+ */
 import { timeAgo, toFrenchError } from '@jefeli/shared';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { BellOff, MessageCircle } from 'lucide-react-native';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { BellOff, ChevronRight, MessageCircle, Search } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 
 import { ProfileName } from '@/components/ProfileName';
-import { Avatar, colors, EmptyState, ErrorState, Screen, Skeleton, spacing, Text } from '@/design';
+import { Avatar, colors, dark, EmptyState, ErrorState, fonts, Screen, Skeleton, spacing, Text, WEB_NO_OUTLINE } from '@/design';
 import { fetchConversations } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
+import { useDockSpace } from '@/lib/dock';
+import { useDarkStatusBar } from '@/lib/statusBar';
 import type { ConversationSummary } from '@/lib/types';
 
 export default function Messages() {
+  useDarkStatusBar();
   const { userId } = useAuth();
+  const dockSpace = useDockSpace();
+  const [search, setSearch] = useState('');
   const q = useQuery({ queryKey: ['conversations'], queryFn: fetchConversations, refetchInterval: 60_000 });
+  const all = useMemo(() => q.data ?? [], [q.data]);
+  // Local filter on conversations already loaded for this member (no extra query, no new data).
+  const needle = search.trim().toLowerCase();
+  const rows = useMemo(
+    () => (needle ? all.filter((c) => `${c.other?.display_name ?? ''} ${c.other?.handle ?? ''}`.toLowerCase().includes(needle)) : all),
+    [all, needle],
+  );
 
   return (
-    <Screen>
-      <View style={styles.top}>
-        <Text variant="title">Messages</Text>
+    <Screen background={dark.background}>
+      <View style={styles.head}>
+        <Text serif weight="600" tone="fog" accessibilityRole="header" style={{ fontSize: 26, lineHeight: 32 }}>
+          Messages
+        </Text>
       </View>
       <FlatList
-        data={q.data ?? []}
+        data={rows}
         keyExtractor={(c) => c.conversation_id}
         renderItem={({ item }) => <Row c={item} me={userId ?? ''} />}
-        refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => void q.refetch()} tintColor={colors.ink} />}
+        refreshControl={<RefreshControl refreshing={q.isRefetching} onRefresh={() => void q.refetch()} tintColor={dark.text} />}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: dockSpace }}
+        ListHeaderComponent={
+          <View style={styles.intro}>
+            <Text serif weight="400" tone="fog" style={{ fontSize: 24, lineHeight: 30, maxWidth: 300 }}>
+              Les belles affaires commencent par une conversation.
+            </Text>
+            {all.length > 0 ? (
+              <View style={styles.search}>
+                <Search size={20} color={dark.mint} />
+                <TextInput
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Rechercher une conversation"
+                  placeholderTextColor={dark.textTertiary}
+                  selectionColor={dark.mint}
+                  accessibilityLabel="Rechercher une conversation"
+                  autoCorrect={false}
+                  style={[styles.searchInput, WEB_NO_OUTLINE]}
+                />
+              </View>
+            ) : null}
+            {all.length > 0 ? (
+              <Text variant="micro" weight="700" tone="gold" style={styles.overline}>
+                DISCUSSIONS
+              </Text>
+            ) : null}
+          </View>
+        }
         ListEmptyComponent={
           q.isPending ? (
-            <View style={{ padding: spacing.lg, gap: spacing.lg }}>
+            <View style={{ padding: spacing.lg, gap: spacing.lg }} accessibilityLabel="Chargement">
               {[0, 1, 2].map((i) => (
                 <View key={i} style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'center' }}>
-                  <Skeleton width={52} height={52} radius={26} />
+                  <Skeleton tone="dark" width={56} height={56} radius={28} />
                   <View style={{ flex: 1, gap: 8 }}>
-                    <Skeleton height={13} width="45%" />
-                    <Skeleton height={11} width="75%" />
+                    <Skeleton tone="dark" height={13} width="45%" />
+                    <Skeleton tone="dark" height={11} width="75%" />
                   </View>
                 </View>
               ))}
             </View>
           ) : q.isError ? (
-            <ErrorState message={toFrenchError(q.error)} onRetry={() => q.refetch()} />
+            <ErrorState tone="dark" message={toFrenchError(q.error)} onRetry={() => q.refetch()} />
+          ) : needle ? (
+            <Text variant="callout" tone="fogSecondary" align="center" style={{ padding: spacing.xl }}>
+              Aucune conversation pour « {search.trim()} ».
+            </Text>
           ) : (
             <EmptyState
+              tone="dark"
               icon={MessageCircle}
               title="Aucune conversation"
               body="Contactez un vendeur depuis un article, ou répondez au statut d’un ami. Vos discussions et propositions apparaîtront ici."
@@ -61,31 +115,33 @@ function Row({ c, me }: { c: ConversationSummary; me: string }) {
   return (
     <Pressable
       onPress={() => router.push(`/chat/${c.conversation_id}`)}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surfaceSubtle }]}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: dark.subtle }]}
       accessibilityRole="button"
       accessibilityLabel={`Conversation avec ${name}${unread ? `, ${c.unread_count} non lus` : ''}`}
     >
-      <Avatar path={c.other?.avatar_path} name={name} size={52} />
-      <View style={{ flex: 1, gap: 2 }}>
+      <Avatar path={c.other?.avatar_path} name={name} size={56} />
+      <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
         <View style={styles.line}>
-          {c.other ? <ProfileName profile={c.other} /> : <Text variant="bodyStrong">{name}</Text>}
-          <Text variant="caption" tone={unread ? 'default' : 'secondary'} weight={unread ? '700' : '500'}>
+          {c.other ? <ProfileName profile={c.other} tone="dark" /> : <Text variant="bodyStrong" tone="fog">{name}</Text>}
+          <Text variant="caption" color={unread ? dark.mint : dark.textTertiary} weight={unread ? '700' : '500'} style={{ fontSize: 12 }}>
             {timeAgo(c.last_message_at)}
           </Text>
         </View>
         <View style={styles.line}>
-          <Text variant="callout" tone={unread ? 'default' : 'secondary'} weight={unread ? '600' : '400'} numberOfLines={1} style={{ flex: 1 }}>
+          <Text variant="callout" color={unread ? dark.text : dark.textSecondary} weight={unread ? '600' : '400'} numberOfLines={1} style={{ flex: 1 }}>
             {mine ? 'Vous : ' : ''}
             {c.last_message_preview || 'Nouvelle conversation'}
           </Text>
-          {c.muted ? <BellOff size={14} color={colors.textTertiary} /> : null}
+          {c.muted ? <BellOff size={14} color={dark.textTertiary} /> : null}
           {unread ? (
             <View style={styles.badge}>
-              <Text variant="micro" weight="800" color={colors.white}>
+              <Text variant="micro" weight="800" color={colors.night}>
                 {c.unread_count > 99 ? '99+' : c.unread_count}
               </Text>
             </View>
-          ) : null}
+          ) : (
+            <ChevronRight size={16} color={dark.mint} />
+          )}
         </View>
       </View>
     </Pressable>
@@ -93,8 +149,12 @@ function Row({ c, me }: { c: ConversationSummary; me: string }) {
 }
 
 const styles = StyleSheet.create({
-  top: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  head: { minHeight: 62, justifyContent: 'center', paddingHorizontal: spacing.lg, borderBottomWidth: 1, borderBottomColor: dark.border },
+  intro: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, gap: spacing.lg },
+  search: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: 48, paddingHorizontal: spacing.lg, borderRadius: 999, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
+  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: dark.text, paddingVertical: 8 },
+  overline: { fontSize: 12, letterSpacing: 1.6, marginTop: spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 85, marginHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: dark.border },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-  badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
 });
