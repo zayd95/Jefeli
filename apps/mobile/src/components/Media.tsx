@@ -4,7 +4,7 @@ import { Play, Volume2, VolumeX } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
-import { colors, Text } from '@/design';
+import { colors, dark, Text } from '@/design';
 import { useMediaUrl, type Bucket } from '@/lib/media';
 import type { MediaRow } from '@/lib/types';
 import { fill } from '@/design/fill';
@@ -25,7 +25,7 @@ export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { u
         {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.ink }]} />}
         <View style={styles.playWrap}>
           <View style={styles.play}>
-            <Play size={26} color={colors.ink} fill={colors.ink} />
+            <Play size={24} color={dark.text} fill={dark.text} />
           </View>
         </View>
       </Pressable>
@@ -51,11 +51,11 @@ export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { u
   );
 }
 
-export function MediaItem({ media, bucket, width, height }: { media: MediaRow; bucket: Bucket; width: number; height: number }) {
+export function MediaItem({ media, bucket, width, height, tone = 'light' }: { media: MediaRow; bucket: Bucket; width: number; height: number; tone?: 'light' | 'dark' }) {
   const uri = useMediaUrl(bucket, media.storage_path);
   const poster = useMediaUrl(bucket, media.poster_path);
   return (
-    <View style={{ width, height, backgroundColor: colors.surfaceMuted }}>
+    <View style={{ width, height, backgroundColor: tone === 'dark' ? dark.surface : colors.surfaceMuted }}>
       {media.kind === 'video' ? (
         uri ? <VideoPlayerInline uri={uri} posterUri={poster} /> : null
       ) : uri ? (
@@ -80,7 +80,19 @@ export function mediaHeight(media: MediaRow | undefined, width: number): number 
   return Math.round(width * Math.min(1.25, Math.max(0.52, ratio)));
 }
 
-export function MediaCarousel({ media, bucket, width: fixedWidth, height: fixedHeight }: { media: MediaRow[]; bucket: Bucket; width?: number; height?: number }) {
+export function MediaCarousel({
+  media,
+  bucket,
+  width: fixedWidth,
+  height: fixedHeight,
+  tone = 'light',
+}: {
+  media: MediaRow[];
+  bucket: Bucket;
+  width?: number;
+  height?: number;
+  tone?: 'light' | 'dark';
+}) {
   const { width: screenWidth } = useWindowDimensions();
   const width = fixedWidth ?? Math.min(screenWidth, 640);
   const height = fixedHeight ?? mediaHeight(media[0], width);
@@ -95,11 +107,11 @@ export function MediaCarousel({ media, bucket, width: fixedWidth, height: fixedH
   return (
     <View style={{ width, height }}>
       {media.length === 1 ? (
-        <MediaItem media={media[0] as MediaRow} bucket={bucket} width={width} height={height} />
+        <MediaItem media={media[0] as MediaRow} bucket={bucket} width={width} height={height} tone={tone} />
       ) : (
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64}>
           {media.map((m) => (
-            <MediaItem key={m.id} media={m} bucket={bucket} width={width} height={height} />
+            <MediaItem key={m.id} media={m} bucket={bucket} width={width} height={height} tone={tone} />
           ))}
         </ScrollView>
       )}
@@ -139,9 +151,10 @@ export function Thumb({ media, bucket = 'public-media', style, label }: { media?
 
 const styles = StyleSheet.create({
   playWrap: { ...fill, alignItems: 'center', justifyContent: 'center' },
-  play: { width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', paddingLeft: 3 },
-  mute: { position: 'absolute', right: 12, bottom: 12, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(16,37,44,0.55)', alignItems: 'center', justifyContent: 'center' },
-  counter: { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(16,37,44,0.6)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  // Lovable `.lab-glass` play control
+  play: { width: 56, height: 56, borderRadius: 28, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder, alignItems: 'center', justifyContent: 'center', paddingLeft: 3 },
+  mute: { position: 'absolute', right: 12, bottom: 12, width: 36, height: 36, borderRadius: 18, backgroundColor: dark.glass, alignItems: 'center', justifyContent: 'center' },
+  counter: { position: 'absolute', top: 12, right: 12, backgroundColor: dark.glass, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   dots: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 5 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.55)' },
   dotOn: { backgroundColor: colors.white, width: 16 },

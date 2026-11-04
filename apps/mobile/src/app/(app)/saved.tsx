@@ -5,7 +5,7 @@ import { FlatList, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { gridItemWidth, ListingCard } from '@/components/ListingCard';
 import { PostCard } from '@/components/PostCard';
-import { Chip, EmptyState, Header, Screen, spacing } from '@/design';
+import { Chip, dark, EmptyState, Header, Screen, spacing } from '@/design';
 import { fetchSavedPosts } from '@/lib/api/posts';
 import { fetchSavedProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
@@ -52,7 +52,9 @@ export default function Saved() {
           data={posts.data ?? []}
           keyExtractor={(p) => p.id}
           renderItem={({ item }) => <PostCard post={item} showReason={false} />}
-          ListEmptyComponent={posts.isPending ? undefined : <EmptyState icon={Bookmark} title="Aucune publication enregistrée" />}
+          style={{ backgroundColor: dark.background }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          ListEmptyComponent={posts.isPending ? undefined : <EmptyState tone="dark" icon={Bookmark} title="Aucune publication enregistrée" />}
         />
       )}
     </Screen>

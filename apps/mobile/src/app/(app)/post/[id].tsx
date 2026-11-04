@@ -7,13 +7,16 @@ import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextIn
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PostCard } from '@/components/PostCard';
-import { Avatar, Button, colors, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
 import { addComment, deleteComment, editPost, fetchComments, fetchPost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { patchPost } from '@/lib/postCache';
+import { useDarkStatusBar } from '@/lib/statusBar';
 import type { CommentRow } from '@/lib/types';
 
+/** Publication + its comments, on Atlantic night like the feed card it opens from. */
 export default function PostScreen() {
+  useDarkStatusBar();
   const { id, edit, comment } = useLocalSearchParams<{ id: string; edit?: string; comment?: string }>();
   const { userId, profile } = useAuth();
   const qc = useQueryClient();
@@ -70,17 +73,17 @@ export default function PostScreen() {
 
   if (post.isPending) {
     return (
-      <Screen>
-        <Header title="Publication" />
-        <Skeleton height={320} radius={0} />
+      <Screen background={dark.background}>
+        <Header title="Publication" tone="dark" />
+        <Skeleton tone="dark" height={320} radius={0} />
       </Screen>
     );
   }
   if (!post.data) {
     return (
-      <Screen>
-        <Header title="Publication" />
-        <EmptyState icon={FileX} title="Publication indisponible" body="Elle a été supprimée, masquée, ou n’est pas visible pour vous." />
+      <Screen background={dark.background}>
+        <Header title="Publication" tone="dark" />
+        <EmptyState tone="dark" icon={FileX} title="Publication indisponible" body="Elle a été supprimée, masquée, ou n’est pas visible pour vous." />
       </Screen>
     );
   }
@@ -91,16 +94,16 @@ export default function PostScreen() {
   const isAuthor = post.data.author_id === userId;
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} background={dark.background}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Header title="Publication" />
+        <Header title="Publication" tone="dark" />
         <FlatList
           data={ordered}
           keyExtractor={(c) => c.id}
           ListHeaderComponent={
             <View>
               {editing && isAuthor ? (
-                <View style={{ padding: spacing.lg, gap: spacing.md, backgroundColor: colors.surface }}>
+                <View style={{ margin: spacing.lg, padding: spacing.lg, gap: spacing.md, backgroundColor: colors.surface, borderRadius: 20 }}>
                   <Field label="Modifier le texte" value={editBody} onChangeText={setEditBody} multiline maxLength={2200} counter />
                   <View style={{ flexDirection: 'row', gap: spacing.sm }}>
                     <Button label="Annuler" variant="ghost" style={{ flex: 1 }} onPress={() => setEditing(false)} />
@@ -123,7 +126,7 @@ export default function PostScreen() {
                 </View>
               ) : null}
               <PostCard key={`${post.data.id}-${post.data.updated_at}`} post={post.data} showReason={false} onOpenComments={() => {}} />
-              <Text variant="headline" style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.sm }}>
+              <Text serif variant="title" tone="fog" style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.sm, fontSize: 20 }}>
                 Commentaires
               </Text>
             </View>
@@ -132,17 +135,17 @@ export default function PostScreen() {
             <Pressable onLongPress={() => setSelected(item)} style={[styles.comment, item.parent_id && styles.reply]} accessibilityHint="Appui long pour plus d’options">
               <Avatar path={item.author?.avatar_path} name={item.author?.display_name ?? '?'} size={item.parent_id ? 28 : 34} />
               <View style={{ flex: 1 }}>
-                <Text variant="callout">
-                  <Text variant="callout" weight="700" onPress={() => item.author && router.push(`/u/${item.author.handle}`)}>
+                <Text variant="callout" color={dark.textStrong}>
+                  <Text variant="callout" weight="700" tone="fog" onPress={() => item.author && router.push(`/u/${item.author.handle}`)}>
                     {item.author?.display_name}{' '}
                   </Text>
                   {item.body}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: spacing.lg, marginTop: 2 }}>
-                  <Text variant="caption" tone="secondary">
+                  <Text variant="caption" tone="fogTertiary">
                     {timeAgo(item.created_at)}
                   </Text>
-                  <Text variant="caption" weight="700" tone="secondary" onPress={() => setReplyTo(item)}>
+                  <Text variant="caption" weight="700" tone="fogSecondary" onPress={() => setReplyTo(item)}>
                     Répondre
                   </Text>
                 </View>
@@ -151,9 +154,9 @@ export default function PostScreen() {
           )}
           ListEmptyComponent={
             comments.isPending ? (
-              <Skeleton height={40} style={{ marginHorizontal: spacing.lg }} />
+              <Skeleton tone="dark" height={40} style={{ marginHorizontal: spacing.lg }} />
             ) : (
-              <Text tone="secondary" style={{ paddingHorizontal: spacing.lg }}>
+              <Text tone="fogSecondary" style={{ paddingHorizontal: spacing.lg }}>
                 Soyez le premier à commenter.
               </Text>
             )
@@ -162,9 +165,9 @@ export default function PostScreen() {
         />
         <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
           {replyTo ? (
-            <Text variant="caption" tone="secondary" style={{ paddingHorizontal: spacing.sm, paddingBottom: 4 }}>
+            <Text variant="caption" tone="fogSecondary" style={{ paddingHorizontal: spacing.sm, paddingBottom: 4 }}>
               Réponse à {replyTo.author?.display_name} ·{' '}
-              <Text variant="caption" weight="700" onPress={() => setReplyTo(null)}>
+              <Text variant="caption" weight="700" tone="fog" onPress={() => setReplyTo(null)}>
                 Annuler
               </Text>
             </Text>
@@ -174,7 +177,8 @@ export default function PostScreen() {
               value={text}
               onChangeText={setText}
               placeholder={post.data.intent === 'opinion' ? 'Donnez votre avis…' : post.data.intent === 'seek' ? 'Une piste, une adresse, un conseil…' : 'Ajouter un commentaire…'}
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={dark.textTertiary}
+              selectionColor={dark.mint}
               multiline
               maxLength={1000}
               autoFocus={comment === '1'}
@@ -182,7 +186,7 @@ export default function PostScreen() {
               accessibilityLabel="Commentaire"
             />
             <Pressable onPress={send} disabled={!text.trim() || sending} style={[styles.send, (!text.trim() || sending) && { opacity: 0.4 }]} accessibilityRole="button" accessibilityLabel="Publier le commentaire">
-              <Send size={18} color={colors.action} />
+              <Send size={18} color={colors.night} />
             </Pressable>
           </View>
         </View>
@@ -225,7 +229,8 @@ export default function PostScreen() {
 const styles = StyleSheet.create({
   comment: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
   reply: { paddingLeft: spacing.lg + 40 },
-  composer: { borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.sm, paddingTop: spacing.sm, backgroundColor: colors.background },
-  input: { flex: 1, minHeight: 44, maxHeight: 110, borderRadius: 22, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, paddingHorizontal: spacing.md, paddingVertical: 10, fontFamily: fonts.regular, fontSize: 16, color: colors.ink },
-  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  // Lovable comment field: fog-tinted pill on night, mint send.
+  composer: { borderTopWidth: 1, borderColor: dark.border, paddingHorizontal: spacing.md, paddingTop: spacing.sm, backgroundColor: dark.header },
+  input: { flex: 1, minHeight: 44, maxHeight: 110, borderRadius: 22, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.subtle, paddingHorizontal: spacing.lg, paddingVertical: 10, fontFamily: fonts.regular, fontSize: 15, color: dark.text },
+  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
 });
