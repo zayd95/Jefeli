@@ -47,20 +47,16 @@ export async function signUp(page: Page, opts: { name: string; email: string; ha
   await page.getByRole('checkbox', { name: 'J’ai 18 ans ou plus.' }).click();
   await page.getByRole('checkbox', { name: /J’accepte les conditions/ }).click();
   await btn(page, 'Créer mon compte').click();
-  // Onboarding step 1
-  await expect(page.getByText('Votre profil')).toBeVisible();
-  await field(page, 'Nom affiché').fill(opts.name);
-  await field(page, 'Nom d’utilisateur').fill(opts.handle);
-  await expect(page.getByText('Disponible', { exact: true })).toBeVisible();
-  await page.getByRole('checkbox', { name: 'Je confirme avoir 18 ans ou plus' }).click();
-  await btn(page, 'Continuer').click();
-  // Step 2: city (Dakar preselected) + neighbourhood
-  await expect(page.getByText('Où êtes-vous ?')).toBeVisible();
+  // One-screen onboarding (Lovable parity): name, suggested + editable handle, city, 18+.
+  // No boutique questionnaire and no interests gate before the first feed.
+  await expect(page.getByText('Bienvenue chez vous.')).toBeVisible();
+  await field(page, 'Votre nom').fill(opts.name);
+  // The handle is suggested from the name; tests still set a unique one explicitly.
+  await field(page, 'Votre pseudo').fill(opts.handle);
+  await expect(page.getByText(/^Disponible/)).toBeVisible();
   if (opts.city && opts.city !== 'Dakar') await btn(page, opts.city).click();
-  await btn(page, 'Continuer').click();
-  // Step 3: interests (optional)
-  await expect(page.getByText('Ce qui vous intéresse')).toBeVisible();
-  await btn(page, 'Terminer').click();
+  await page.getByRole('checkbox', { name: 'Je confirme avoir 18 ans ou plus' }).click();
+  await btn(page, 'Entrer dans Jëfëli').click();
   await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
 }
 

@@ -1,8 +1,9 @@
-import { HANDLE_PATTERN, normalizeHandle, toFrenchError } from '@jefeli/shared';
+import { HANDLE_PATTERN, normalizeHandle, suggestHandle, toFrenchError } from '@jefeli/shared';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { AvatarPicker } from '@/components/AvatarPicker';
+import { LocationPicker } from '@/components/LocationPicker';
 import { Button, Checkbox, colors, Field, Screen, spacing, Text, Wordmark } from '@/design';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
@@ -44,13 +45,7 @@ export default function Onboarding() {
 
   function changeName(value: string) {
     setName(value);
-    if (!handleEdited) {
-      const suggestion = normalizeHandle(
-        value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .trim().replace(/\s+/g, '.'),
-      );
-      setHandle(suggestion.slice(0, 30));
-    }
+    if (!handleEdited) setHandle(suggestHandle(value));
   }
 
   const canEnter = name.trim().length >= 2 && handleState === 'ok' && !!city.trim() && adult && !saving;
@@ -65,11 +60,8 @@ export default function Onboarding() {
         handle,
         avatar_path: avatar,
         city: city.trim(),
-        // No merchant questionnaire, business interest gate or fictitious seller badge.
-        is_merchant: false,
-        boutique_name: null,
-        boutique_category_slug: null,
-        interests: [],
+        // No merchant questionnaire, business-interest gate or fictitious seller badge. Boutique
+        // identity and interests are left untouched (never wiped) and stay editable later.
         adult_confirmed_at: new Date().toISOString(),
         onboarded_at: new Date().toISOString(),
       });
@@ -124,14 +116,7 @@ export default function Onboarding() {
           hint={handleState === 'ok' ? 'Disponible · modifiable quand vous voulez' : handleState === 'checking' ? 'Vérification…' : 'Suggéré automatiquement, modifiable.'}
           error={handleState === 'taken' ? 'Déjà pris, choisissez une variante.' : handleState === 'invalid' ? '3 à 30 caractères : lettres, chiffres, « _ » et « . »' : undefined}
         />
-        <Field
-          label="Votre ville"
-          value={city}
-          onChangeText={setCity}
-          maxLength={80}
-          placeholder="Dakar"
-          hint="Pour découvrir les échanges près de chez vous."
-        />
+        <LocationPicker city={city} neighborhood="" onChange={(next) => setCity(next.city)} cityOnly />
         <View style={styles.age}>
           <Checkbox
             checked={adult}
