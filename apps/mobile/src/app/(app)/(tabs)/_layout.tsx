@@ -4,11 +4,11 @@ import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, shadow, spacing, Text } from '@/design';
+import { colors, spacing, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 
-const TAB_META: Record<string, { label: string; icon: LucideIcon }> = {
+const TABS: Record<string, { label: string; icon: LucideIcon }> = {
   index: { label: 'Accueil', icon: House },
   explore: { label: 'Explorer', icon: Compass },
   publish: { label: 'Publier', icon: Plus },
@@ -23,9 +23,11 @@ type TabBarProps = {
 };
 
 /**
- * Floating pill navigation (owner's UI reference): the active tab is a soft mint pill with its
- * label, the others are icons (each keeps its French accessibility label), and « Publier » is a
- * separate round button so creating content is always one tap away.
+ * One five-item Tinder-inspired navigation dock, ported from the approved
+ * Lovable layout. The center Plus enters the post composer directly; article
+ * and status are accessible in its compact switcher, never through a giant hub.
+ *
+ * iOS safe areas, unread counters and accessible French labels are preserved.
  */
 function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
   const { userId } = useAuth();
@@ -35,53 +37,49 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
     enabled: !!userId,
     refetchInterval: 60_000,
   });
+  const activeName = state.routes[state.index]?.name;
+  const dark = activeName === 'index' || activeName === 'profile';
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <View style={styles.pill} accessibilityRole="tablist">
-        {state.routes.map((route, i) => {
-          const meta = TAB_META[route.name];
-          if (!meta || route.name === 'publish') return null;
-          const focused = state.index === i;
+    <View style={[styles.bar, { backgroundColor: dark ? colors.darkBackground : colors.background, paddingBottom: Math.max(insets.bottom, 10) }]}>
+      <View style={[styles.dock, dark ? styles.dockDark : styles.dockLight]} accessibilityRole="tablist">
+        {state.routes.map((route, index) => {
+          const meta = TABS[route.name];
+          if (!meta) return null;
+          const selected = state.index === index && route.name !== 'publish';
           const Icon = meta.icon;
-          const badge = route.name === 'messages' ? (unread.data ?? 0) : 0;
+          const unreadCount = route.name === 'messages' ? (unread.data ?? 0) : 0;
+          const ink = selected ? colors.ink : dark ? colors.darkText : colors.textSecondary;
+
           return (
             <Pressable
               key={route.key}
-              onPress={() => navigateToTab(route.key)}
               accessibilityRole="tab"
-              accessibilityState={{ selected: focused }}
-              aria-selected={focused}
-              accessibilityLabel={badge ? `${meta.label}, ${badge} non lus` : meta.label}
-              style={({ pressed }) => [styles.item, focused && styles.itemOn, pressed && !focused && { opacity: 0.6 }]}
+              accessibilityState={{ selected }}
+              accessibilityLabel={unreadCount ? meta.label + ', ' + unreadCount + ' non lus' : meta.label}
+              onPress={() => {
+                if (route.name === 'publish') router.push('/publish/post');
+                else navigateToTab(route.key);
+              }}
+              style={({ pressed }) => [styles.item, selected && styles.itemSelected, pressed && styles.itemPressed]}
             >
-              <View>
-                <Icon size={22} color={focused ? colors.ink : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
-                {badge > 0 ? (
+              <View style={styles.iconWrap}>
+                <Icon size={route.name === 'publish' ? 25 : 22} color={ink} strokeWidth={selected ? 2.5 : 2} />
+                {unreadCount > 0 && (
                   <View style={styles.badge}>
                     <Text variant="micro" weight="700" color={colors.white} style={{ fontSize: 10, lineHeight: 12 }}>
-                      {badge > 99 ? '99+' : badge}
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </Text>
                   </View>
-                ) : null}
+                )}
               </View>
-              {focused ? (
-                <Text variant="callout" weight="700" numberOfLines={1}>
-                  {meta.label}
-                </Text>
-              ) : null}
+              <Text variant="micro" weight={selected ? '700' : '600'} color={ink} numberOfLines={1}>
+                {meta.label}
+              </Text>
             </Pressable>
           );
         })}
       </View>
-      <Pressable
-        onPress={() => router.push('/publish')}
-        accessibilityRole="button"
-        accessibilityLabel="Publier : publication, statut, article ou live"
-        style={({ pressed }) => [styles.create, pressed && { backgroundColor: colors.inkSoft }]}
-      >
-        <Plus size={26} color={colors.action} strokeWidth={2.6} />
-      </Pressable>
     </View>
   );
 }
@@ -103,37 +101,37 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-    backgroundColor: colors.background,
   },
-  pill: {
-    flex: 1,
+  dock: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 60,
-    paddingHorizontal: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
+    minHeight: 70,
+    paddingHorizontal: 5,
+    borderRadius: 38,
     borderWidth: 1,
+  },
+  dockLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderColor: colors.border,
-    ...shadow.card,
   },
-  item: { minWidth: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
-  itemOn: { backgroundColor: colors.mintSoft, paddingHorizontal: spacing.lg },
-  create: {
-    width: 60,
-    height: 60,
+  dockDark: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(247,246,243,0.22)',
+  },
+  item: {
+    flex: 1,
+    minWidth: 0,
+    height: 58,
     borderRadius: 30,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.floating,
+    alignItems: 'center',
+    gap: 2,
   },
+  itemSelected: { backgroundColor: colors.action },
+  itemPressed: { opacity: 0.78 },
+  iconWrap: { height: 26, alignItems: 'center', justifyContent: 'center' },
   badge: {
     position: 'absolute',
     top: -6,
@@ -142,7 +140,7 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.live,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
