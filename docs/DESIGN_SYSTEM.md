@@ -1,21 +1,29 @@
-# Jëfëli — Atlantic Sand design system
+# Jëfëli — Atlantic After Dark / near-white design system
 
 ## Authority
-Owner explicitly selected **Palette 4: Atlantic Sand**. This file overrides all alternative palette explorations. Brand is **Jëfëli**; correct two diaereses matter. ASCII `jefeli` is only a technical fallback.
+Owner initially selected Palette 4, then approved Lovable's **Atlantic After Dark** Home and member Profile alongside clean **near-white** commerce screens. The latest approved visual authority is docs/LOVABLE_NATIVE_HANDOFF.md and the pinned Lovable implementation in that file; older UI/layout guidance below is historical when it conflicts. Brand is **Jëfëli** (two diaereses); ASCII jefeli is a technical fallback.
 
 ## Design tokens
 
 | Token | Hex | Purpose |
 |---|---|---|
-| `color.canvas` | `#F6F5F1` | light-mode app canvas |
+| `color.canvas` | `#FAFBFA` | near-white Explorer, product, onboarding and forms |
 | `color.ink` | `#10252C` | main text, primary dark surfaces, graphic identity |
 | `color.mint` | `#A3E4D7` | follow, CTA, selected state, interactive highlights |
 | `color.slate` | `#607071` | secondary metadata, locations, time |
 | `color.surface` | `#FFFFFF` | cards, sheets and readable media framing |
-| `color.night` | `#0D1B2A` | optional dark mode foundation |
+| `color.night` | `#091B19` | approved dark Home and member Profile surface |
 | `color.live` | accessible red | streaming status ONLY; don't use mint as LIVE status |
 
 Implement semantic tokens: background, surface, subtle surface, ink, secondary text, border, action, action text, danger, disabled, skeleton. Account for contrast ratios in light/dark modes; don't assume every mint-on-white combination is legible. Disable dark mode until all surfaces support it rather than shipping broken mixed themes.
+
+## Surface assignments and UX flow (new owner decision)
+
+- Dark Home and Profile: #091B19 with fog text; absolutely no unexpected white cards.
+- Explorer, product detail, onboarding and publish: #FAFBFA with pure white cards and quiet neutral borders. Do not reintroduce cream.
+- One-screen discover-first onboarding; business interests and boutique identity are optional *after* entry, not a gate.
+- Plus opens post composer directly; article and status available nearby; listing is one scrolling form with optional details collapsed.
+- Lovable implementation at the pinned SHA in docs/LOVABLE_NATIVE_HANDOFF.md is authoritative for visual compositions; native RLS, auth, privacy and stored data stay authoritative for behavior.
 
 ## Component vocabulary
 App header, search input, feed tabs, story rings, social post, video preview, listing card, price label, verified state, follow button, icon row, profile header, shop strip, product tile, category chip, message bubble, barter proposal card, live host/control panel, share sheet trigger, modal bottom sheet, toast, validation, upload progress, contextual action menu, report flow, skeleton and empty state.
@@ -33,7 +41,7 @@ App header, search input, feed tabs, story rings, social post, video preview, li
 - Safe-area-aware, keyboard-avoiding, thumb-friendly bottom tabs.
 - Use 8-point-ish layout system (4/8/12/16/24/32), thoughtful content-width/padding; not hard-coded pixel-perfect assumptions.
 - Editorial photography, genuine aspect ratio, correct poster video treatment, no stretching or over-filtering.
-- Profile: name/handle/location first; statuses/highlights; then **boutique preview**; content tabs (`Fil`, `Statuts`, `Live`, `Boutique`, `Avis`) without making a merchant template.
+- Profile: short atmospheric cover, overlapping avatar, name/handle/location and **prominent bio** first; up to three business-interest chips. Only **Publications** and **Boutique** primary tabs; no boutique carousel or duplicate pinned hero. Keep statuses, live, highlights, reviews and privacy available through secondary routes.
 - Product: media first, price clear, seller details and condition, location and realistic contact/offer CTA.
 - Messages: calm spacious thread with pinned linked product context; actual composer with attachments and voice input states.
 - Live: full-frame media, unobtrusive comments overlay, visible true `EN DIRECT`, current pinned item, safety control.
@@ -44,7 +52,7 @@ spacing and interaction patterns. They are **not** copied: colours stay Atlantic
 
 | Pattern | Where | Rule |
 |---|---|---|
-| Floating pill navigation | Tab bar (`(tabs)/_layout.tsx`) | A white pill on the canvas. The active tab is a mint-soft pill with its label; the others show icons only and keep their French accessibility label. « Publier » is a separate round ink button with a mint `+` |
+| Floating five-tab dock | Tab bar ((tabs)/_layout.tsx) | One rounded Tinder-inspired dock with Accueil, Explorer, Publier, Messages, Profil. Active mint; dark/translucent on Home/Profile, near-white on commerce. The center Plus directly opens the post composer, not a separate giant button or chooser |
 | Round icon buttons | Header bell (`IconButton variant="surface"`) | White circle with a hairline border. Counters sit outside the circle |
 | Pill search | `SearchBar` | White, fully rounded, hairline border, on the sand canvas |
 | Location pill | Explorer header | Small mint icon disc, the city (or « Toutes les villes »), and a chevron. Opens the city sheet |
