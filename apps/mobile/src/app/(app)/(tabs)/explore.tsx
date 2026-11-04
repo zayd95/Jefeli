@@ -238,7 +238,7 @@ export default function Explore() {
         contentContainerStyle={{ paddingBottom: dockSpace, flexGrow: 1 }}
       />
 
-      <Sheet visible={citySheet} onClose={() => setCitySheet(false)} title="Ville" scroll>
+      <Sheet visible={citySheet} onClose={() => setCitySheet(false)} title="Ville" scroll tone="dark">
         <SheetAction
           icon={city === null ? Check : Globe2}
           label="Tout le Sénégal"

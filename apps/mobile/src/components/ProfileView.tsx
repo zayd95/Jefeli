@@ -557,7 +557,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         indicatorStyle="white"
       />
 
-      <Sheet visible={shareSheet} onClose={() => setShareSheet(false)} title={isSelf ? 'Partager mon profil' : 'Partager ce profil'}>
+      <Sheet visible={shareSheet} onClose={() => setShareSheet(false)} title={isSelf ? 'Partager mon profil' : 'Partager ce profil'} tone="dark">
         <SheetAction
           icon={MessageCircle}
           label="Envoyer sur WhatsApp"

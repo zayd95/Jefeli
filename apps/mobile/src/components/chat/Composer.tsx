@@ -135,7 +135,7 @@ export function ChatComposer({
         <Plus size={24} color={dark.text} />
       </Pressable>
       {onPickProducts ? (
-        <Sheet visible={attach} onClose={() => setAttach(false)}>
+        <Sheet visible={attach} onClose={() => setAttach(false)} tone="dark">
           <SheetAction
             icon={ImageIcon}
             label="Envoyer une photo"

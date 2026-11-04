@@ -83,7 +83,7 @@ export default function Onboarding() {
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.intro}>
-          <Text variant="display" weight="700" accessibilityRole="header">
+          <Text serif weight="600" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36, color: colors.ink }}>
             Bienvenue chez vous.
           </Text>
           <Text variant="body" tone="secondary">
@@ -128,7 +128,7 @@ export default function Onboarding() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button label="Entrer dans Jëfëli" size="lg" variant="primary" loading={saving} disabled={!canEnter} fullWidth onPress={enter} style={styles.cta} />
+        <Button label="Entrer dans Jëfëli" size="lg" variant="cta" pill loading={saving} disabled={!canEnter} fullWidth onPress={enter} style={styles.cta} />
         <Text variant="caption" tone="secondary" align="center">
           Vous pourrez publier, découvrir et ouvrir une boutique quand vous le voudrez.
         </Text>
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderTopColor: colors.border,
     borderTopWidth: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.glassLight,
     alignItems: 'stretch',
   },
-  cta: { borderRadius: 999 },
+  cta: { height: 56 },
 });

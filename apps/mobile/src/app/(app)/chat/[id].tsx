@@ -235,7 +235,7 @@ export default function ChatScreen() {
 
       <ProductPicker visible={picker} onClose={() => setPicker(false)} me={me} otherId={other?.user_id ?? null} otherName={otherName} onSend={onSendProducts} />
 
-      <Sheet visible={menu} onClose={() => setMenu(false)}>
+      <Sheet visible={menu} onClose={() => setMenu(false)} tone="dark">
         <SheetAction
           icon={mine?.muted ? Bell : BellOff}
           label={mine?.muted ? 'Réactiver les notifications' : 'Mettre en sourdine'}
@@ -288,7 +288,7 @@ export default function ChatScreen() {
         ) : null}
       </Sheet>
 
-      <Sheet visible={!!selected} onClose={() => setSelected(null)}>
+      <Sheet visible={!!selected} onClose={() => setSelected(null)} tone="dark">
         {selected?.sender_id === me ? (
           <SheetAction
             icon={Trash2}

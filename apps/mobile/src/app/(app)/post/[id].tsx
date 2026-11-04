@@ -191,7 +191,7 @@ export default function PostScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-      <Sheet visible={!!selected} onClose={() => setSelected(null)}>
+      <Sheet visible={!!selected} onClose={() => setSelected(null)} tone="dark">
         {selected && (selected.author_id === userId || isAuthor) ? (
           <SheetAction
             icon={Trash2}
