@@ -10,3 +10,4 @@ export * from './Toast';
 export * from './Sheet';
 export * from './Checkbox';
 export * from './fill';
+export * from './Motif';

@@ -46,10 +46,51 @@ export const colors = {
   gold: palette.gold,
   overlay: 'rgba(16, 37, 44, 0.55)',
   white: '#FFFFFF',
+  // Lovable light commerce surfaces (Explorer, product, forms)
+  night: palette.night,
+  mint: palette.mint,
+  goldSoft: 'rgba(227, 183, 119, 0.25)', // « À discuter » pill on white
+  inkWash: 'rgba(16, 37, 44, 0.04)', // payment disclaimer box
+  glassLight: 'rgba(255, 255, 255, 0.94)', // sticky product CTA bar, light dock
+  dockLight: 'rgba(250, 251, 250, 0.95)',
+  dockLightBorder: 'rgba(255, 255, 255, 0.7)',
+} as const;
+
+/**
+ * Atlantic After Dark surfaces (Home, member Profile, Messages), ported from the approved
+ * Lovable lab (--lab-night / --lab-deep / --lab-fog tints). Fog tints keep AA contrast for
+ * body (≥ 0.62) and large/bold meta text (≥ 0.48) on #091B19.
+ */
+export const dark = {
+  background: palette.night,
+  surface: palette.deep, // patterned text cards, panels, boutique tiles
+  raised: '#183530', // skeleton highlight, pressed rows
+  text: palette.fog,
+  textStrong: 'rgba(247, 246, 243, 0.9)',
+  textSecondary: 'rgba(247, 246, 243, 0.62)',
+  textTertiary: 'rgba(247, 246, 243, 0.48)',
+  border: 'rgba(247, 246, 243, 0.10)',
+  borderStrong: 'rgba(247, 246, 243, 0.18)',
+  subtle: 'rgba(247, 246, 243, 0.06)',
+  glass: 'rgba(9, 27, 25, 0.62)',
+  glassBorder: 'rgba(247, 246, 243, 0.12)',
+  dock: 'rgba(9, 27, 25, 0.92)',
+  dockBorder: 'rgba(247, 246, 243, 0.15)',
+  header: 'rgba(9, 27, 25, 0.96)',
+  scrim: 'rgba(9, 27, 25, 0.92)',
+  scrimSoft: 'rgba(9, 27, 25, 0.6)',
+  mint: palette.mint,
+  mintSoft: 'rgba(163, 228, 215, 0.08)',
+  mintLine: 'rgba(163, 228, 215, 0.22)',
+  mintSelected: 'rgba(163, 228, 215, 0.12)',
+  gold: palette.gold,
+  goldSoft: 'rgba(227, 183, 119, 0.15)',
+  goldLine: 'rgba(227, 183, 119, 0.28)',
+  danger: '#F09A9F',
 } as const;
 
 export const spacing = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
-export const radius = { xs: 6, sm: 8, md: 12, lg: 14, xl: 20, pill: 999 } as const;
+export const radius = { xs: 6, sm: 8, md: 12, lg: 14, xl: 20, xxl: 24, sheet: 28, pill: 999 } as const;
 
 export const typeScale = {
   display: { size: 30, line: 36, weight: '800' as const, tracking: -0.8 },
