@@ -175,9 +175,6 @@ export default function NewListing() {
           <Text serif weight="600" style={styles.headline}>
             Un article, une trouvaille.
           </Text>
-          <Text variant="caption" tone="secondary" style={{ marginTop: 4, fontSize: 13 }}>
-            Les essentiels, puis on publie. Le reste est facultatif.
-          </Text>
           {draft.restored ? (
             <Text variant="caption" tone="secondary" style={{ marginTop: spacing.sm }}>
               Brouillon restauré.{' '}
@@ -214,7 +211,7 @@ export default function NewListing() {
         {isTrade ? (
           <View style={styles.group}>
             <Text variant="caption" style={styles.tradeNote}>
-              Échange uniquement (Wecci) : aucun prix nécessaire.
+              Wecci : pas de prix à indiquer.
             </Text>
             <Field
               label="Valeur estimée (facultatif)"
@@ -233,7 +230,7 @@ export default function NewListing() {
             <ChoicePills<PriceMode> value={priceMode} onChange={(m) => set({ priceMode: m })} options={PRICES} />
             {priceMode === 'on_request' ? (
               <Text variant="caption" tone="secondary">
-                Les acheteurs vous écrivent pour connaître le prix. Aucun prix n’est affiché.
+                Aucun prix affiché : les acheteurs vous écrivent.
               </Text>
             ) : (
               <Field
@@ -244,7 +241,6 @@ export default function NewListing() {
                 suffix="F CFA"
                 accessibilityLabel={priceMode === 'fixed' ? 'Prix' : 'Prix de départ (facultatif)'}
                 error={err('price')}
-                hint={priceMode === 'negotiable' ? 'Indiquez un prix de départ si vous le souhaitez.' : undefined}
               />
             )}
           </View>
@@ -331,14 +327,9 @@ export default function NewListing() {
               </View>
 
               <View style={styles.qtyRow}>
-                <View style={{ flex: 1 }}>
-                  <Text variant="callout" weight="600" style={styles.label}>
-                    Quantité
-                  </Text>
-                  <Text variant="caption" tone="secondary">
-                    1 pour un article unique.
-                  </Text>
-                </View>
+                <Text variant="callout" weight="600" style={[styles.label, { flex: 1 }]}>
+                  Quantité
+                </Text>
                 <Pressable onPress={() => set({ quantity: Math.max(1, v.quantity - 1) })} style={styles.qtyBtn} accessibilityRole="button" accessibilityLabel="Diminuer la quantité">
                   <Minus size={18} color={colors.ink} />
                 </Pressable>
@@ -353,7 +344,7 @@ export default function NewListing() {
           ) : null}
         </View>
 
-        <Toggle value={v.alsoPost} onChange={(b) => set({ alsoPost: b })} label="Partager aussi dans mon fil" description="Une publication identifie cet article, avec les mêmes photos." />
+        <Toggle value={v.alsoPost} onChange={(b) => set({ alsoPost: b })} label="Partager aussi dans mon fil" />
 
         <Text variant="caption" tone="secondary">
           Le paiement (espèces, Wave, Orange Money…) se convient directement entre vous. Jëfëli ne détient aucun fonds.

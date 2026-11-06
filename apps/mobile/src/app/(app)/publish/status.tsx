@@ -90,7 +90,7 @@ export default function NewStatus() {
               Votre statut, 24 heures.
             </Text>
             <Text variant="caption" tone="secondary" style={{ fontSize: 13 }}>
-              Une photo ou une vidéo (60 s max), avec une légende si vous voulez. Gardez-la ensuite sur votre profil en l’ajoutant à une sélection.
+              Photo ou vidéo, 60 s max.
             </Text>
           </View>
           <View style={{ gap: spacing.md }}>
@@ -103,7 +103,7 @@ export default function NewStatus() {
             </Text>
             <ChoicePills<Audience> value={effectiveAudience} onChange={setAudience} options={(['public', 'followers', 'friends'] as Audience[]).map((k) => ({ key: k, label: AUDIENCE_LABELS[k] }))} />
             <Text variant="caption" tone="secondary">
-              Le statut disparaît de la liste après 24 heures. Les réponses arrivent en message privé.
+              Les réponses arrivent en message privé.
             </Text>
           </View>
         </ScrollView>

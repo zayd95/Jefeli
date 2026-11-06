@@ -179,9 +179,11 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               <Avatar path={seller.avatar_path} name={seller.display_name} size={44} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <ProfileName profile={seller} />
-                <Text variant="caption" tone="secondary" numberOfLines={1}>
-                  {[seller.city, 'voir le profil et la boutique'].filter(Boolean).join(' · ')}
-                </Text>
+                {seller.city ? (
+                  <Text variant="caption" tone="secondary" numberOfLines={1}>
+                    {seller.city}
+                  </Text>
+                ) : null}
                 {seller.rating_count ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
                     <Star size={13} color={colors.ink} fill={colors.ink} />

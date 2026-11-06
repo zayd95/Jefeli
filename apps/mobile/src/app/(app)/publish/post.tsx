@@ -105,21 +105,12 @@ export default function NewPost() {
         ) : null}
         <View style={styles.author}>
           <Avatar path={profile?.avatar_path} name={profile?.display_name ?? 'Moi'} size={48} />
-          <View>
-            <Text variant="bodyStrong">{profile?.display_name}</Text>
-            <Text variant="caption" tone="secondary">
-              Membre de Jëfëli
-            </Text>
-          </View>
+          <Text variant="bodyStrong">{profile?.display_name}</Text>
         </View>
 
         <View style={styles.section}>
+          {/* The placeholder already changes with the intent; no extra hint line. */}
           <ChoicePills<PostIntent> value={intent} onChange={(k) => set({ intent: k })} options={POST_INTENTS.map((i) => ({ key: i.key, label: i.label }))} />
-          {intent !== 'share' ? (
-            <Text variant="caption" tone="secondary">
-              {intentInfo.hint}
-            </Text>
-          ) : null}
         </View>
 
         <TextInput
@@ -185,9 +176,11 @@ export default function NewPost() {
             Qui peut voir ?
           </Text>
           <ChoicePills<Audience> value={visibility} onChange={(v) => set({ visibility: v })} options={AUDIENCES} />
-          <Text variant="caption" tone="secondary">
-            {visibility !== 'public' ? 'Les médias restent privés. L’audience ne pourra pas être changée après publication.' : 'Cette audience est appliquée par Jëfëli.'}
-          </Text>
+          {visibility !== 'public' ? (
+            <Text variant="caption" tone="secondary">
+              Médias privés. L’audience ne pourra plus être changée après publication.
+            </Text>
+          ) : null}
         </View>
 
         <Pressable
@@ -201,7 +194,7 @@ export default function NewPost() {
         >
           <Radio size={18} color={liveReady ? colors.ink : colors.textSecondary} />
           <Text variant="caption" weight="600" tone={liveReady ? 'default' : 'secondary'} style={{ flex: 1 }}>
-            {liveReady ? 'Lancer un live vidéo' : 'Live vidéo · bientôt, avec l’activation du direct'}
+            {liveReady ? 'Lancer un live vidéo' : 'Live vidéo · bientôt'}
           </Text>
         </Pressable>
       </ScrollView>

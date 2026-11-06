@@ -186,6 +186,7 @@ export function ChoicePills<T extends string>({
           <Pressable
             key={o.key}
             onPress={() => onChange(o.key)}
+            hitSlop={{ top: 4, bottom: 4 }}
             style={({ pressed }) => [styles.pill, on && styles.pillOn, pressed && { transform: [{ scale: 0.97 }] }]}
             accessibilityRole="radio"
             accessibilityState={{ selected: on, checked: on }}

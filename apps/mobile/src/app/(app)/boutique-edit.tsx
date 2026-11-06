@@ -59,9 +59,6 @@ function BoutiqueForm({ initial }: { initial: { description: string; pickup_note
     <Screen edges={['top', 'bottom']} keyboard>
       <Header title="Ma boutique" right={<Button label="Enregistrer" size="sm" variant="cta" loading={saving} onPress={save} style={{ marginRight: spacing.sm }} />} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl }} keyboardShouldPersistTaps="handled">
-        <Text variant="callout" tone="secondary">
-          Quelques informations pratiques pour vos clients. Pas de thème, pas d’abonnement : votre boutique reste votre profil.
-        </Text>
         <Field label="Présentation" value={form.description} onChangeText={(t) => setForm((f) => ({ ...f, description: t }))} multiline maxLength={500} counter placeholder="Ce que vous vendez, vos horaires…" />
         <Field label="Retrait" value={form.pickup_notes} onChangeText={(t) => setForm((f) => ({ ...f, pickup_notes: t }))} maxLength={300} placeholder="Ex. Marché HLM, cantine 42, du lundi au samedi" />
         <Field label="Livraison" value={form.delivery_notes} onChangeText={(t) => setForm((f) => ({ ...f, delivery_notes: t }))} maxLength={300} placeholder="Ex. Dakar 1 000 à 2 000 F selon le quartier" />

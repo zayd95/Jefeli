@@ -18,7 +18,7 @@ export function Checkbox({
   link?: { label: string; onPress: () => void };
 }) {
   return (
-    <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked }} aria-checked={checked} accessibilityLabel={label} style={styles.check}>
+    <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked }} aria-checked={checked} accessibilityLabel={label} style={[styles.check, !description && !link && styles.checkSingle]}>
       <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Check size={16} color={colors.white} strokeWidth={3} /> : null}</View>
       <View style={{ flex: 1 }}>
         <Text variant="callout" weight={description ? '600' : '400'}>
@@ -65,6 +65,8 @@ export function Toggle({ value, onChange, label, description }: { value: boolean
 
 const styles = StyleSheet.create({
   check: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start', minHeight: 44 },
+  // A single-line label sits centred in its 44-pt target instead of leaving a gap below it.
+  checkSingle: { alignItems: 'center' },
   box: {
     width: 24,
     height: 24,

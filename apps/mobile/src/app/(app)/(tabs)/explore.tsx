@@ -124,9 +124,6 @@ export default function Explore() {
             <ChevronDown size={16} color={dark.textSecondary} />
           </Pressable>
         </View>
-        <Text variant="body" color={dark.textStrong} style={styles.introText}>
-          Ce que font les gens d’ici : ateliers, boutiques, occasions et troc entre voisins.
-        </Text>
         <Pressable onPress={() => router.push('/search')} style={styles.search} accessibilityRole="button" accessibilityLabel="Rechercher">
           <Search size={20} color={colors.textSecondary} />
           <Text variant="body" tone="secondary" numberOfLines={1}>
@@ -150,6 +147,7 @@ export default function Explore() {
             <Pressable
               key={k.key}
               onPress={() => setKind(k.key)}
+              hitSlop={{ top: 4, bottom: 4 }}
               style={({ pressed }) => [styles.pill, on && styles.pillOn, pressed && { transform: [{ scale: 0.96 }] }]}
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
@@ -178,7 +176,7 @@ export default function Explore() {
       </View>
       {kind === 'trade' ? (
         <Text variant="callout" tone="secondary" style={{ paddingHorizontal: spacing.lg, marginTop: -spacing.xs, marginBottom: spacing.md }}>
-          Wecci, c’est échanger : ces membres acceptent de discuter d’un troc, avec ou sans différence en argent.
+          Wecci : échange possible, avec ou sans complément en argent.
         </Text>
       ) : null}
     </View>
@@ -304,7 +302,6 @@ const styles = StyleSheet.create({
   introTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   cityPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, height: 44, paddingLeft: 6, paddingRight: spacing.md, borderRadius: radius.pill, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
   cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
-  introText: { marginTop: 4, maxWidth: 320, fontSize: 15, lineHeight: 21 },
   search: { marginTop: spacing.lg, height: 48, borderRadius: radius.pill, backgroundColor: colors.background, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
   tiles: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: 6 },
   tileRing: { padding: 2, borderRadius: 22, borderWidth: 2, borderColor: 'transparent' },

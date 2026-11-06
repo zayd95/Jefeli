@@ -120,6 +120,7 @@ export default function Home() {
           <Pressable
             key={key}
             onPress={onPress}
+            hitSlop={{ top: 4, bottom: 4 }}
             style={({ pressed }) => [styles.chip, selected && styles.chipOn, pressed && { transform: [{ scale: 0.96 }] }]}
             accessibilityRole="button"
             accessibilityState={{ selected: !!selected }}
@@ -144,7 +145,7 @@ export default function Home() {
           compact
           icon={MapPin}
           title="Indiquez votre ville"
-          body="Ajoutez votre ville (approximative) dans votre profil pour voir ce qui se passe près de chez vous."
+          body="Ajoutez votre ville pour voir ce qui se passe près de chez vous."
           actionLabel="Modifier mon profil"
           onAction={() => router.push('/edit-profile')}
         />
@@ -153,10 +154,10 @@ export default function Home() {
     if (active.isPending) return <FeedSkeleton />;
     if (active.isError) return <ErrorState tone="dark" message={toFrenchError(active.error)} onRetry={onRefresh} />;
     const map: Record<HomeTab, { icon: LucideIcon; title: string; body: string; action?: [string, () => void] }> = {
-      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Aucune publication pour l’instant. Partagez la première, ou suivez des membres depuis Explorer.', action: ['Publier', () => router.push('/publish/post')] },
-      following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres depuis Explorer pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
+      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push('/publish/post')] },
+      following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
       nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push('/publish/post')] },
-      live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les vendeurs que vous suivez apparaîtront ici dès qu’ils passent en direct.' },
+      live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les directs des vendeurs suivis apparaîtront ici.' },
     };
     const e = map[tab];
     return <EmptyState tone="dark" icon={e.icon} title={e.title} body={e.body} actionLabel={e.action?.[0]} onAction={e.action?.[1]} />;

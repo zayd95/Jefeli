@@ -76,20 +76,14 @@ export default function Onboarding() {
     <Screen edges={['top', 'bottom']} keyboard background={colors.background}>
       <View style={styles.top}>
         <Wordmark size={27} />
-        <Text variant="micro" weight="600" tone="secondary">
-          Votre premier pas
-        </Text>
+        {/* Moved up from the footer so the fixed CTA stays a single, compact bar. */}
+        <Button label="Se déconnecter" variant="ghost" size="sm" onPress={signOut} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.intro}>
-          <Text serif weight="600" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36, color: colors.ink }}>
-            Bienvenue chez vous.
-          </Text>
-          <Text variant="body" tone="secondary">
-            Un nom, un pseudo, et vous êtes dedans. Le reste peut attendre.
-          </Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
+        <Text serif weight="600" accessibilityRole="header" style={styles.title}>
+          Bienvenue chez vous.
+        </Text>
 
         <AvatarPicker userId={userId ?? ''} name={name} path={avatar} onUploaded={setAvatar} size={72} />
         <Field
@@ -113,7 +107,8 @@ export default function Onboarding() {
           autoCapitalize="none"
           autoCorrect={false}
           autoComplete="username"
-          hint={handleState === 'ok' ? 'Disponible · modifiable quand vous voulez' : handleState === 'checking' ? 'Vérification…' : 'Suggéré automatiquement, modifiable.'}
+          // « Disponible » only once the server has confirmed it; nothing while idle.
+          hint={handleState === 'ok' ? 'Disponible' : handleState === 'checking' ? 'Vérification…' : undefined}
           error={handleState === 'taken' ? 'Déjà pris, choisissez une variante.' : handleState === 'invalid' ? '3 à 30 caractères : lettres, chiffres, « _ » et « . »' : undefined}
         />
         <LocationPicker city={city} neighborhood="" onChange={(next) => setCity(next.city)} cityOnly />
@@ -129,10 +124,6 @@ export default function Onboarding() {
 
       <View style={styles.footer}>
         <Button label="Entrer dans Jëfëli" size="lg" variant="cta" pill loading={saving} disabled={!canEnter} fullWidth onPress={enter} style={styles.cta} />
-        <Text variant="caption" tone="secondary" align="center">
-          Vous pourrez publier, découvrir et ouvrir une boutique quand vous le voudrez.
-        </Text>
-        <Button label="Se déconnecter" variant="ghost" size="sm" onPress={signOut} />
       </View>
     </Screen>
   );
@@ -140,25 +131,29 @@ export default function Onboarding() {
 
 const styles = StyleSheet.create({
   top: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingLeft: spacing.xl,
+    paddingRight: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.xxl, gap: spacing.lg },
-  intro: { gap: spacing.sm, marginBottom: spacing.sm },
+  // Generous air between fields; the last item (age, error) always scrolls clear of the CTA bar.
+  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.xl },
+  title: { fontSize: 30, lineHeight: 36, color: colors.ink },
   age: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 18,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   footer: {
-    padding: spacing.lg,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     borderTopColor: colors.border,
     borderTopWidth: 1,
     backgroundColor: colors.glassLight,

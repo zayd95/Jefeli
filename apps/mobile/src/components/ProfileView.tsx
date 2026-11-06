@@ -293,7 +293,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
               disabled={locked}
               accessibilityRole="button"
               accessibilityLabel={`${c.value} ${c.label}`}
-              hitSlop={6}
+              hitSlop={{ top: 14, bottom: 14, left: 4, right: 4 }}
             >
               <Text variant="caption" tone="fogSecondary" style={{ fontSize: 12 }}>
                 <Text variant="caption" weight="700" tone="fog" style={{ fontSize: 12 }}>
@@ -333,7 +333,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                   </View>
                 ))}
                 {interests.length > INTEREST_CHIPS ? (
-                  <Pressable onPress={() => setAllInterests((x) => !x)} aria-expanded={allInterests} accessibilityRole="button" accessibilityLabel={allInterests ? 'Moins d’intérêts' : `${interests.length - INTEREST_CHIPS} autres intérêts`} style={styles.interestMore}>
+                  <Pressable onPress={() => setAllInterests((x) => !x)} aria-expanded={allInterests} accessibilityRole="button" accessibilityLabel={allInterests ? 'Moins d’intérêts' : `${interests.length - INTEREST_CHIPS} autres intérêts`} hitSlop={{ top: 6, bottom: 6, left: 4, right: 8 }} style={styles.interestMore}>
                     <Text variant="micro" weight="600" tone="mint" style={{ fontSize: 11 }}>
                       {allInterests ? 'Moins' : `+${interests.length - INTEREST_CHIPS}`}
                     </Text>
@@ -383,7 +383,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         )}
 
         <View style={styles.infoToggleRow}>
-          <Pressable onPress={() => setShowInfo((v) => !v)} aria-expanded={showInfo} accessibilityRole="button" style={styles.infoToggle}>
+          <Pressable onPress={() => setShowInfo((v) => !v)} aria-expanded={showInfo} accessibilityRole="button" hitSlop={{ top: 4, bottom: 4, right: 12 }} style={styles.infoToggle}>
             <Text variant="caption" weight="600" tone="fogSecondary" style={{ fontSize: 12 }}>
               {showInfo ? 'Masquer les infos' : 'Plus d’infos'}
             </Text>
@@ -539,7 +539,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
           ) : (
             <View style={styles.emptyTab}>
               <Text variant="callout" tone="fogSecondary" align="center">
-                {isSelf ? 'Votre boutique se crée avec votre premier article. Gratuit, sans abonnement.' : 'Pas encore d’article. Ce profil reste accessible sans boutique.'}
+                {isSelf ? 'Votre boutique apparaît avec votre premier article. Gratuite, sans abonnement.' : 'Pas encore d’article.'}
               </Text>
               {isSelf ? <Button label="Ajouter un article" variant="cta" pill size="sm" icon={Plus} onPress={() => router.push('/publish/listing')} style={{ marginTop: spacing.md }} /> : null}
             </View>
@@ -609,7 +609,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         {lives.isPending ? (
           <Skeleton height={48} />
         ) : (lives.data ?? []).length === 0 ? (
-          <Text tone="secondary">{isSelf ? 'Le direct vidéo arrive avec l’activation du fournisseur vidéo. Rien n’est simulé.' : 'Ses prochains lives apparaîtront ici.'}</Text>
+          <Text tone="secondary">{isSelf ? 'Le direct vidéo arrive bientôt.' : 'Ses prochains lives apparaîtront ici.'}</Text>
         ) : (
           (lives.data ?? []).map((l) => (
             <Pressable

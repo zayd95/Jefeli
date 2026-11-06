@@ -26,7 +26,7 @@ export function LocationPicker({
       <View style={styles.note}>
         <MapPin size={16} color={colors.textSecondary} />
         <Text variant="caption" tone="secondary" style={{ flex: 1 }}>
-          Localisation approximative, choisie par vous. Jëfëli n’utilise pas votre position GPS.
+          Ville choisie par vous, sans GPS.
         </Text>
       </View>
       <Text variant="callout" weight="600">

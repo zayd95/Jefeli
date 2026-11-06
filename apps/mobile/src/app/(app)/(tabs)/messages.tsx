@@ -48,9 +48,6 @@ export default function Messages() {
         contentContainerStyle={{ paddingBottom: dockSpace }}
         ListHeaderComponent={
           <View style={styles.intro}>
-            <Text serif weight="400" tone="fog" style={{ fontSize: 24, lineHeight: 30, maxWidth: 300 }}>
-              Les belles affaires commencent par une conversation.
-            </Text>
             {all.length > 0 ? (
               <View style={styles.search}>
                 <Search size={20} color={dark.mint} />
@@ -65,11 +62,6 @@ export default function Messages() {
                   style={[styles.searchInput, WEB_NO_OUTLINE]}
                 />
               </View>
-            ) : null}
-            {all.length > 0 ? (
-              <Text variant="micro" weight="700" tone="gold" style={styles.overline}>
-                DISCUSSIONS
-              </Text>
             ) : null}
           </View>
         }
@@ -97,7 +89,7 @@ export default function Messages() {
               tone="dark"
               icon={MessageCircle}
               title="Aucune conversation"
-              body="Contactez un vendeur depuis un article, ou répondez au statut d’un ami. Vos discussions et propositions apparaîtront ici."
+              body="Écrivez à un vendeur depuis un article : vos discussions apparaîtront ici."
               actionLabel="Explorer les articles"
               onAction={() => router.push('/explore')}
             />
@@ -150,10 +142,9 @@ function Row({ c, me }: { c: ConversationSummary; me: string }) {
 
 const styles = StyleSheet.create({
   head: { minHeight: 62, justifyContent: 'center', paddingHorizontal: spacing.lg, borderBottomWidth: 1, borderBottomColor: dark.border },
-  intro: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl, gap: spacing.lg },
+  intro: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, gap: spacing.lg },
   search: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: 48, paddingHorizontal: spacing.lg, borderRadius: 999, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
   searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: dark.text, paddingVertical: 8 },
-  overline: { fontSize: 12, letterSpacing: 1.6, marginTop: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 85, marginHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: dark.border },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },

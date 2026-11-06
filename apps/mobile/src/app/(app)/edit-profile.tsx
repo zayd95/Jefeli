@@ -100,10 +100,7 @@ export default function EditProfile() {
         <Field label="Bio" value={bio} onChangeText={setBio} multiline maxLength={300} counter />
         <View style={{ gap: spacing.sm }}>
           <Text variant="callout" weight="600">
-            Intérêts business · facultatif
-          </Text>
-          <Text variant="caption" tone="secondary">
-            Jusqu’à {MAX_INTERESTS} secteurs, affichés sur votre profil (3 visibles d’emblée). Ils aident aussi votre fil.
+            Intérêts business · jusqu’à {MAX_INTERESTS}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {(categories.data ?? []).map((c) => {
