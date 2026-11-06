@@ -1,5 +1,14 @@
 # Next actions
 
+## Owner (now): re-check the microcopy pass on the iPhone
+
+`git pull` on `feature/lovable-native-parity-20261104`, then `pnpm preview:expo-go` and, in Expo Go:
+- create a new account: the « Bienvenue chez vous. » screen should feel calm, « Disponible »
+  appears only once your pseudo is checked, and with the keyboard open you can still reach the
+  18+ box and the « Entrer dans Jëfëli » button;
+- browse Explorer, Messages, Publier and your profile: say if any removed line is missed.
+Before/after images: `docs/evidence/microcopy-pass/compare/`.
+
 ## Owner (now): review the Lovable native port — branch `feature/lovable-native-parity-20261104`, draft PR #2
 
 1. Look at the side-by-side images first: `docs/evidence/lovable-parity/compare/` (Lovable on the

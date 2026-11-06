@@ -128,6 +128,15 @@ bundles). No database change in this pass. UI evidence is browser renders only.
 notches and home indicators, keyboard avoidance, gestures, the photo library and camera,
 haptics, font rendering on iOS/Android. The owner's iPhone review is required before merge.
 
+### Microcopy cleanup and mobile polish (owner iPhone feedback, Nov 6)
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| COPY-01 | Onboarding: no filler lines, « Disponible » only when verified, short GPS note, age/legal/errors kept | **PASS** (browser) | `docs/evidence/microcopy-pass/compare/*-0{1,2,3}-onboarding*`; E2E sign-up helper (all specs) |
+| COPY-02 | Fixed onboarding CTA never covers the age confirmation | **PASS** (browser, 360×640 / 390×844 / 412×915) · **NOT_TESTED** with a real iOS keyboard | footer now one CTA outside the scroll view; `*-03-onboarding-bottom` |
+| COPY-03 | Redundant subtexts removed/shortened on Accueil, Explorer, Publier, Messages, Profil, Boutique, Statuts; trust, payment, privacy, barter/offer, validation and a11y text preserved | **PASS** (review + renders) | `docs/evidence/microcopy-pass/README.md` lists every string |
+| COPY-04 | Touch targets ≥ 44 pt on pills and small links | **PASS** (code review) | hit areas extended without changing the visual size |
+
 ### Other workstreams
 
 | Workstream | Status | Notes |

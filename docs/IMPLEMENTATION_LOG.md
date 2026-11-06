@@ -337,6 +337,23 @@ see « Commands that were run » below and `docs/RELEASE_STATUS.md` › « Lovab
 Screenshots and the side-by-side comparison: `docs/evidence/lovable-parity/` (README lists the
 deliberate differences from the reference).
 
+### Microcopy cleanup and mobile polish (owner iPhone feedback, Nov 6)
+
+The owner tested the Lovable port on an iPhone in Expo Go and approved the direction, asking for
+fewer explanatory subtexts. Copy-only and layout-polish changes in the existing screens: no new
+screen, dependency or schema change. Full inventory (removed / shortened / preserved) and
+before/after renders at 360×640, 390×844 and 412×915: `docs/evidence/microcopy-pass/`.
+
+- Onboarding: two filler lines and the header filler removed; « Disponible » only once the
+  server confirmed the handle; GPS note → « Ville choisie par vous, sans GPS. »; « Se déconnecter »
+  moved to the header so the fixed footer is one CTA (≈ 88 pt instead of ≈ 175 pt); single-line
+  checkboxes centred in their 44-pt target; interactive keyboard dismissal.
+- Accueil, Explorer, Messages, Publication, Article, Statut, Profile, product, edit profile,
+  boutique details, highlight sheet: redundant subtexts removed or shortened.
+- Kept: payment and no-funds terms, chat safety card, barter/offer guidance, privacy and consent
+  notes, validation/errors/toasts, accessibility labels.
+- Touch targets: 40-pt pills get 48-pt hit areas; small profile links get larger ones.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
