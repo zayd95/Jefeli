@@ -26,6 +26,7 @@ import {
   sendText,
   setConversationMuted,
 } from '@/lib/api/messages';
+import { fetchProduct } from '@/lib/api/products';
 import { block } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 import { useFlag } from '@/lib/flags';
@@ -38,7 +39,10 @@ import { useDarkStatusBar } from '@/lib/statusBar';
 /** Conversation on Atlantic night (Lovable thread): mint bubbles for me, deep bubbles for them. */
 export default function ChatScreen() {
   useDarkStatusBar();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, about: aboutParam } = useLocalSearchParams<{ id: string; about?: string }>();
+  // Opened from an article (W1.2): text and voice keep it as context until the member removes it.
+  const [aboutId, setAboutId] = useState<string | null>(aboutParam ?? null);
+  const aboutProduct = useQuery({ queryKey: ['product', aboutId], queryFn: () => fetchProduct(aboutId ?? ''), enabled: !!aboutId, staleTime: 60_000 });
   const { userId } = useAuth();
   const me = userId ?? '';
   const qc = useQueryClient();
@@ -88,7 +92,7 @@ export default function ChatScreen() {
 
   async function onSendText(text: string) {
     try {
-      await sendText(me, id ?? '', text);
+      await sendText(me, id ?? '', text, aboutProduct.data ? aboutId : null);
       refresh();
     } catch (e) {
       toast(toFrenchError(e), 'error');
@@ -119,8 +123,8 @@ export default function ChatScreen() {
   async function onSendVoice(clip: VoiceClip) {
     try {
       const path = newObjectPath(me, 'messages', clip.mimeType);
-      await uploadWithRetry({ bucket: 'private-media', path, uri: clip.uri, mimeType: clip.mimeType });
-      await sendAttachment(me, id ?? '', 'voice', path, { duration_ms: Math.round(clip.durationMs) });
+      await uploadWithRetry({ bucket: 'private-media', path, uri: clip.uri, mimeType: clip.mimeType, file: clip.file instanceof Blob ? clip.file : null });
+      await sendAttachment(me, id ?? '', 'voice', path, { duration_ms: Math.round(clip.durationMs), waveform: clip.waveform }, aboutProduct.data ? aboutId : null);
       refresh();
     } catch (e) {
       toast(e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e), 'error');
@@ -230,6 +234,8 @@ export default function ChatScreen() {
           onSendVoice={onSendVoice}
           onPickProducts={() => setPicker(true)}
           voiceEnabled={voiceEnabled}
+          about={aboutProduct.data ? { id: aboutProduct.data.id, title: aboutProduct.data.title } : null}
+          onClearAbout={() => setAboutId(null)}
         />
       </KeyboardAvoidingView>
 
