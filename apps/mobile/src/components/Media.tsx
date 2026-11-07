@@ -1,12 +1,11 @@
 import { useEventListener } from 'expo';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
-import { Play, RotateCcw, Volume2, VolumeX } from 'lucide-react-native';
-import { createContext, useContext, useEffect, useId, useState, useSyncExternalStore } from 'react';
+import { Mic, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react-native';
+import { createContext, useContext, useEffect, useId, useRef, useState, type ComponentRef } from 'react';
 import {
   AccessibilityInfo,
   ActivityIndicator,
-  AppState,
   Platform,
   Pressable,
   ScrollView,
@@ -19,33 +18,16 @@ import {
 
 import { colors, dark, Text, videoFill } from '@/design';
 import { useMediaUrl, type Bucket } from '@/lib/media';
+import { getPlaying, pauseAll, setPlaying, useIsPlaying } from '@/lib/playback';
 import type { MediaRow } from '@/lib/types';
 import { fill } from '@/design/fill';
 
 // ---------------------------------------------------------------------------
-// Playback rules (W1.1): one video plays at a time, everything pauses when the app goes to the
-// background or the browser tab is hidden, and the feed autoplays only its most visible video,
-// muted, unless the member asked to save data or reduce motion.
+// Playback rules (W1.1, shared with audio in W1.2 via @/lib/playback): one audible source plays at
+// a time, everything pauses when the app goes to the background or the browser tab is hidden, and
+// the feed autoplays only its most visible video, muted, unless the member asked to save data or
+// reduce motion.
 // ---------------------------------------------------------------------------
-
-let playingKey: string | null = null;
-const listeners = new Set<() => void>();
-function setPlaying(key: string | null) {
-  if (playingKey === key) return;
-  playingKey = key;
-  listeners.forEach((l) => l());
-}
-const subscribePlaying = (l: () => void) => {
-  listeners.add(l);
-  return () => listeners.delete(l);
-};
-const getPlaying = () => playingKey;
-
-if (Platform.OS === 'web') {
-  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => document.hidden && setPlaying(null));
-} else {
-  AppState.addEventListener('change', (state) => state !== 'active' && setPlaying(null));
-}
 
 function webAutoplayAllowed(): boolean {
   if (typeof window === 'undefined') return false;
@@ -72,7 +54,7 @@ function useAutoplayAllowed(): boolean {
 
 /** Pause whatever is playing (e.g. when the feed screen loses focus). */
 export function pauseAllVideos() {
-  setPlaying(null);
+  pauseAll();
 }
 
 /** The feed tells its cards which post is the most visible one (FlatList viewability). */
@@ -100,7 +82,7 @@ export function VideoPlayerInline({
 }) {
   const key = useId();
   const autoplayAllowed = useAutoplayAllowed();
-  const playing = useSyncExternalStore(subscribePlaying, getPlaying, getPlaying) === key;
+  const playing = useIsPlaying(key);
   const [tapped, setTapped] = useState(false);
   // Loaded when the member tapped play, or while this is the feed's active card and autoplay is
   // allowed. An autoplayed video that leaves the screen releases its source (memory, data).
@@ -246,6 +228,8 @@ export function MediaCarousel({
   height: fixedHeight,
   tone = 'light',
   active,
+  index: followIndex,
+  onUserSwipe,
 }: {
   media: MediaRow[];
   bucket: Bucket;
@@ -254,38 +238,60 @@ export function MediaCarousel({
   tone?: 'light' | 'dark';
   /** Feed only: whether this carousel's card is the most visible one. */
   active?: boolean;
+  /** « Visite guidée »: the photo the narration is talking about (followed until the member swipes). */
+  index?: number;
+  onUserSwipe?: () => void;
 }) {
   const { width: screenWidth } = useWindowDimensions();
+  // Voice rows are played by the card (narration bar or voice card), never shown as a slide.
+  const visual = media.filter((m) => m.kind !== 'audio');
   const width = fixedWidth ?? Math.min(screenWidth, 640);
-  const height = fixedHeight ?? mediaHeight(media[0], width);
-  const [index, setIndex] = useState(0);
-  if (media.length === 0) return null;
+  const height = fixedHeight ?? mediaHeight(visual[0], width);
+  const [userIndex, setUserIndex] = useState(0);
+  const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
+  const programmatic = useRef<number | null>(null);
+  const index = followIndex ?? userIndex;
+
+  useEffect(() => {
+    if (followIndex == null) return;
+    programmatic.current = followIndex;
+    scroller.current?.scrollTo({ x: followIndex * width, animated: true });
+  }, [followIndex, width]);
+
+  if (visual.length === 0) return null;
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.round(e.nativeEvent.contentOffset.x / width);
-    if (i !== index) setIndex(i);
+    if (programmatic.current !== null) {
+      if (i === programmatic.current) programmatic.current = null;
+      return;
+    }
+    if (i !== index) {
+      setUserIndex(i);
+      onUserSwipe?.();
+    }
   };
 
   return (
     <View style={{ width, height }}>
-      {media.length === 1 ? (
-        <MediaItem media={media[0] as MediaRow} bucket={bucket} width={width} height={height} tone={tone} active={active} />
+      {visual.length === 1 ? (
+        <MediaItem media={visual[0] as MediaRow} bucket={bucket} width={width} height={height} tone={tone} active={active} />
       ) : (
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64}>
-          {media.map((m, i) => (
+        <ScrollView ref={scroller} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64}>
+          {visual.map((m, i) => (
             <MediaItem key={m.id} media={m} bucket={bucket} width={width} height={height} tone={tone} active={active === undefined ? undefined : active && i === index} />
           ))}
         </ScrollView>
       )}
-      {media.length > 1 ? (
+      {visual.length > 1 ? (
         <>
-          <View style={styles.counter}>
+          <View style={styles.counter} accessibilityLabel={`Photo ${index + 1} sur ${visual.length}`}>
             <Text variant="micro" weight="700" color={colors.white}>
-              {index + 1}/{media.length}
+              {index + 1}/{visual.length}
             </Text>
           </View>
           <View style={styles.dots} pointerEvents="none">
-            {media.map((m, i) => (
+            {visual.map((m, i) => (
               <View key={m.id} style={[styles.dot, i === index && styles.dotOn]} />
             ))}
           </View>
@@ -297,7 +303,7 @@ export function MediaCarousel({
 
 /** Thumbnail for listings (first image, or a video's poster). */
 export function Thumb({ media, bucket = 'public-media', style, label }: { media?: Pick<MediaRow, 'storage_path' | 'kind' | 'poster_path'> | null; bucket?: Bucket; style?: object; label?: string }) {
-  const path = media ? (media.kind === 'video' ? (media.poster_path ?? null) : media.storage_path) : null;
+  const path = media ? (media.kind === 'video' ? (media.poster_path ?? null) : media.kind === 'audio' ? null : media.storage_path) : null;
   const uri = useMediaUrl(bucket, path);
   return (
     <View style={[{ backgroundColor: colors.surfaceMuted, overflow: 'hidden' }, style]} accessibilityLabel={label} accessibilityRole="image">
@@ -305,6 +311,10 @@ export function Thumb({ media, bucket = 'public-media', style, label }: { media?
       {media?.kind === 'video' ? (
         <View style={styles.videoTag}>
           <Play size={11} color={colors.white} fill={colors.white} />
+        </View>
+      ) : media?.kind === 'audio' ? (
+        <View style={styles.audioTile}>
+          <Mic size={20} color={dark.mint} />
         </View>
       ) : null}
     </View>
@@ -321,5 +331,6 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.55)' },
   dotOn: { backgroundColor: colors.white, width: 16 },
   errorPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: dark.glass },
+  audioTile: { ...fill, backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center' },
   videoTag: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(16,37,44,0.6)', alignItems: 'center', justifyContent: 'center' },
 });

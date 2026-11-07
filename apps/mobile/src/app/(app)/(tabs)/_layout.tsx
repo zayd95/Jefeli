@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 
+import { CreateMenu } from '@/components/CreateMenu';
 import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
@@ -29,8 +29,8 @@ type TabBarProps = {
  * that floats over the content, labels always visible, the active tab a mint pill. It is dark
  * on Atlantic-night tabs (Accueil, Messages, Profil) and near-white on Explorer.
  *
- * « Publier » opens the post composer directly (Article and Statut sit in its switcher), never a
- * hub. iOS safe areas, unread counters and French accessible labels are kept. On Android the dock
+ * « Publier » opens the smart creation menu (W1.2): Statut · Publication · Article, voice and
+ * « présenter un article » quick starts, and « Reprendre » when a draft exists. iOS safe areas, unread counters and French accessible labels are kept. On Android the dock
  * hides while the keyboard is open so it never rides above it.
  */
 function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
@@ -42,6 +42,7 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
     refetchInterval: 60_000,
   });
   const [keyboard, setKeyboard] = useState(false);
+  const [creating, setCreating] = useState(false);
   useEffect(() => {
     if (Platform.OS !== 'android') return undefined;
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true));
@@ -74,8 +75,9 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
               accessibilityState={{ selected }}
               aria-selected={selected}
               accessibilityLabel={unreadCount ? meta.label + ', ' + unreadCount + ' non lus' : meta.label}
+              accessibilityHint={route.name === 'publish' ? 'Ouvre le menu : publication, article ou statut' : undefined}
               onPress={() => {
-                if (route.name === 'publish') router.push('/publish/post');
+                if (route.name === 'publish') setCreating(true);
                 else navigateToTab(route.key);
               }}
               style={({ pressed }) => [
@@ -102,6 +104,7 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
           );
         })}
       </View>
+      <CreateMenu visible={creating} onClose={() => setCreating(false)} />
     </View>
   );
 }

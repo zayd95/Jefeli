@@ -77,7 +77,14 @@ describe('errors', () => {
   it('maps the video limits enforced by the database (W1.1)', () => {
     expect(toFrenchError({ message: 'video_too_long' })).toBe('Vidéo trop longue : 3 minutes maximum.');
     expect(toFrenchError({ message: 'video_duration_required' })).toMatch(/Durée de la vidéo illisible/);
-    expect(toFrenchError({ message: 'invalid_media' })).not.toMatch(/erreur inattendue/i);
+    expect(toFrenchError({ message: 'invalid_media' })).not.toBe('Une erreur est survenue. Réessayez.');
+  });
+  it('maps the voice and shared-status rules (W1.2)', () => {
+    expect(toFrenchError({ message: 'audio_too_long' })).toBe('Enregistrement trop long : 3 minutes maximum.');
+    expect(toFrenchError({ message: 'audio_with_video' })).toMatch(/vidéo garde son propre son/);
+    for (const key of ['too_many_audio', 'invalid_cues', 'invalid_reference', 'audience_wider_than_post', 'caption_too_long']) {
+      expect(toFrenchError({ message: key })).not.toBe('Une erreur est survenue. Réessayez.');
+    }
   });
 });
 

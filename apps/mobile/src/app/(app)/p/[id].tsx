@@ -10,7 +10,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ArrowRight, Heart, MapPin, MessageCircle, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Heart, MapPin, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContentMenu } from '@/components/ContentMenu';
 import { MediaCarousel } from '@/components/Media';
 import { PriceLabel } from '@/components/PriceLabel';
+import { ShareToStatusSheet } from '@/components/ShareToStatus';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct } from '@/lib/api/messages';
@@ -71,6 +72,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(false);
+  const [statusSheet, setStatusSheet] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [ctaHeight, setCtaHeight] = useState(140);
   const saved = useQuery({ queryKey: ['product-saved', product.id], queryFn: () => isProductSaved(userId ?? '', product.id), enabled: !!userId && !isOwner });
@@ -100,7 +102,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
     setBusy('contact');
     try {
       const cid = await messageAboutProduct(product.id);
-      router.push(`/chat/${cid}`);
+      router.push(`/chat/${cid}?about=${product.id}`);
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
@@ -266,6 +268,11 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
       <View style={[styles.ctaWrap, { paddingBottom: Math.max(insets.bottom, spacing.md) }]} onLayout={(e) => setCtaHeight(e.nativeEvent.layout.height)}>
         <View style={[styles.cta, shadow.floating]}>
           {isOwner ? (
+            <View style={{ gap: 8 }}>
+              {product.status === 'active' ? (
+                // W1.2: show it in photos and in your own voice, the article attached.
+                <Button label="Présenter cet article" variant="soft" icon={Mic} accessibilityLabel="Présenter cet article en photos et en voix" onPress={() => router.push(`/publish/post?product=${product.id}`)} />
+              ) : null}
             <View style={styles.ctaRow}>
               {product.status === 'active' ? (
                 <>
@@ -278,6 +285,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
                   <Button label="Remettre en vente" variant="cta" size="lg" style={styles.ctaPrimary} loading={busy === 'active'} onPress={() => changeStatus('active')} />
                 </>
               )}
+            </View>
             </View>
           ) : product.status === 'active' ? (
             <View style={{ gap: 8 }}>
@@ -306,6 +314,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         ownerName={seller?.display_name ?? 'ce vendeur'}
         target={{ type: 'product', id: product.id }}
         onShare={() => shareLinks.product(product)}
+        onShareToStatus={product.status === 'active' || product.status === 'reserved' ? () => setStatusSheet(true) : undefined}
         pin={{
           pinned: !!product.pinned_at,
           onToggle: async () => {
@@ -328,6 +337,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           goBack();
         }}
       />
+      <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
     </View>
   );
 }

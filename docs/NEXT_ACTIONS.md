@@ -1,5 +1,19 @@
 # Next actions
 
+## Owner (now): W1.2 smart create — draft PR #5
+
+1. On the Vercel preview (after the staging migrations), from Safari on an iPhone and Chrome on
+   Android:
+   - tap + and open each choice;
+   - publish 4 photos with a spoken explanation (tap the photo you talk about);
+   - from a second account, listen and check that the photos follow;
+   - send a voice message from an article;
+   - share the publication as a status.
+   Report anything that does not play (W1.2 doc §7).
+2. Staging: the W1.2 migration is the fifth one in `docs/W1_WEB_BETA.md` §3.
+3. Say whether « Commencer par » (Ma voix, Présenter un article) earns its place in the menu, and
+   whether the menu should also offer « Reprendre » for articles (it does today).
+
 ## Owner (now): W1.1 media-first commerce — draft PR #4
 
 Read `docs/W1_1_MEDIA.md` §5 (one page) and decide:

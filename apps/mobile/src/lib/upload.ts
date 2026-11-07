@@ -30,6 +30,8 @@ export interface LocalMedia {
   posterFile?: Blob | null;
   /** Web only: an object URL of `posterFile`, to preview the cover frame in the composer. */
   posterUri?: string | null;
+  /** Web only: where a draft keeps this file's bytes (IndexedDB), to survive a refresh (W1.2). */
+  blobKey?: string | null;
 }
 
 export interface UploadedMedia {
@@ -185,7 +187,8 @@ export async function compressImage(media: LocalMedia): Promise<LocalMedia> {
 async function videoPoster(media: LocalMedia): Promise<LocalMedia | null> {
   if (media.kind !== 'video') return null;
   if (Platform.OS === 'web') {
-    return media.posterFile ? { uri: '', kind: 'image', width: media.width, height: media.height, mimeType: 'image/jpeg', file: media.posterFile } : null;
+    // A draft restored from JSON holds `{}` where the Blob was: only a real Blob is a poster.
+    return media.posterFile instanceof Blob ? { uri: '', kind: 'image', width: media.width, height: media.height, mimeType: 'image/jpeg', file: media.posterFile } : null;
   }
   try {
     const thumb = await VideoThumbnails.getThumbnailAsync(media.uri, { time: 400, quality: 0.7 });

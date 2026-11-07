@@ -36,11 +36,11 @@ export async function fetchStoriesByIds(ids: string[]): Promise<StoryRow[]> {
 }
 
 export async function createStory(args: {
-  media_kind: 'image' | 'video';
+  media_kind: 'image' | 'video' | 'audio';
   path: string;
   poster_path?: string | null;
-  width: number;
-  height: number;
+  width: number | null;
+  height: number | null;
   duration_ms?: number | null;
   caption: string;
   audience: 'public' | 'followers' | 'friends';
@@ -51,12 +51,24 @@ export async function createStory(args: {
       p_media_kind: args.media_kind,
       p_path: args.path,
       p_poster_path: args.poster_path ?? (null as unknown as string),
-      p_width: args.width,
-      p_height: args.height,
+      p_width: args.width as number,
+      p_height: args.height as number,
       p_duration_ms: args.duration_ms ?? (null as unknown as number),
       p_caption: args.caption,
       p_audience: args.audience,
       p_product_id: args.product_id ?? undefined,
+    }),
+  ) as string;
+}
+
+/** A 24-hour status that points to one of your publications or articles (no file is copied). */
+export async function shareToStatus(args: { postId?: string; productId?: string; caption?: string; audience: 'public' | 'followers' | 'friends' }): Promise<string> {
+  return unwrap(
+    await supabase.rpc('share_to_status', {
+      p_post_id: args.postId ?? undefined,
+      p_product_id: args.productId ?? undefined,
+      p_caption: args.caption ?? '',
+      p_audience: args.audience,
     }),
   ) as string;
 }

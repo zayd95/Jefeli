@@ -45,9 +45,14 @@ export async function fetchAgreementsForConversation(conversationId: string): Pr
   return unwrap(await supabase.from('agreements').select('*').eq('conversation_id', conversationId).order('created_at'));
 }
 
-export async function sendText(userId: string, conversationId: string, body: string): Promise<MessageRow> {
+/** `productId`: the article this message is about (W1.2), shown under the bubble. */
+export async function sendText(userId: string, conversationId: string, body: string, productId?: string | null): Promise<MessageRow> {
   return unwrap(
-    await supabase.from('messages').insert({ conversation_id: conversationId, sender_id: userId, kind: 'text', body }).select('*').single(),
+    await supabase
+      .from('messages')
+      .insert({ conversation_id: conversationId, sender_id: userId, kind: 'text', body, ...(productId ? { product_id: productId } : {}) })
+      .select('*')
+      .single(),
   );
 }
 
@@ -57,11 +62,12 @@ export async function sendAttachment(
   kind: 'image' | 'voice',
   path: string,
   meta: Record<string, unknown>,
+  productId?: string | null,
 ): Promise<MessageRow> {
   return unwrap(
     await supabase
       .from('messages')
-      .insert({ conversation_id: conversationId, sender_id: userId, kind, attachment_path: path, attachment_meta: meta as never, body: '' })
+      .insert({ conversation_id: conversationId, sender_id: userId, kind, attachment_path: path, attachment_meta: meta as never, body: '', ...(productId ? { product_id: productId } : {}) })
       .select('*')
       .single(),
   );

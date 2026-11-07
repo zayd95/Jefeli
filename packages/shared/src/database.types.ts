@@ -743,14 +743,14 @@ isOneToOne: false
                   ]
                 },"post_media": {
                   Row: {
-                    "bucket": string,"created_at": string,"duration_ms": number | null,"height": number | null,"id": string,"kind": string,"owner_id": string,"position": number,"post_id": string,"poster_path": string | null,"storage_path": string,"width": number | null
+                    "bucket": string,"created_at": string,"cues": Json | null,"duration_ms": number | null,"height": number | null,"id": string,"kind": string,"language": string | null,"owner_id": string,"position": number,"post_id": string,"poster_path": string | null,"storage_path": string,"waveform": (number)[] | null,"width": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "bucket": string,"created_at"?: string,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind": string,"owner_id": string,"position"?: number,"post_id": string,"poster_path"?: string | null,"storage_path": string,"width"?: number | null
+                    "bucket": string,"created_at"?: string,"cues"?: Json | null,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind": string,"language"?: string | null,"owner_id": string,"position"?: number,"post_id": string,"poster_path"?: string | null,"storage_path": string,"waveform"?: (number)[] | null,"width"?: number | null
                   }
                   Update: {
-                    "bucket"?: string,"created_at"?: string,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind"?: string,"owner_id"?: string,"position"?: number,"post_id"?: string,"poster_path"?: string | null,"storage_path"?: string,"width"?: number | null
+                    "bucket"?: string,"created_at"?: string,"cues"?: Json | null,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind"?: string,"language"?: string | null,"owner_id"?: string,"position"?: number,"post_id"?: string,"poster_path"?: string | null,"storage_path"?: string,"waveform"?: (number)[] | null,"width"?: number | null
                   }
                   Relationships: [
                     {
@@ -1097,14 +1097,14 @@ isOneToOne: false
                   ]
                 },"stories": {
                   Row: {
-                    "audience": string,"author_id": string,"caption": string,"created_at": string,"deleted_at": string | null,"duration_ms": number | null,"expires_at": string,"height": number | null,"id": string,"media_kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"poster_path": string | null,"product_id": string | null,"storage_path": string,"width": number | null
+                    "audience": string,"author_id": string,"caption": string,"created_at": string,"deleted_at": string | null,"duration_ms": number | null,"expires_at": string,"height": number | null,"id": string,"media_kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"post_id": string | null,"poster_path": string | null,"product_id": string | null,"storage_path": string | null,"width": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "audience": string,"author_id": string,"caption"?: string,"created_at"?: string,"deleted_at"?: string | null,"duration_ms"?: number | null,"expires_at"?: string,"height"?: number | null,"id"?: string,"media_kind": string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"poster_path"?: string | null,"product_id"?: string | null,"storage_path": string,"width"?: number | null
+                    "audience": string,"author_id": string,"caption"?: string,"created_at"?: string,"deleted_at"?: string | null,"duration_ms"?: number | null,"expires_at"?: string,"height"?: number | null,"id"?: string,"media_kind": string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"post_id"?: string | null,"poster_path"?: string | null,"product_id"?: string | null,"storage_path"?: string | null,"width"?: number | null
                   }
                   Update: {
-                    "audience"?: string,"author_id"?: string,"caption"?: string,"created_at"?: string,"deleted_at"?: string | null,"duration_ms"?: number | null,"expires_at"?: string,"height"?: number | null,"id"?: string,"media_kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"poster_path"?: string | null,"product_id"?: string | null,"storage_path"?: string,"width"?: number | null
+                    "audience"?: string,"author_id"?: string,"caption"?: string,"created_at"?: string,"deleted_at"?: string | null,"duration_ms"?: number | null,"expires_at"?: string,"height"?: number | null,"id"?: string,"media_kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"post_id"?: string | null,"poster_path"?: string | null,"product_id"?: string | null,"storage_path"?: string | null,"width"?: number | null
                   }
                   Relationships: [
                     {
@@ -1112,6 +1112,12 @@ isOneToOne: false
       columns: ["author_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "stories_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "posts"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "stories_product_id_fkey"
@@ -1426,6 +1432,9 @@ isOneToOne: false
                            },
 "set_report_status":
 { Args: { "p_report_id": string,"p_status": string }; Returns: undefined
+                           },
+"share_to_status":
+{ Args: { "p_audience"?: string,"p_caption"?: string,"p_post_id"?: string,"p_product_id"?: string }; Returns: string
                            },
 "submit_appeal":
 { Args: { "p_body": string,"p_moderation_action_id": string }; Returns: string

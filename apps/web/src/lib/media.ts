@@ -29,7 +29,7 @@ export function sortMedia<T extends { position: number }>(media: T[] | null | un
 export function firstStill(media: MediaItem[] | null | undefined): string | null {
   for (const m of sortMedia(media)) {
     if (m.kind === 'image') return publicMediaUrl(m.storage_path);
-    if (m.poster_path) return publicMediaUrl(m.poster_path);
+    if (m.kind === 'video' && m.poster_path) return publicMediaUrl(m.poster_path);
   }
   return null;
 }

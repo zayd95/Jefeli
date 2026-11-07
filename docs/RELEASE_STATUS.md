@@ -13,6 +13,11 @@
   (`docs/W1_WEB_BETA.md`). Branch `feature/w1.1-media-first`, draft PR #4 → PR #3's branch:
   Live hidden, 3-minute videos enforced by the database, feed and status playback
   (`docs/W1_1_MEDIA.md`). **Neither is merged, applied to jefeli-staging or deployed publicly.**
+- Branch `feature/w1.2-smart-create`, draft PR #5 → PR #4's branch: smart + menu, composable
+  publication (photos, video, voice, articles), voice in chat and statuses, statuses by
+  reference (`docs/W1_2_SMART_CREATE.md`). **Not merged, not applied to staging.**
+- **W1.2 verification (7 Nov), local stack:** `pnpm check` pass (unit 25/25), integration 294/294,
+  E2E 46 passed + 1 gated skip; iOS and Android bundles build. See « W1.2 » below.
 - **W1.1 verification (7 Nov), local stack:** `pnpm check` pass (unit 24/24), integration 280/280,
   E2E 39 passed + 1 gated skip. See « W1.1 media-first commerce » below.
 - **P1 verification (7 Nov) on `3c02230`:** `pnpm check` pass, integration 259/259, E2E 34 passed + 1 gated skip; on an empty database integration 259/259 and E2E journeys 31/31. See « P1 private-pilot readiness » below.
@@ -179,6 +184,24 @@ local backend only; no device, no hosted run.
 | MED-08 | Video → article → conversation | **PASS** (browser) | E2E `media` MED-04 |
 | MED-09 | Any 3-minute phone video can be published and played everywhere | **BLOCKED_EXTERNAL** | Needs transcoding (Cloudflare Stream, owner approval and budget): raw 3-min phone videos from Android and the web usually exceed the 50 MB Free-plan file limit; iPhone HEVC may not play on Android/desktop |
 | MED-10 | Hosted acceptance journey (staging + Vercel preview, two real accounts) | **BLOCKED_EXTERNAL** | Migration not applied to jefeli-staging (read-only token); preview hosts unreachable from this session; e-mail sender (`docs/W1_WEB_BETA.md` §5) |
+
+### W1.2 smart create & connected media (branch `feature/w1.2-smart-create`, draft PR #5)
+
+Details and limits: `docs/W1_2_SMART_CREATE.md` §6–7. Browser (Chromium with a fake microphone)
+and local backend only.
+
+| ID | Requirement | Status | Evidence |
+|---|---|---|---|
+| SC-01 | + menu (Publication · Article · Statut, no Live), dismissible, accessible, sheet on narrow screens | **PASS** (browser) · **NOT_TESTED** on a device | E2E SC-01, SC-08 (360/390/412 pt) |
+| SC-02 | Seller: photos + narration (language) + article in one publication | **PASS** | E2E SC-02; integration `18-connected-media` |
+| SC-03 | Buyer: no autoplay with sound, chooses to listen, gallery follows the narration, article, contact | **PASS** (browser) | E2E SC-03 |
+| SC-04 | Voice-only publication (feed, profile) | **PASS** (browser) | E2E SC-05 |
+| SC-05 | Chat voice about an article, preview, reply by voice | **PASS** (browser) | E2E SC-04; integration (voice checks, article visibility) |
+| SC-06 | Status sharing an existing post, expiry keeps the post and its files | **PASS** | E2E SC-06; integration |
+| SC-07 | Refused microphone, cancelled take, refresh with a draft, no broken item | **PASS** (browser) | E2E SC-07 |
+| SC-08 | Private voice never public; others' recordings never republished | **PASS** | integration `18-connected-media` |
+| SC-09 | Native recorder and players on iPhone / Android | **NOT_TESTED** | Bundles build; no device here |
+| SC-10 | Chrome-recorded voice played in Safari on iPhone | **NOT_TESTED** | No device; see W1.2 doc §7 |
 
 ### Other workstreams
 

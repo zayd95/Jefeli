@@ -10,6 +10,7 @@ export const EVIDENCE = path.join(ROOT, 'docs', 'evidence', 'e2e');
 export const FIXTURE = (name: string) => path.join(__dirname, '..', 'fixtures', name);
 
 export const DEVICES = {
+  android360: { width: 360, height: 780 },
   iphone15: { width: 393, height: 852 },
   iphoneSE: { width: 375, height: 667 },
   iphone15ProMax: { width: 430, height: 932 },
@@ -20,8 +21,13 @@ export function runId(): string {
   return Math.random().toString(36).slice(2, 7);
 }
 
-export async function newDevice(browser: Browser, size: { width: number; height: number } = DEVICES.iphone15): Promise<{ ctx: BrowserContext; page: Page }> {
+export async function newDevice(
+  browser: Browser,
+  size: { width: number; height: number } = DEVICES.iphone15,
+  opts: { mic?: boolean } = {},
+): Promise<{ ctx: BrowserContext; page: Page }> {
   const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 2, locale: 'fr-FR', timezoneId: 'Africa/Dakar' });
+  if (opts.mic) await ctx.grantPermissions(['microphone'], { origin: APP_URL });
   const page = await ctx.newPage();
   page.on('dialog', (d) => d.accept()); // confirm() used for destructive confirmations on web
   return { ctx, page };

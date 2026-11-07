@@ -56,6 +56,20 @@ function ProductMessage({ productId, mine }: { productId: string; mine: boolean 
   );
 }
 
+/** A text or voice message about an article (W1.2): one tap back to it. */
+function AboutProduct({ productId, mine }: { productId: string; mine: boolean }) {
+  const q = useQuery({ queryKey: ['product', productId], queryFn: () => fetchProduct(productId), staleTime: 60_000 });
+  if (!q.data) return null;
+  return (
+    <Pressable onPress={() => router.push(`/p/${productId}`)} style={[styles.about, { borderColor: mine ? colors.overlay : dark.border }]} accessibilityRole="link" accessibilityLabel={`À propos de ${q.data.title}`}>
+      <Thumb media={q.data.media[0]} style={styles.aboutThumb} />
+      <Text variant="caption" weight="600" color={mine ? colors.inkSoft : dark.textSecondary} numberOfLines={1} style={{ flexShrink: 1 }}>
+        À propos de {q.data.title}
+      </Text>
+    </Pressable>
+  );
+}
+
 function ImageMessage({ path, meta }: { path: string; meta: { width?: number; height?: number } }) {
   const uri = useMediaUrl('private-media', path);
   const w = 220;
@@ -80,7 +94,7 @@ export function MessageBubble({
   receipt?: 'Envoyé' | 'Vu' | null;
   onLongPress?: () => void;
 }) {
-  const meta = (message.attachment_meta ?? {}) as { width?: number; height?: number; duration_ms?: number };
+  const meta = (message.attachment_meta ?? {}) as { width?: number; height?: number; duration_ms?: number; waveform?: number[] };
 
   if (message.kind === 'system') {
     return (
@@ -104,7 +118,7 @@ export function MessageBubble({
   } else if (message.kind === 'image' && message.attachment_path) {
     content = <ImageMessage path={message.attachment_path} meta={meta} />;
   } else if (message.kind === 'voice' && message.attachment_path) {
-    content = <VoiceMessage path={message.attachment_path} durationMs={meta.duration_ms} mine={mine} />;
+    content = <VoiceMessage path={message.attachment_path} durationMs={meta.duration_ms} waveform={meta.waveform} mine={mine} />;
   } else if (message.kind === 'product' && message.product_id) {
     content = <ProductMessage productId={message.product_id} mine={mine} />;
   } else if (message.kind === 'story_reply') {
@@ -136,6 +150,7 @@ export function MessageBubble({
         accessibilityHint={onLongPress ? 'Appui long pour plus d’options' : undefined}
       >
         {content}
+        {!deleted && message.product_id && (message.kind === 'voice' || message.kind === 'text') ? <AboutProduct productId={message.product_id} mine={mine} /> : null}
       </Pressable>
       {showTime || receipt ? (
         <Text variant="caption" tone="fogTertiary" style={{ marginTop: 3, fontSize: 10.5 }}>
@@ -159,4 +174,6 @@ const styles = StyleSheet.create({
   system: { alignSelf: 'center', maxWidth: '86%', paddingVertical: spacing.sm, paddingHorizontal: spacing.md, marginVertical: spacing.sm, backgroundColor: dark.subtle, borderRadius: radius.md },
   product: { flexDirection: 'row', gap: spacing.md, padding: 6, width: 260 },
   productThumb: { width: 72, height: 72, borderRadius: radius.sm },
+  about: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingTop: 8, borderTopWidth: 1, maxWidth: 240 },
+  aboutThumb: { width: 22, height: 22, borderRadius: 5 },
 });

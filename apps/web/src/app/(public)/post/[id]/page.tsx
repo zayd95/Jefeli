@@ -32,7 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const author = post.author?.display_name ?? 'Un membre';
   const url = shareUrls.post(env.siteUrl, post.id);
   const title = post.body.trim() ? `${author}\u00A0: «\u00A0${excerpt(post.body, 60)}\u00A0»` : `Publication de ${author}`;
-  const description = post.body.trim() ? excerpt(post.body, 200) : `Publication de ${author} sur Jëfëli.`;
+  const hasVoice = post.post_media.some((m) => m.kind === 'audio');
+  const description = post.body.trim() ? excerpt(post.body, 200) : hasVoice ? `Publication vocale de ${author} sur Jëfëli.` : `Publication de ${author} sur Jëfëli.`;
   const media = sortMedia(post.post_media).filter((m) => m.bucket === 'public-media');
   const image = firstStill(media) ?? avatarUrl(post.author?.avatar_path);
   const images = [{ url: image ?? '/og-default.png', alt: title }];
@@ -83,7 +84,13 @@ export default async function PostPage({ params }: Props) {
         {media.length > 0 ? (
           <div className="post-media">
             {media.map((m, i) =>
-              m.kind === 'video' ? (
+              m.kind === 'audio' ? (
+                // W1.2: a voice publication or the narration of the photos. Loaded only on play.
+                <figure key={m.storage_path} className="post-voice">
+                  <figcaption>{media.some((x) => x.kind === 'image') ? 'Écouter l’explication' : 'Message vocal'}</figcaption>
+                  <audio src={publicMediaUrl(m.storage_path) ?? undefined} controls preload="none" aria-label="Écouter le message vocal" />
+                </figure>
+              ) : m.kind === 'video' ? (
                 <video
                   key={m.storage_path}
                   src={publicMediaUrl(m.storage_path) ?? undefined}
