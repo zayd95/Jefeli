@@ -1,7 +1,7 @@
 import { toFrenchError } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Ban, BellOff, Flag, Pencil, Pin, PinOff, Share2, Trash2 } from 'lucide-react-native';
+import { Ban, BellOff, Flag, Pencil, Pin, PinOff, Share2, Trash2, Clock3 } from 'lucide-react-native';
 import { Alert, Platform } from 'react-native';
 
 import { Sheet, SheetAction, useToast } from '@/design';
@@ -36,6 +36,7 @@ export function ContentMenu({
   onDelete,
   deleteLabel = 'Supprimer',
   pin,
+  onShareToStatus,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -48,6 +49,8 @@ export function ContentMenu({
   deleteLabel?: string;
   /** Owner-only: pin to / unpin from the profile (max 3 per kind, enforced by the database). */
   pin?: { pinned: boolean; onToggle: () => void };
+  /** Owner-only (W1.2): a 24-hour status pointing to this publication or article. */
+  onShareToStatus?: () => void;
 }) {
   const { userId } = useAuth();
   const qc = useQueryClient();
@@ -69,6 +72,7 @@ export function ContentMenu({
       {isOwner && pin ? (
         <SheetAction icon={pin.pinned ? PinOff : Pin} label={pin.pinned ? 'Retirer de mon profil' : 'Épingler sur mon profil'} onPress={run(pin.onToggle)} />
       ) : null}
+      {isOwner && onShareToStatus ? <SheetAction icon={Clock3} label="Partager en statut" description="24 heures, sans renvoyer les fichiers." onPress={run(onShareToStatus)} /> : null}
       {isOwner && onEdit ? <SheetAction icon={Pencil} label="Modifier" onPress={run(onEdit)} /> : null}
       {isOwner && onDelete ? (
         <SheetAction

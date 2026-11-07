@@ -4,21 +4,25 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEventListener } from 'expo';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
-import { Bookmark, Eye, Flag, Heart, MoreHorizontal, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Bookmark, Eye, Flag, Heart, Mic, MoreHorizontal, Pause, Play, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Avatar, Button, colors, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { fetchPost } from '@/lib/api/posts';
 import { fetchProduct } from '@/lib/api/products';
 import { addToHighlight, deleteStory, fetchStoryViewers, likeStory, markStoryViewed, replyToStory } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { useMediaUrl } from '@/lib/media';
+import { getPlaying, setPlaying, useIsPlaying } from '@/lib/playback';
 import type { ProfileLite, StoryRow } from '@/lib/types';
 
 import { fill, videoFill } from '@/design/fill';
 
+import { voiceSummary } from './audio/Voice';
 import { Thumb } from './Media';
 import { goBack } from '@/lib/nav';
 
@@ -58,7 +62,9 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   // Images run on a timer. A video drives its own progress (player time) and moves on only when
   // it has played to the end, so buffering on a slow connection never skips it; up to 3 minutes.
   const [videoFailed, setVideoFailed] = useState<string | null>(null);
-  const timed = story?.media_kind !== 'video' || videoFailed === story?.id;
+  const [audioPaused, setAudioPaused] = useState(false);
+  // Video and voice statuses drive their own progress; photos and shared posts/articles use the timer.
+  const timed = (story?.media_kind !== 'video' && story?.media_kind !== 'audio') || videoFailed === story?.id;
   const duration = IMAGE_MS;
 
   useEffect(() => {
@@ -88,6 +94,14 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   const mediaUri = useMediaUrl('private-media', story?.storage_path);
   const posterUri = useMediaUrl('private-media', story?.poster_path);
   const product = useQuery({ queryKey: ['product', story?.product_id], queryFn: () => fetchProduct(story?.product_id as string), enabled: !!story?.product_id });
+  // W1.2: a status that points to a publication (no file of its own).
+  const sharedPost = useQuery({ queryKey: ['post', story?.post_id], queryFn: () => fetchPost(userId ?? null, story?.post_id as string), enabled: !!story?.post_id });
+  const sharedVisual = sharedPost.data?.media.find((m) => m.kind !== 'audio') ?? null;
+  const sharedVoice = sharedPost.data?.media.find((m) => m.kind === 'audio') ?? null;
+  const sharedBucket = sharedPost.data?.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media';
+  const sharedUri = useMediaUrl(sharedBucket, sharedVisual ? (sharedVisual.kind === 'video' ? sharedVisual.poster_path : sharedVisual.storage_path) : null);
+  const productPhoto = product.data?.media.find((m) => m.kind === 'image') ?? null;
+  const productUri = useMediaUrl('public-media', story?.media_kind === 'product' ? productPhoto?.storage_path : null);
   const viewerList = useQuery({ queryKey: ['story-viewers', story?.id], queryFn: () => fetchStoryViewers(story?.id as string), enabled: viewers && isOwner });
 
   if (!story) return null;
@@ -132,6 +146,32 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               }}
             />
           ) : null
+        ) : story.media_kind === 'audio' ? (
+          mediaUri ? (
+            <StoryAudio
+              key={story.id}
+              uri={mediaUri}
+              durationMs={story.duration_ms}
+              author={author}
+              paused={audioPaused || paused || typing || menu || viewers || highlightSheet}
+              onProgress={setProgress}
+              onEnd={next}
+            />
+          ) : null
+        ) : story.media_kind === 'post' ? (
+          sharedUri ? (
+            <Image source={{ uri: sharedUri }} style={StyleSheet.absoluteFill} contentFit="cover" />
+          ) : sharedVoice ? (
+            <VoiceBackdrop author={author} label={voiceSummary(sharedVoice.language, sharedVoice.duration_ms) || 'Publication vocale'} />
+          ) : sharedPost.data ? (
+            <View style={[StyleSheet.absoluteFill, styles.textBackdrop]}>
+              <Text serif weight="400" color={dark.text} style={{ fontSize: 26, lineHeight: 34 }} numberOfLines={8}>
+                « {sharedPost.data.body} »
+              </Text>
+            </View>
+          ) : null
+        ) : story.media_kind === 'product' ? (
+          productUri ? <Image source={{ uri: productUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null
         ) : mediaUri ? (
           <Image source={{ uri: mediaUri }} style={StyleSheet.absoluteFill} contentFit="cover" placeholder={posterUri ? { uri: posterUri } : undefined} />
         ) : null}
@@ -167,6 +207,9 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
           {story.media_kind === 'video' ? (
             <IconButton icon={muted ? VolumeX : Volume2} label={muted ? 'Activer le son' : 'Couper le son'} color={colors.white} onPress={() => setMuted((m) => !m)} />
           ) : null}
+          {story.media_kind === 'audio' ? (
+            <IconButton icon={audioPaused ? Play : Pause} label={audioPaused ? 'Écouter le statut' : 'Mettre le statut en pause'} color={colors.white} onPress={() => setAudioPaused((p) => !p)} />
+          ) : null}
           <IconButton icon={MoreHorizontal} label="Options" color={colors.white} onPress={() => setMenu(true)} />
           <IconButton icon={X} label="Fermer" color={colors.white} onPress={close} />
         </View>
@@ -176,6 +219,28 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
         {story.caption ? (
           <Text variant="headline" weight="600" color={colors.white} align="center" style={styles.caption} pointerEvents="none">
             {story.caption}
+          </Text>
+        ) : null}
+
+        {story.media_kind === 'post' && sharedPost.data ? (
+          <Pressable style={styles.sticker} onPress={() => router.push(`/post/${sharedPost.data!.id}`)} accessibilityRole="button" accessibilityLabel="Voir la publication">
+            <View style={{ flex: 1 }}>
+              <Text variant="micro" weight="800" tone="secondary" style={{ letterSpacing: 0.6 }}>
+                {sharedVoice && !sharedVisual ? 'PUBLICATION VOCALE' : 'PUBLICATION'}
+              </Text>
+              <Text variant="callout" weight="700" numberOfLines={2}>
+                {sharedPost.data.body || (sharedVoice ? 'Écouter le message vocal' : 'Voir les photos')}
+              </Text>
+            </View>
+            <View style={styles.stickerCta}>
+              <Text variant="caption" weight="800">
+                Voir
+              </Text>
+            </View>
+          </Pressable>
+        ) : story.media_kind === 'post' && sharedPost.isFetched && !sharedPost.data ? (
+          <Text variant="callout" color={colors.white} align="center" style={styles.caption}>
+            Cette publication n’est plus disponible.
           </Text>
         ) : null}
 
@@ -317,6 +382,70 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   );
 }
 
+/** Full-screen backdrop for voice: the author's photo, a microphone, what is said and how long. */
+function VoiceBackdrop({ author, label, children }: { author: ProfileLite | null; label: string; children?: React.ReactNode }) {
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.voiceBackdrop]}>
+      <Avatar path={author?.avatar_path} name={author?.display_name ?? '?'} size={112} />
+      <View style={styles.voiceBadge}>
+        <Mic size={16} color={colors.night} />
+        <Text variant="callout" weight="700" color={colors.night}>
+          {label}
+        </Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+/**
+ * A voice status: plays when opened (the member chose to open it) on the shared playback slot,
+ * drives the progress bar, and moves on only when the voice has played to its end.
+ */
+function StoryAudio({
+  uri,
+  durationMs,
+  author,
+  paused,
+  onProgress,
+  onEnd,
+}: {
+  uri: string;
+  durationMs: number | null;
+  author: ProfileLite | null;
+  paused: boolean;
+  onProgress: (p: number) => void;
+  onEnd: () => void;
+}) {
+  const key = useId();
+  const player = useAudioPlayer({ uri }, { updateInterval: 100 });
+  const status = useAudioPlayerStatus(player);
+  const playing = useIsPlaying(key);
+  const total = (status.duration ? status.duration * 1000 : 0) || durationMs || 0;
+  useEffect(() => {
+    if (!paused) setPlaying(key);
+    else if (getPlaying() === key) setPlaying(null);
+  }, [paused, key]);
+  useEffect(() => {
+    if (playing && status.isLoaded) player.play();
+    else player.pause();
+  }, [playing, status.isLoaded, player]);
+  useEffect(() => {
+    if (total > 0) onProgress(Math.min(1, (status.currentTime * 1000) / total));
+  }, [status.currentTime, total, onProgress]);
+  useEffect(() => {
+    if (status.didJustFinish) onEnd();
+  }, [status.didJustFinish, onEnd]);
+  useEffect(() => () => {
+    if (getPlaying() === key) setPlaying(null);
+  }, [key]);
+  return (
+    <VoiceBackdrop author={author} label={total ? `Message vocal · ${Math.max(1, Math.round(total / 1000))} s` : 'Message vocal'}>
+      {!status.isLoaded ? <ActivityIndicator color={colors.white} style={{ marginTop: spacing.lg }} /> : null}
+    </VoiceBackdrop>
+  );
+}
+
 function StoryVideo({
   uri,
   posterUri,
@@ -379,6 +508,9 @@ function StoryVideo({
 const styles = StyleSheet.create({
   videoState: { ...fill, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1, backgroundColor: '#000' },
+  voiceBackdrop: { backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
+  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.mint },
+  textBackdrop: { backgroundColor: dark.surface, justifyContent: 'center', padding: spacing.xxl },
   shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 180 },
   shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 },
   tapZones: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row' },

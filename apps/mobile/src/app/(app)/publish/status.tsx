@@ -1,26 +1,31 @@
 import { AUDIENCE_LABELS, formatXOF, toFrenchError, type Audience, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { Camera, ImagePlus, ShoppingBag, X } from 'lucide-react-native';
+import { Camera, ImagePlus, Mic, ShoppingBag, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { VoicePreview } from '@/components/audio/Voice';
+import { VoiceRecorderPanel } from '@/components/audio/VoiceRecorder';
 import { ChoicePills, OptionRow, UploadOverlay } from '@/components/Composer';
 import { VideoPlayerInline } from '@/components/Media';
 import { PublishHeader } from '@/components/PublishSwitcher';
-import { Button, Chip, colors, fonts, IconButton, Screen, spacing, Text, useToast } from '@/design';
+import { Button, Chip, colors, dark, fonts, IconButton, Screen, Sheet, spacing, Text, useToast } from '@/design';
 import { fetchSellerProducts } from '@/lib/api/products';
 import { getSettings } from '@/lib/api/profiles';
 import { createStory } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { pickMedia, uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
 import { goBack } from '@/lib/nav';
+import { uploadVoice, type RecordedClip } from '@/lib/voice';
 
 export default function NewStatus() {
   const { userId } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
   const [media, setMedia] = useState<LocalMedia | null>(null);
+  const [voice, setVoice] = useState<RecordedClip | null>(null);
+  const [recording, setRecording] = useState(false);
   const [caption, setCaption] = useState('');
   const [audience, setAudience] = useState<Audience | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
@@ -42,10 +47,21 @@ export default function NewStatus() {
   }
 
   async function publish() {
-    if (!userId || !media) return;
+    if (!userId || (!media && !voice)) return;
     abort.current = new AbortController();
     setUploading(true);
     try {
+      if (voice) {
+        // W1.2: a voice status (private bucket, audience rules and 24-hour expiry like any status).
+        const up = await uploadVoice(userId, voice, { bucket: 'private-media', folder: 'stories', onProgress: setProgress, signal: abort.current.signal });
+        await createStory({ media_kind: 'audio', path: up.path, width: null, height: null, duration_ms: up.duration_ms, caption: caption.trim(), audience: effectiveAudience, product_id: productId });
+        qc.invalidateQueries({ queryKey: ['story-rail'] });
+        qc.invalidateQueries({ queryKey: ['active-stories', userId] });
+        toast('Statut publié pour 24 h', 'success');
+        goBack();
+        return;
+      }
+      if (!media) return;
       const [up] = await uploadMediaBatch(userId, [{ ...media, file: media.file ?? null }], {
         bucket: 'private-media',
         folder: 'stories',
@@ -75,7 +91,7 @@ export default function NewStatus() {
     }
   }
 
-  if (!media) {
+  if (!media && !voice) {
     // Lovable « Statut » mode, next to Publication and Article in the same switcher.
     return (
       <Screen edges={['top', 'bottom']}>
@@ -86,12 +102,13 @@ export default function NewStatus() {
               Votre statut, 24 heures.
             </Text>
             <Text variant="caption" tone="secondary" style={{ fontSize: 13 }}>
-              Photo ou vidéo, 3 min max.
+              Photo, vidéo ou voix, 3 min max.
             </Text>
           </View>
           <View style={{ gap: spacing.md }}>
             {Platform.OS !== 'web' ? <Button label="Prendre une photo ou une vidéo" icon={Camera} variant="primary" size="lg" pill onPress={() => choose(true)} /> : null}
             <Button label="Choisir dans la galerie" icon={ImagePlus} variant="outline" size="lg" pill onPress={() => choose(false)} style={{ backgroundColor: colors.surface }} />
+            <Button label="Enregistrer ma voix" icon={Mic} variant="outline" size="lg" pill onPress={() => setRecording(true)} style={{ backgroundColor: colors.surface }} />
           </View>
           <View style={{ gap: spacing.sm }}>
             <Text variant="callout" weight="600" style={{ fontSize: 13 }}>
@@ -103,6 +120,9 @@ export default function NewStatus() {
             </Text>
           </View>
         </ScrollView>
+        <Sheet visible={recording} onClose={() => setRecording(false)} title="Votre statut vocal">
+          <VoiceRecorderPanel onUse={(c) => (setVoice(c), setRecording(false))} onCancel={() => setRecording(false)} useLabel="Continuer" />
+        </Sheet>
       </Screen>
     );
   }
@@ -111,13 +131,25 @@ export default function NewStatus() {
     <Screen edges={['top', 'bottom']} background={colors.ink} keyboard>
       <View style={styles.previewWrap}>
         <View style={styles.preview}>
-          {media.kind === 'image' ? (
+          {voice ? (
+            <View style={[StyleSheet.absoluteFill, styles.voiceStage]}>
+              <View style={styles.voiceBadge}>
+                <Mic size={16} color={colors.night} />
+                <Text variant="callout" weight="700" color={colors.night}>
+                  Statut vocal
+                </Text>
+              </View>
+              <View style={{ width: '82%' }}>
+                <VoicePreview uri={voice.uri} durationMs={voice.durationMs} waveform={voice.waveform} tone="dark" />
+              </View>
+            </View>
+          ) : media?.kind === 'image' ? (
             <Image source={{ uri: media.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
-          ) : (
+          ) : media ? (
             <VideoPlayerInline uri={media.uri} active />
-          )}
+          ) : null}
           <View style={styles.previewTop}>
-            <IconButton icon={X} label="Changer de média" color={colors.white} variant="overlay" onPress={() => setMedia(null)} />
+            <IconButton icon={X} label="Changer de média" color={colors.white} variant="overlay" onPress={() => (setMedia(null), setVoice(null))} />
           </View>
           <View style={styles.captionWrap}>
             <TextInput
@@ -170,6 +202,8 @@ export default function NewStatus() {
 }
 
 const styles = StyleSheet.create({
+  voiceStage: { backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
+  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.mint },
   pickArea: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.xl },
   previewWrap: { flex: 1, padding: spacing.sm },
   preview: { flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: '#000' },
