@@ -614,8 +614,10 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
 /** Lovable compact publication preview: thumbnail (or motif), gold label, two lines, meta. */
 function PostPreview({ post, onPress }: { post: PostCardData; onPress: () => void }) {
   const intent = isPostIntent(post.intent) ? post.intent : 'share';
-  const media = post.media[0];
-  const label = `${post.pinned_at ? 'Épinglé · ' : ''}${intent === 'share' ? 'Publication' : INTENT_LABELS[intent]}`;
+  // A narration never stands for the publication; a voice-only one gets the microphone tile.
+  const media = post.media.find((m) => m.kind !== 'audio') ?? post.media[0];
+  const voiceOnly = media?.kind === 'audio';
+  const label = `${post.pinned_at ? 'Épinglé · ' : ''}${intent === 'share' ? (voiceOnly ? 'Publication vocale' : 'Publication') : INTENT_LABELS[intent]}`;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.preview, pressed && { backgroundColor: dark.subtle }]} accessibilityRole="button" accessibilityLabel={`${label}. ${post.body || 'Voir la publication'}`}>
       {media ? (

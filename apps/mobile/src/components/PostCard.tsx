@@ -14,21 +14,24 @@ import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isP
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Bookmark, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Avatar, colors, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
+import { useMediaUrl } from '@/lib/media';
 import { patchPost } from '@/lib/postCache';
 import { shareLinks } from '@/lib/share';
 import type { CommentPreview, PostCardData } from '@/lib/types';
 
+import { NarrationBar, VoiceCard } from './audio/Voice';
 import { ContentMenu } from './ContentMenu';
 import { MediaCarousel, Thumb, useIsActivePost } from './Media';
 import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
+import { ShareToStatusSheet } from './ShareToStatus';
 import { VoteControl } from './VoteControl';
 
 type Eyebrow = { label: string; dot: string };
@@ -38,9 +41,27 @@ function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Ey
   if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.mint };
   if (intent === 'opinion') return { label: INTENT_LABELS.opinion, dot: dark.textSecondary };
   if (tagged) return { label: 'Vitrine', dot: dark.mint };
-  if (post.media[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
-  if (post.media.length > 0) return { label: 'Moment', dot: dark.textSecondary };
+  const voice = post.media.some((m) => m.kind === 'audio');
+  const visual = post.media.filter((m) => m.kind !== 'audio');
+  if (visual[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
+  if (visual.length > 0 && voice) return { label: 'Photos racontées', dot: dark.mint };
+  if (visual.length > 0) return { label: 'Moment', dot: dark.textSecondary };
+  if (voice) return { label: 'Publication vocale', dot: dark.mint };
   return { label: 'Publication', dot: dark.textSecondary };
+}
+
+type Cue = { t: number; i: number };
+/** « Visite guidée » cues from the database (validated there), sorted by time. */
+function parseCues(raw: unknown): Cue[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((c): c is Cue => typeof c === 'object' && c !== null && typeof (c as Cue).t === 'number' && typeof (c as Cue).i === 'number')
+    .sort((a, b) => a.t - b.t);
+}
+function photoAt(cues: Cue[], ms: number): number {
+  let i = cues[0]?.i ?? 0;
+  for (const c of cues) if (c.t <= ms) i = c.i;
+  return i;
 }
 
 function PostCardInner({
@@ -61,8 +82,15 @@ function PostCardInner({
   const { width: screenWidth } = useWindowDimensions();
   const [expanded, setExpanded] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [statusSheet, setStatusSheet] = useState(false);
   const [contacting, setContacting] = useState(false);
   const activeOnScreen = useIsActivePost(post.id);
+  const voice = post.media.find((m) => m.kind === 'audio') ?? null;
+  const voiceUri = useMediaUrl(post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media', voice?.storage_path);
+  const cues = useMemo(() => parseCues(voice?.cues), [voice?.cues]);
+  // The gallery follows the narration until the member swipes it themselves.
+  const [following, setFollowing] = useState(true);
+  const [cuePhoto, setCuePhoto] = useState<number | undefined>(undefined);
   const author = post.author;
   if (!author) return null;
 
@@ -74,7 +102,15 @@ function PostCardInner({
   const isOwn = post.author_id === userId;
   const firstName = author.display_name.split(' ')[0] ?? author.display_name;
   const previews = post.comments_preview ?? [];
-  const hasMedia = post.media.length > 0;
+  const visual = post.media.filter((m) => m.kind !== 'audio');
+  const hasMedia = visual.length > 0;
+  const onNarration = (ms: number, playing: boolean) => {
+    if (cues.length < 2) return;
+    if (playing && ms < 300 && !following) setFollowing(true);
+    if (!playing && ms === 0) return;
+    const i = photoAt(cues, ms);
+    if (i !== cuePhoto) setCuePhoto(i);
+  };
   const long = post.body.length > (hasMedia ? 180 : 260);
   const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
   const mediaWidth = Math.min(screenWidth, 640);
@@ -113,7 +149,7 @@ function PostCardInner({
     setContacting(true);
     try {
       const conversationId = await messageAboutProduct(productId);
-      router.push(`/chat/${conversationId}`);
+      router.push(`/chat/${conversationId}?about=${productId}`);
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
@@ -215,7 +251,14 @@ function PostCardInner({
         </Text>
       </View>
 
-      {!hasMedia ? (
+      {!hasMedia && voice ? (
+        // W1.2 voice publication: the words above (for those who cannot listen), then the voice card.
+        <>
+          {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
+          <VoiceCard uri={voiceUri} durationMs={voice.duration_ms} waveform={voice.waveform} language={voice.language} active={activeOnScreen} />
+          {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
+        </>
+      ) : !hasMedia ? (
         // Lovable text card: deep surface, woven motif, words in the editorial serif.
         <View style={styles.quote}>
           <Motif />
@@ -253,16 +296,25 @@ function PostCardInner({
             {post.media[0]?.kind === 'video' ? (
               // A video handles its own taps (play, pause, sound): no disabled wrapper around it, which
               // screen readers would announce as « dimmed » for the play button too.
-              <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
+              <MediaCarousel media={visual} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
             ) : (
               <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication">
-                <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
+                <MediaCarousel
+                  media={visual}
+                  bucket={bucket}
+                  width={mediaWidth}
+                  tone="dark"
+                  active={activeOnScreen}
+                  index={voice && following ? cuePhoto : undefined}
+                  onUserSwipe={() => setFollowing(false)}
+                />
               </Pressable>
             )}
+            {voice ? <NarrationBar uri={voiceUri} durationMs={voice.duration_ms} waveform={voice.waveform} language={voice.language} active={activeOnScreen} onPosition={onNarration} /> : null}
             {tagged[0] ? (
               <Pressable
                 onPress={() => router.push(`/p/${tagged[0]!.id}`)}
-                style={({ pressed }) => [styles.productChip, pressed && { transform: [{ scale: 0.97 }] }]}
+                style={({ pressed }) => [styles.productChip, voice ? styles.productChipTop : styles.productChipBottom, pressed && { transform: [{ scale: 0.97 }] }]}
                 accessibilityRole="button"
                 accessibilityLabel={`Voir l’article ${tagged[0].title}, ${formatListingPrice(tagged[0])}`}
               >
@@ -365,12 +417,14 @@ function PostCardInner({
         onShare={post.visibility === 'public' ? () => shareLinks.post(post.id, author.display_name) : undefined}
         onEdit={() => router.push({ pathname: '/post/[id]', params: { id: post.id, edit: '1' } })}
         pin={{ pinned: !!post.pinned_at, onToggle: togglePinned }}
+        onShareToStatus={() => setStatusSheet(true)}
         onDelete={async () => {
           await deletePost(post.id);
           qc.invalidateQueries({ queryKey: ['feed'] });
           qc.invalidateQueries({ queryKey: ['user-posts', author.id] });
         }}
       />
+      {isOwn ? <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ postId: post.id, visibility: post.visibility }} /> : null}
     </View>
   );
 }
@@ -439,7 +493,6 @@ const styles = StyleSheet.create({
   productChip: {
     position: 'absolute',
     left: spacing.lg,
-    bottom: spacing.lg,
     maxWidth: '80%',
     flexDirection: 'row',
     alignItems: 'center',
@@ -452,6 +505,9 @@ const styles = StyleSheet.create({
     borderColor: dark.glassBorder,
   },
   productChipThumb: { width: 44, height: 44, borderRadius: 12 },
+  productChipBottom: { bottom: spacing.lg },
+  // With a narration bar at the bottom, the article chip moves to the top-left corner.
+  productChipTop: { top: spacing.lg },
   productRow: {
     flexDirection: 'row',
     alignItems: 'center',
