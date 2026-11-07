@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { deepLinks, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
+import { formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
+import { appLinks, opensInBrowser } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
 import { IconComment, IconUpvote } from '@/components/icons';
 import { Avatar, DemoChip, StatusOverlay, VerifiedBadge, priceLabel } from '@/components/ui';
@@ -146,7 +147,7 @@ export default async function PostPage({ params }: Props) {
       </article>
 
       <div className="stack-12" style={{ marginTop: 20 }}>
-        <OpenInApp href={deepLinks.post(post.id)} label="Ouvrir dans l’app pour réagir" />
+        <OpenInApp href={appLinks.post(post.id)} label={opensInBrowser ? 'Réagir sur Jëfëli' : 'Ouvrir dans l’app pour réagir'} />
         <ShareActions url={shareUrl} text={`Publication de ${author?.display_name ?? 'un membre'} sur Jëfëli`} />
       </div>
     </div>

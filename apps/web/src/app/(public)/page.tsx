@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PLATFORM_DISCLAIMER } from '@jefeli/shared';
 import { Wordmark } from '@/components/ui';
 import { IconShield } from '@/components/icons';
+import { env } from '@/lib/env';
 
 export const revalidate = 3600;
 
@@ -23,12 +24,26 @@ export default function Home() {
               profil, et sa boutique se crée toute seule à partir de ses annonces&nbsp;: neuf, occasion ou troc, on
               discute et on s’arrange directement entre membres.
             </p>
-            <p className="pilot-note">
-              <span className="pilot-dot" aria-hidden />
-              <span>
-                <strong>Phase pilote à Dakar.</strong> L’application est en test auprès d’un premier groupe de membres.
-              </span>
-            </p>
+            {env.appUrl ? (
+              <div className="stack-12" style={{ marginTop: 20 }}>
+                <a className="btn btn-primary btn-block" href={env.appUrl}>
+                  Ouvrir Jëfëli
+                </a>
+                <p className="pilot-note">
+                  <span className="pilot-dot" aria-hidden />
+                  <span>
+                    <strong>Version bêta.</strong> Jëfëli s’ouvre dans votre navigateur&nbsp;: rien à télécharger.
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <p className="pilot-note">
+                <span className="pilot-dot" aria-hidden />
+                <span>
+                  <strong>Phase pilote à Dakar.</strong> L’application est en test auprès d’un premier groupe de membres.
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -64,8 +79,10 @@ export default function Home() {
         <div className="card">
           <h2>Tu as reçu un lien&nbsp;?</h2>
           <p style={{ marginTop: 8 }}>
-            Les profils, articles et publications partagés s’ouvrent ici, sans installer d’application. Pour écrire à
-            un vendeur, faire une offre ou suivre un compte, il faut l’application Jëfëli.
+            Les profils, articles et publications partagés s’ouvrent ici, sans installer d’application.
+            {env.appUrl
+              ? ' Pour écrire à un vendeur, faire une offre ou suivre un compte, ouvrez Jëfëli dans votre navigateur.'
+              : ' Pour écrire à un vendeur, faire une offre ou suivre un compte, il faut l’application Jëfëli.'}
           </p>
         </div>
         <div className="card dark-card">

@@ -37,6 +37,7 @@ const NAV = [
   { href: '/admin/signalements', label: 'Signalements' },
   { href: '/admin/verifications', label: 'Vérifications' },
   { href: '/admin/contestations', label: 'Contestations' },
+  { href: '/admin/avis', label: 'Avis' },
   { href: '/admin/journal', label: 'Journal' },
   { href: '/admin/reglages', label: 'Réglages' },
 ];

@@ -22,6 +22,17 @@ export const deepLinks = {
   live: (id: string) => `${APP_SCHEME}://live/${id}`,
 };
 
+/** The same destinations in the web app (mobile web beta), at `base` (its origin). */
+export function webAppLinks(base: string) {
+  const b = trimBase(base);
+  return {
+    profile: (handle: string) => `${b}/u/${encodeURIComponent(handle)}`,
+    product: (id: string) => `${b}/p/${id}`,
+    post: (id: string) => `${b}/post/${id}`,
+    live: (id: string) => `${b}/live/${id}`,
+  };
+}
+
 /** Public storage URL for public buckets (avatars, public-media). */
 export function publicStorageUrl(supabaseUrl: string, bucket: 'avatars' | 'public-media', path: string | null | undefined): string | null {
   if (!path) return null;

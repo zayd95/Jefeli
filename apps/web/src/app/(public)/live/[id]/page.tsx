@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { deepLinks, formatDate, shareUrls, timeAgo } from '@jefeli/shared';
+import { formatDate, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
+import { appLinks } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
 import { Avatar, DemoChip, ProductCard, VerifiedBadge } from '@/components/ui';
 import { env } from '@/lib/env';
@@ -84,7 +85,7 @@ export default async function LivePage({ params }: Props) {
 
       <div className="stack-12" style={{ marginTop: 20 }}>
         <OpenInApp
-          href={deepLinks.live(live.id)}
+          href={appLinks.live(live.id)}
           label={isLive ? 'Regarder dans l’app' : 'Ouvrir dans l’app'}
           note={
             isLive
