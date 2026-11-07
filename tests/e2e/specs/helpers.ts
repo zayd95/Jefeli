@@ -25,13 +25,15 @@ export async function newDevice(browser: Browser, size: { width: number; height:
   return { ctx, page };
 }
 
-let shotIndex = 0;
+/** Per evidence folder, so file names do not depend on which specs ran before. */
+const shotIndex = new Map<string, number>();
 export async function shot(page: Page, folder: string, name: string) {
   const dir = path.join(EVIDENCE, folder);
   fs.mkdirSync(dir, { recursive: true });
-  shotIndex += 1;
+  const n = (shotIndex.get(folder) ?? 0) + 1;
+  shotIndex.set(folder, n);
   await page.waitForTimeout(600);
-  await page.screenshot({ path: path.join(dir, `${String(shotIndex).padStart(2, '0')}-${name}.png`) });
+  await page.screenshot({ path: path.join(dir, `${String(n).padStart(2, '0')}-${name}.png`) });
 }
 
 export const btn = (page: Page, name: string | RegExp) => page.getByRole('button', { name, exact: typeof name === 'string' });
