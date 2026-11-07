@@ -1,23 +1,15 @@
 /**
- * Phone OTP sign-in (Supabase Auth). Production use requires an SMS provider configured
- * in Supabase (paid) — gated by the `phone_auth` feature flag. Local development can use
- * Supabase "test OTP" numbers (no SMS sent).
+ * Phone OTP sign-in (Supabase Auth), Senegal (+221) only. Production use requires an SMS
+ * provider configured in Supabase (paid) — gated by the `phone_auth` feature flag, so no code
+ * is ever simulated. Local development can use Supabase "test OTP" numbers (no SMS sent).
  */
-import { toFrenchError } from '@jefeli/shared';
+import { toFrenchError, toSenegalE164 } from '@jefeli/shared';
 import { useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { Button, Field, Header, Screen, spacing, Text } from '@/design';
 import { useFlag } from '@/lib/flags';
 import { supabase } from '@/lib/supabase';
-
-function toE164(input: string): string | null {
-  const digits = input.replace(/\D/g, '');
-  if (digits.length === 9) return `+221${digits}`; // local Senegalese mobile number
-  if (digits.startsWith('221') && digits.length === 12) return `+${digits}`;
-  if (digits.length >= 10 && digits.length <= 15) return `+${digits}`;
-  return null;
-}
 
 export default function PhoneSignIn() {
   const enabled = useFlag('phone_auth');
@@ -26,7 +18,7 @@ export default function PhoneSignIn() {
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const e164 = toE164(phone);
+  const e164 = toSenegalE164(phone);
 
   async function sendCode() {
     if (!e164) return;
@@ -52,7 +44,7 @@ export default function PhoneSignIn() {
       <Screen edges={['top', 'bottom']}>
         <Header title="Connexion par SMS" />
         <Text style={{ padding: spacing.xl }} tone="secondary">
-          La connexion par SMS n’est pas encore activée : elle nécessite un fournisseur SMS configuré. Utilisez l’e-mail pour le moment.
+          La connexion par SMS (numéros sénégalais +221) n’est pas encore activée : elle nécessite un fournisseur SMS configuré. Aucun code n’est envoyé ni simulé. Utilisez l’e-mail pour le moment.
         </Text>
       </Screen>
     );
@@ -65,12 +57,13 @@ export default function PhoneSignIn() {
         {step === 'phone' ? (
           <>
             <Field
-              label="Numéro de téléphone"
+              label="Numéro de téléphone (+221)"
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
               placeholder="77 123 45 67"
-              hint="Votre numéro reste privé. Un code à 6 chiffres vous sera envoyé."
+              hint="Numéros sénégalais uniquement. Votre numéro reste privé. Un code à 6 chiffres vous sera envoyé."
+              error={phone.replace(/\D/g, '').length >= 9 && !e164 ? 'Saisissez un numéro sénégalais (+221), par exemple 77 123 45 67.' : undefined}
             />
             <Button label="Recevoir un code" variant="cta" disabled={!e164} loading={loading} onPress={sendCode} />
           </>

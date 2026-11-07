@@ -44,12 +44,13 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await ctxB?.close();
   });
 
-  test('a « Prix affiché » article cannot go to step 2 without a price', async () => {
+  test('a « Prix affiché » article cannot be published without a price (one-scroll form)', async () => {
     await s.goto('/publish/listing');
     await field(s, 'Titre').fill('Article sans prix');
-    await btn(s, 'Continuer').click();
+    await btn(s, 'Publier l’article').click();
     await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « Prix sur demande »/))).toBeVisible();
-    await expect(visible(s.getByText(/Étape 1 sur 3/))).toBeVisible();
+    // Still on the one-scroll form: nothing was published without a price.
+    await expect(s).toHaveURL(/\/publish\/listing$/);
     await shot(s, DIR, 'S-price-required-for-fixed');
   });
 
@@ -89,8 +90,7 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await expect(visible(s.getByText('30 000 F CFA · à discuter', { exact: true }))).toBeVisible();
 
     await s.goto('/profile');
-    await expect(visible(s.getByText('Ma boutique', { exact: true }))).toBeVisible();
-    await btn(s, 'Voir toute la boutique').click();
+    await visible(s.getByRole('tab', { name: /^Boutique, 2/ })).click();
     await expect(visible(s.getByRole('button', { name: new RegExp(`${ON_REQUEST}, Prix sur demande`) }))).toBeVisible();
     await expect(visible(s.getByRole('button', { name: new RegExp(`${NEGOTIABLE}, 30 000 F CFA · à discuter`) }))).toBeVisible();
     await expectNoZeroPrice(s);

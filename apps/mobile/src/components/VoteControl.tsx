@@ -10,7 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowBigDown, ArrowBigUp } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, Text, useToast } from '@/design';
+import { dark, radius, Text, useToast } from '@/design';
 import { votePost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { cachedPost, patchPost } from '@/lib/postCache';
@@ -55,57 +55,48 @@ export function VoteControl({ post }: { post: PostCardData }) {
     // Authors see the positive count of their own publication; they cannot vote on it.
     return (
       <View style={[styles.pill, styles.pillOwn]} accessible accessibilityLabel={countLabel}>
-        <ArrowBigUp size={20} color={colors.textSecondary} strokeWidth={2} />
-        <Text variant="callout" weight="700" tone="secondary">
+        <ArrowBigUp size={22} color={dark.textSecondary} strokeWidth={1.6} />
+        <Text variant="callout" weight="700" tone="fogSecondary" style={styles.count}>
           {formatCount(count)}
         </Text>
       </View>
     );
   }
 
+  // Lovable VoteBar on Atlantic night: quiet fog pill, mint « pour », gold « contre » (private).
   return (
-    <View style={[styles.pill, up && styles.pillUp]}>
+    <View style={styles.pill}>
       <Pressable
         onPress={() => press(1)}
-        style={styles.half}
-        hitSlop={{ top: 8, bottom: 8, left: 6 }}
+        style={({ pressed }) => [styles.up, pressed && { transform: [{ scale: 0.96 }] }]}
+        hitSlop={{ top: 4, bottom: 4, left: 4 }}
         accessibilityRole="button"
         accessibilityLabel={up ? `Retirer mon vote pour. ${countLabel}` : `Voter pour. ${countLabel}`}
         accessibilityState={{ selected: up }} aria-selected={up}
       >
-        <ArrowBigUp size={21} color={up ? colors.accentDeep : colors.ink} fill={up ? colors.accentDeep : 'transparent'} strokeWidth={2} />
-        <Text variant="callout" weight="700" color={up ? colors.accentDeep : colors.ink} style={styles.count}>
-          {count > 0 ? formatCount(count) : 'Voter'}
+        <ArrowBigUp size={22} color={up ? dark.mint : dark.textStrong} fill={up ? dark.mint : 'transparent'} strokeWidth={1.6} />
+        <Text variant="callout" weight="700" color={up ? dark.mint : dark.textStrong} style={styles.count}>
+          {formatCount(count)}
         </Text>
       </Pressable>
-      <View style={styles.divider} />
       <Pressable
         onPress={() => press(-1)}
-        style={[styles.half, styles.downHalf]}
-        hitSlop={{ top: 8, bottom: 8, right: 6 }}
+        style={({ pressed }) => [styles.down, pressed && { transform: [{ scale: 0.96 }] }]}
+        hitSlop={{ top: 4, bottom: 4, right: 4 }}
         accessibilityRole="button"
         accessibilityLabel={down ? 'Retirer mon vote contre' : 'Voter contre (moins de publications de ce type, visible par vous seul)'}
         accessibilityState={{ selected: down }} aria-selected={down}
       >
-        <ArrowBigDown size={21} color={down ? colors.inkSoft : colors.textSecondary} fill={down ? colors.inkSoft : 'transparent'} strokeWidth={2} />
+        <ArrowBigDown size={22} color={down ? dark.gold : dark.textSecondary} fill={down ? dark.gold : 'transparent'} strokeWidth={1.6} />
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSubtle,
-    minHeight: 38,
-    paddingHorizontal: 4,
-  },
-  pillUp: { backgroundColor: colors.mintSoft },
+  pill: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.pill, backgroundColor: dark.subtle, minHeight: 44 },
   pillOwn: { paddingHorizontal: 12, gap: 4 },
-  half: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, minHeight: 38 },
-  downHalf: { paddingHorizontal: 8 },
-  count: { minWidth: 12 },
-  divider: { width: 1, height: 18, backgroundColor: colors.borderStrong },
+  up: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingLeft: 11, paddingRight: 4, minHeight: 44 },
+  down: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  count: { minWidth: 16, textAlign: 'center', fontSize: 13, fontVariant: ['tabular-nums'] },
 });

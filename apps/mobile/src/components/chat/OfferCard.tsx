@@ -2,7 +2,7 @@ import { canRespond, canWithdraw, describeCashDifference, formatXOF, OFFER_STATU
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ArrowLeftRight } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, colors, radius, spacing, Tag, Text, useToast } from '@/design';
@@ -43,6 +43,8 @@ export function OfferCard({
   const qc = useQueryClient();
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
+  // Accept / refuse / withdraw: one request at a time, even for two taps in the same frame.
+  const inFlight = useRef(false);
   const [now] = useState(() => Date.now());
   const snapshot = offer.snapshot as { product: ProductSnapshot; offered_product: ProductSnapshot };
   const iAmBuyer = offer.buyer_id === me;
@@ -51,6 +53,8 @@ export function OfferCard({
   const expired = status === 'pending' && new Date(offer.expires_at).getTime() <= now;
 
   async function run(key: string, fn: () => Promise<unknown>, ok: string) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(key);
     try {
       await fn();
@@ -61,6 +65,7 @@ export function OfferCard({
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
+      inFlight.current = false;
       setBusy(null);
     }
   }

@@ -303,13 +303,92 @@ owner's rule unchanged:
   - `05` and `08` adapted;
   - 1 unit test.
 
+### Lovable native parity pass (branch `feature/lovable-native-parity-20261104`, draft PR #2)
+
+Visual authority: `zayd95/galsen-visual-playground@806a26f` (`src/lab/LabApp.tsx`,
+`LabPages.tsx`, `index.css`, `docs/LOVABLE_PARITY.md`), rendered locally with its own Vite
+build for reference screenshots. Functional authority: this repository. No Lovable browser
+code, CSS, DOM, `live/backend.ts` or Supabase client was copied; every screen keeps its native
+queries, RPCs, RLS and storage. Nothing was merged across repositories.
+
+| Commit | Change |
+|---|---|
+| `e85f046` | **Baseline regression fixed:** the E2E `signUp` helper still drove the removed 3-step onboarding. Bridge onboarding no longer overwrites `is_merchant`/boutique/interests and picks the city from the shared list. `suggestHandle()` and Senegal-only `toSenegalE164()` (+ unit tests); welcome screen shows SMS (+221) as visibly gated |
+| `92ef3aa` | Foundation: Fraunces + Hanken Grotesk (Inter removed), `dark` token group, serif wordmark with gold stop, glass `IconButton`, `<Motif />`, dark Skeleton/EmptyState/ErrorState/DemoBadge, `useDarkStatusBar()`, floating dock + `useDockSpace()` |
+| `0bcf6d2` | Dark Home, PostCard, StoryRail, VoteControl, PriceLabel (Lovable PriceLine), dark post detail and saved posts |
+| `95a2689` | Near-white Explorer (night intro, tiles, pills, lead card), ListingCard, image-led product page with sticky glass CTA |
+| `029e8e2` | Compact dark profile (cover, avatar, bio, ≤ 3 interests, two tabs, « Plus d'infos », review/live sheets); business-interest editor (≤ 5) in edit-profile |
+| `69e68ba` | Publishing: direct Publication · Article · Statut switcher (`/publish` redirects), one-scroll article form, reported feed-share failure, honest Live entry |
+| `2717212` | Dark inbox (local search) and chat thread |
+| `86e891b` | Glass action sheets (`Sheet tone="dark"`), onboarding typography |
+| `0b1f547` | `app.json` cream → `#FAFBFA`; E2E opens products through the Boutique tab |
+
+Defects found and fixed during the pass:
+- E2E onboarding helper broken by the bridge (see `e85f046`).
+- Bridge onboarding could wipe a returning member's boutique identity and interests.
+- Phone OTP accepted any international number; now +221 only.
+- A failed « Partager aussi dans mon fil » was silently swallowed after publishing an article.
+- Compact prices rendered « 28 000 F CFA F » (NBSP before « F CFA » not matched).
+- `app.json` still used the retired cream canvas.
+- Metro had been started with `CI=1` (no reload) during the first check; restarted.
+
+Verification on the final code (local Supabase CLI stack, `supabase db reset` + `pnpm seed`):
+see « Commands that were run » below and `docs/RELEASE_STATUS.md` › « Lovable native parity ».
+Screenshots and the side-by-side comparison: `docs/evidence/lovable-parity/` (README lists the
+deliberate differences from the reference).
+
+### Microcopy cleanup and mobile polish (owner iPhone feedback, Nov 6)
+
+The owner tested the Lovable port on an iPhone in Expo Go and approved the direction, asking for
+fewer explanatory subtexts. Copy-only and layout-polish changes in the existing screens: no new
+screen, dependency or schema change. Full inventory (removed / shortened / preserved) and
+before/after renders at 360×640, 390×844 and 412×915: `docs/evidence/microcopy-pass/`.
+
+- Onboarding: two filler lines and the header filler removed; « Disponible » only once the
+  server confirmed the handle; GPS note → « Ville choisie par vous, sans GPS. »; « Se déconnecter »
+  moved to the header so the fixed footer is one CTA (≈ 88 pt instead of ≈ 175 pt); single-line
+  checkboxes centred in their 44-pt target; interactive keyboard dismissal.
+- Accueil, Explorer, Messages, Publication, Article, Statut, Profile, product, edit profile,
+  boutique details, highlight sheet: redundant subtexts removed or shortened.
+- Kept: payment and no-funds terms, chat safety card, barter/offer guidance, privacy and consent
+  notes, validation/errors/toasts, accessibility labels.
+- Touch targets: 40-pt pills get 48-pt hit areas; small profile links get larger ones.
+
+### P1 — private pilot readiness (Nov 7)
+
+Goal: make the approved native app a private-pilot candidate for a small group of real
+sellers and buyers in Dakar, without changing the visual direction or adding product scope.
+Full report: `docs/P1_READINESS_REPORT.md`; decision sheet: `docs/GO_NO_GO.md`.
+
+Defects reproduced, then fixed (each with a test that failed first):
+- E2E runs broke with time: the DÉMO statuses are 24-hour statuses created at seed time
+  (`5b7a635`: seed refreshes them relative to now; E2E global setup runs it).
+- A double-tapped offer raised the unique-index error, shown as a misleading French message;
+  the offer screen and offer card now ignore a second tap in flight (`2ff8b90`).
+- « Mot de passe oublié » sent a link to `jefeli://reset-password`, a route that did not exist:
+  « Unmatched Route », no way to set a new password (`d6dd671`: `reset-password` screen, per-runtime
+  redirect URL, form only for a session opened by that recovery link).
+- A first-time DÉMO seed failed half-way (Awa's status was tied to Baol's listing) (`6022568`).
+
+New tests: integration `15-adversarial` (18: races, stale/expired offers, immutable terms, blocks
+after an agreement, deleted/private content, storage limits, forged tokens); E2E `resilience` (6),
+`account-recovery` (3), `email-confirmation` (1, gated). The suites also ran on a database with no
+DÉMO data, with a moderator granted by SQL. Screenshot numbering is now per evidence folder.
+
+Not changed on purpose: no error boundary (a release build turns an uncaught error into a crash
+that TestFlight/Play report; a boundary without a reporting service would hide it), no in-app
+support link (owner's channel is not chosen), `eas.json` (its defaults were checked in the EAS CLI
+source and already fit).
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass (19 unit tests) |
-| `pnpm test:integration` (with `.env.test` functions) | 241/241 (after the boutique identity follow-up) |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0c71062` and again on `507f7ff`) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 23 unit tests (on `3c02230`, P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 259/259 (on `3c02230`); also 259/259 on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, screens 3 sizes, email-confirmation gated) | 34 passed, 1 skipped (on `3c02230`); journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
+| `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |

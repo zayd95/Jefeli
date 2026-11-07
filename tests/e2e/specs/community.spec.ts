@@ -41,8 +41,10 @@ test.describe.serial('Community: intents, votes, comments', () => {
   });
 
   test('B asks the community with an optional intent in the one publication composer (« Je cherche »)', async () => {
+    // The dock's Plus (and /publish) opens the Publication composer directly, no hub.
     await b.goto('/publish');
-    await btn(b, /^Publication\./).click();
+    await expect(b).toHaveURL(/\/publish\/post$/);
+    await expect(b.getByRole('tab', { name: 'Publication' }).last()).toHaveAttribute('aria-selected', 'true');
     await expect(b.getByRole('radio', { name: 'Je partage' })).toHaveAttribute('aria-checked', 'true');
     await b.getByRole('radio', { name: 'Je cherche' }).click();
     await expect(b.getByRole('radio', { name: 'Je cherche' })).toHaveAttribute('aria-checked', 'true');

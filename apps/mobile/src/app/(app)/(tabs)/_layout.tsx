@@ -2,13 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, radius, shadow, spacing, Text } from '@/design';
+import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
+import { DOCK_GAP } from '@/lib/dock';
 
-const TAB_META: Record<string, { label: string; icon: LucideIcon }> = {
+const TABS: Record<string, { label: string; icon: LucideIcon }> = {
   index: { label: 'Accueil', icon: House },
   explore: { label: 'Explorer', icon: Compass },
   publish: { label: 'Publier', icon: Plus },
@@ -23,9 +25,13 @@ type TabBarProps = {
 };
 
 /**
- * Floating pill navigation (owner's UI reference): the active tab is a soft mint pill with its
- * label, the others are icons (each keeps its French accessibility label), and « Publier » is a
- * separate round button so creating content is always one tap away.
+ * One five-item floating dock, ported from the approved Lovable shell: a rounded glass bar
+ * that floats over the content, labels always visible, the active tab a mint pill. It is dark
+ * on Atlantic-night tabs (Accueil, Messages, Profil) and near-white on Explorer.
+ *
+ * « Publier » opens the post composer directly (Article and Statut sit in its switcher), never a
+ * hub. iOS safe areas, unread counters and French accessible labels are kept. On Android the dock
+ * hides while the keyboard is open so it never rides above it.
  */
 function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
   const { userId } = useAuth();
@@ -35,53 +41,67 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
     enabled: !!userId,
     refetchInterval: 60_000,
   });
+  const [keyboard, setKeyboard] = useState(false);
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboard(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  if (keyboard) return null;
+
+  const activeName = state.routes[state.index]?.name;
+  const light = activeName === 'explore';
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <View style={styles.pill} accessibilityRole="tablist">
-        {state.routes.map((route, i) => {
-          const meta = TAB_META[route.name];
-          if (!meta || route.name === 'publish') return null;
-          const focused = state.index === i;
+    <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, DOCK_GAP) }]}>
+      <View style={[styles.dock, light ? styles.dockLight : styles.dockDark, shadow.floating]} accessibilityRole="tablist" aria-label="Navigation principale">
+        {state.routes.map((route, index) => {
+          const meta = TABS[route.name];
+          if (!meta) return null;
+          const selected = state.index === index && route.name !== 'publish';
           const Icon = meta.icon;
-          const badge = route.name === 'messages' ? (unread.data ?? 0) : 0;
+          const unreadCount = route.name === 'messages' ? (unread.data ?? 0) : 0;
+          const ink = selected ? colors.night : light ? colors.inkSoft : dark.textStrong;
+
           return (
             <Pressable
               key={route.key}
-              onPress={() => navigateToTab(route.key)}
               accessibilityRole="tab"
-              accessibilityState={{ selected: focused }}
-              aria-selected={focused}
-              accessibilityLabel={badge ? `${meta.label}, ${badge} non lus` : meta.label}
-              style={({ pressed }) => [styles.item, focused && styles.itemOn, pressed && !focused && { opacity: 0.6 }]}
+              accessibilityState={{ selected }}
+              aria-selected={selected}
+              accessibilityLabel={unreadCount ? meta.label + ', ' + unreadCount + ' non lus' : meta.label}
+              onPress={() => {
+                if (route.name === 'publish') router.push('/publish/post');
+                else navigateToTab(route.key);
+              }}
+              style={({ pressed }) => [
+                styles.item,
+                selected && styles.itemSelected,
+                pressed && !selected && (light ? styles.pressedLight : styles.pressedDark),
+                pressed && { transform: [{ scale: 0.96 }] },
+              ]}
             >
-              <View>
-                <Icon size={22} color={focused ? colors.ink : colors.textSecondary} strokeWidth={focused ? 2.4 : 2} />
-                {badge > 0 ? (
-                  <View style={styles.badge}>
+              <View style={styles.iconWrap}>
+                <Icon size={21} color={ink} strokeWidth={route.name === 'publish' ? 2.1 : 1.9} />
+                {unreadCount > 0 && (
+                  <View style={[styles.badge, { borderColor: light ? colors.surface : colors.night }]}>
                     <Text variant="micro" weight="700" color={colors.white} style={{ fontSize: 10, lineHeight: 12 }}>
-                      {badge > 99 ? '99+' : badge}
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </Text>
                   </View>
-                ) : null}
+                )}
               </View>
-              {focused ? (
-                <Text variant="callout" weight="700" numberOfLines={1}>
-                  {meta.label}
-                </Text>
-              ) : null}
+              <Text variant="micro" weight="600" color={ink} numberOfLines={1} style={styles.label}>
+                {meta.label}
+              </Text>
             </Pressable>
           );
         })}
       </View>
-      <Pressable
-        onPress={() => router.push('/publish')}
-        accessibilityRole="button"
-        accessibilityLabel="Publier : publication, statut, article ou live"
-        style={({ pressed }) => [styles.create, pressed && { backgroundColor: colors.inkSoft }]}
-      >
-        <Plus size={26} color={colors.action} strokeWidth={2.6} />
-      </Pressable>
     </View>
   );
 }
@@ -89,11 +109,11 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
 export default function TabsLayout() {
   return (
     <Tabs
-      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.darkBackground } }}
       tabBar={(props) => <JefeliTabBar {...(props as unknown as TabBarProps)} />}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" />
+      <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: colors.background } }} />
       <Tabs.Screen name="publish" />
       <Tabs.Screen name="messages" />
       <Tabs.Screen name="profile" />
@@ -102,50 +122,46 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  bar: {
+  // Floats over the scene (Lovable `absolute inset-x-0 bottom-0 px-3`); screens pad with useDockSpace().
+  wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 12 },
+  dock: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  pill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 60,
-    paddingHorizontal: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.card,
-  },
-  item: { minWidth: 48, height: 48, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6 },
-  itemOn: { backgroundColor: colors.mintSoft, paddingHorizontal: spacing.lg },
-  create: {
-    width: 60,
-    height: 60,
+    gap: 2,
+    padding: 5,
     borderRadius: 30,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.floating,
+    borderWidth: 1,
+    maxWidth: 520,
+    width: '100%',
+    alignSelf: 'center',
   },
+  dockLight: { backgroundColor: colors.dockLight, borderColor: colors.dockLightBorder },
+  dockDark: { backgroundColor: dark.dock, borderColor: dark.dockBorder },
+  item: {
+    flex: 1,
+    minWidth: 0,
+    height: 58,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  itemSelected: { backgroundColor: colors.mint },
+  pressedLight: { backgroundColor: colors.surface },
+  pressedDark: { backgroundColor: dark.subtle },
+  iconWrap: { height: 22, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 10, lineHeight: 12, paddingHorizontal: 2 },
   badge: {
     position: 'absolute',
     top: -6,
-    right: -10,
+    right: -11,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.live,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.surface,
   },
 });

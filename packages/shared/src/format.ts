@@ -159,3 +159,26 @@ export function normalizeHandle(input: string): string {
 }
 
 export const HANDLE_PATTERN = /^(?![._])(?!.*\.\.)(?!.*\.$)[a-z0-9_.]{3,30}$/;
+
+/**
+ * Editable handle suggested from a display name (one-screen onboarding):
+ * « Awa Ndiaye » → « awa.ndiaye ». Never ends with a dot or underscore, so a valid
+ * suggestion is not flagged as invalid while the member is still typing.
+ */
+export function suggestHandle(displayName: string): string {
+  const dotted = displayName.trim().replace(/\s+/g, '.');
+  return normalizeHandle(dotted).replace(/[._]+$/, '').slice(0, 30);
+}
+
+/**
+ * Senegal-only SMS sign-in (+221). Accepts a 9-digit national number (mobile 70/75/76/77/78,
+ * fixed 33) with or without the +221 / 00221 prefix and spaces. Anything else returns null:
+ * Jëfëli never sends an SMS to a number outside Senegal.
+ */
+export function toSenegalE164(input: string): string | null {
+  let digits = input.replace(/\D/g, '');
+  if (digits.startsWith('00221')) digits = digits.slice(5);
+  else if (digits.startsWith('221') && digits.length === 12) digits = digits.slice(3);
+  if (!/^(7[05678]|33)\d{7}$/.test(digits)) return null;
+  return `+221${digits}`;
+}

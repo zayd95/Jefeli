@@ -270,7 +270,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
       <Sheet visible={highlightSheet} onClose={() => setHighlightSheet(false)} title="Garder sur mon profil">
         <View style={{ gap: spacing.md }}>
           <Text variant="callout" tone="secondary">
-            Ce statut restera visible sur votre profil, dans une sélection, pour les mêmes personnes qu’aujourd’hui.
+            Il restera sur votre profil, visible par le même public.
           </Text>
           <Field label="Nom de la sélection" value={highlightTitle} onChangeText={setHighlightTitle} maxLength={30} />
           <Button

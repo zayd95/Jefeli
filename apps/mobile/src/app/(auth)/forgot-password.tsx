@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { Button, Field, Header, Screen, spacing, Text } from '@/design';
+import { resetPasswordRedirectUrl } from '@/lib/recovery';
 import { supabase } from '@/lib/supabase';
 
 export default function ForgotPassword() {
@@ -14,7 +15,7 @@ export default function ForgotPassword() {
   async function submit() {
     setLoading(true);
     setError(null);
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: 'jefeli://reset-password' });
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo: resetPasswordRedirectUrl() });
     setLoading(false);
     if (err) setError(toFrenchError(err));
     else setSent(true);

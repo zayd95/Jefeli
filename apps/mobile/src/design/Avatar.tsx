@@ -1,12 +1,13 @@
 import { initials } from '@jefeli/shared';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Plus } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { avatarUrl } from '@/lib/media';
 
 import { Text } from './Text';
-import { colors } from './theme';
+import { colors, dark } from './theme';
 
 export interface AvatarProps {
   path?: string | null;
@@ -51,6 +52,7 @@ export function StoryRing({
   onPress,
   addBadge,
   live,
+  tone = 'light',
 }: {
   path?: string | null;
   name: string;
@@ -60,7 +62,10 @@ export function StoryRing({
   onPress?: () => void;
   addBadge?: boolean;
   live?: boolean;
+  /** dark = Lovable story rail on Atlantic night (mint→gold ring, dashed « Votre statut »). */
+  tone?: 'light' | 'dark';
 }) {
+  if (tone === 'dark') return <DarkStoryRing path={path} name={name} label={label} seen={seen} size={size} onPress={onPress} addBadge={addBadge} live={live} />;
   const ringColor = live ? colors.live : seen ? colors.borderStrong : colors.accentDeep;
   return (
     <Pressable
@@ -91,7 +96,55 @@ export function StoryRing({
   );
 }
 
+function DarkStoryRing({ path, name, label, seen, size = 58, onPress, addBadge, live }: { path?: string | null; name: string; label: string; seen?: boolean; size?: number; onPress?: () => void; addBadge?: boolean; live?: boolean }) {
+  const outer = size + 4;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={addBadge ? 'Ajouter un statut' : `Voir le statut de ${name}`}
+      style={({ pressed }) => [styles.story, { width: 66, gap: 6 }, pressed && { transform: [{ scale: 0.96 }] }]}
+    >
+      {addBadge ? (
+        // « Votre statut »: dashed fog ring with a mint plus (no avatar until there is a status).
+        <View style={[styles.dashed, { width: outer, height: outer, borderRadius: outer / 2 }]}>
+          <Plus size={24} color={dark.mint} strokeWidth={2} />
+        </View>
+      ) : live || !seen ? (
+        <LinearGradient
+          colors={live ? [colors.live, colors.live] : [dark.mint, dark.mint, dark.gold]}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 1, y: 0 }}
+          style={{ width: outer, height: outer, borderRadius: outer / 2, padding: 2 }}
+        >
+          <View style={[styles.darkInner, { borderRadius: size / 2 }]}>
+            <Avatar path={path} name={name} size={size - 4} />
+          </View>
+        </LinearGradient>
+      ) : (
+        <View style={{ width: outer, height: outer, borderRadius: outer / 2, padding: 2, backgroundColor: dark.borderStrong }}>
+          <View style={[styles.darkInner, { borderRadius: size / 2 }]}>
+            <Avatar path={path} name={name} size={size - 4} />
+          </View>
+        </View>
+      )}
+      {live ? (
+        <View style={[styles.liveTag, { borderColor: dark.background, bottom: 22 }]}>
+          <Text variant="micro" color={colors.white} weight="800" style={{ fontSize: 9, lineHeight: 11 }}>
+            LIVE
+          </Text>
+        </View>
+      ) : null}
+      <Text variant="caption" color={addBadge ? dark.textSecondary : dark.textStrong} numberOfLines={1} align="center" style={{ width: 66, fontSize: 11, lineHeight: 14 }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  dashed: { borderWidth: 1, borderStyle: 'dashed', borderColor: dark.borderStrong, alignItems: 'center', justifyContent: 'center' },
+  darkInner: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: dark.background },
   center: { alignItems: 'center', justifyContent: 'center' },
   story: { alignItems: 'center' },
   ring: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },

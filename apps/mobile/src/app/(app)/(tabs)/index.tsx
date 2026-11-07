@@ -1,47 +1,43 @@
-import { FEED_TABS, type FeedTab } from '@jefeli/shared';
+/**
+ * Accueil, ported from the approved Lovable feed (Atlantic After Dark, #091B19):
+ *   - a fixed header: serif wordmark with a gold dot, round glass search and notifications,
+ *     « Pour toi » / « Abonnements » with a mint underline;
+ *   - the story rail, then quiet discovery chips (my city → the nearby feed; Wecci and
+ *     Occasions → Explorer with that filter; « En direct » only once live video is enabled);
+ *   - editorial post cards, real empty / loading / error states and a « Vous êtes à jour » end.
+ * Feed queries, pagination, ranking reasons and the live list are the existing native ones.
+ * Product grids moved to Explorer: Home stays social-first.
+ */
+import { toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bell, MapPin, Radio, Repeat, Sparkles, Tag, Users } from 'lucide-react-native';
+import { Bell, Compass, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import { ListingCard, gridItemWidth } from '@/components/ListingCard';
 import { PostCard } from '@/components/PostCard';
 import { ProfileName } from '@/components/ProfileName';
 import { StoryRail } from '@/components/StoryRail';
-import {
-  Avatar,
-  Chip,
-  colors,
-  EmptyState,
-  ErrorState,
-  IconButton,
-  LiveBadge,
-  Screen,
-  SearchBar,
-  Skeleton,
-  spacing,
-  Text,
-  Wordmark,
-} from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, ErrorState, IconButton, LiveBadge, Screen, Skeleton, spacing, Text, Wordmark } from '@/design';
 import { fetchLiveNow, type LiveSessionRow } from '@/lib/api/live';
 import { fetchUnreadNotificationCount } from '@/lib/api/notifications';
 import { fetchFeed } from '@/lib/api/posts';
-import { browseProducts, PRODUCT_PAGE } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { useDockSpace } from '@/lib/dock';
 import { isProduction } from '@/lib/env';
-import { toFrenchError } from '@jefeli/shared';
-import type { PostCardData, ProductCard } from '@/lib/types';
+import { useFlag } from '@/lib/flags';
+import { useDarkStatusBar } from '@/lib/statusBar';
+import type { PostCardData } from '@/lib/types';
 
-type PostTab = 'for_you' | 'following' | 'nearby';
-const POST_TABS: FeedTab[] = ['for_you', 'following', 'nearby'];
+type HomeTab = 'for_you' | 'following' | 'nearby' | 'live';
 
 export default function Home() {
+  useDarkStatusBar();
   const { userId, profile } = useAuth();
-  const [tab, setTab] = useState<FeedTab>('for_you');
-  const { width } = useWindowDimensions();
-  const isPostTab = POST_TABS.includes(tab);
-  const isGridTab = tab === 'occasions' || tab === 'troc';
+  const dockSpace = useDockSpace();
+  const liveEnabled = useFlag('live_streaming');
+  const [tab, setTab] = useState<HomeTab>('for_you');
+  const isPostTab = tab !== 'live';
 
   const unreadNotifs = useQuery({
     queryKey: ['unread-notifications'],
@@ -52,146 +48,168 @@ export default function Home() {
 
   const posts = useInfiniteQuery({
     queryKey: ['feed', tab, userId],
-    enabled: isPostTab,
+    enabled: isPostTab && !(tab === 'nearby' && !profile?.city),
     initialPageParam: { offset: 0, before: null as string | null },
-    queryFn: ({ pageParam }) => fetchFeed(userId, tab as PostTab, pageParam),
+    queryFn: ({ pageParam }) => fetchFeed(userId, tab as Exclude<HomeTab, 'live'>, pageParam),
     getNextPageParam: (last) => last.next ?? undefined,
-  });
-
-  const products = useInfiniteQuery({
-    queryKey: ['feed-products', tab],
-    enabled: isGridTab,
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) => browseProducts({ mode: tab === 'troc' ? 'troc' : 'occasions', offset: pageParam }),
-    getNextPageParam: (last, all) => (last.length < PRODUCT_PAGE ? undefined : all.length * PRODUCT_PAGE),
   });
 
   const live = useQuery({ queryKey: ['live-now'], queryFn: fetchLiveNow, enabled: tab === 'live', refetchInterval: 20_000 });
 
   const postItems = useMemo(() => posts.data?.pages.flatMap((p) => p.items) ?? [], [posts.data]);
-  const productItems = useMemo(() => products.data?.pages.flat() ?? [], [products.data]);
-  const productRows = useMemo(() => {
-    const rows: ProductCard[][] = [];
-    for (let i = 0; i < productItems.length; i += 2) rows.push(productItems.slice(i, i + 2));
-    return rows;
-  }, [productItems]);
-
-  const active = isPostTab ? posts : isGridTab ? products : live;
+  const active = isPostTab ? posts : live;
   const onRefresh = useCallback(() => {
     active.refetch();
   }, [active]);
-  const itemW = gridItemWidth(width);
 
-  const header = (
-    <View>
-      <View style={styles.top}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Wordmark size={30} />
-          {!isProduction ? (
-            <View style={styles.envTag}>
-              <Text variant="micro" weight="800" color={colors.warning} style={{ fontSize: 9.5 }}>
-                PILOTE
-              </Text>
-            </View>
-          ) : null}
+  const chips: { key: string; label: string; icon: LucideIcon; selected?: boolean; onPress: () => void }[] = [
+    {
+      key: 'nearby',
+      label: profile?.city ? `À ${profile.city}` : 'À proximité',
+      icon: MapPin,
+      selected: tab === 'nearby',
+      onPress: () => setTab(tab === 'nearby' ? 'for_you' : 'nearby'),
+    },
+    { key: 'wecci', label: 'Wecci · Échange', icon: Repeat2, onPress: () => router.push({ pathname: '/explore', params: { kind: 'trade' } }) },
+    { key: 'occasions', label: 'Occasions', icon: Tag, onPress: () => router.push({ pathname: '/explore', params: { kind: 'used' } }) },
+    ...(liveEnabled ? [{ key: 'live', label: 'En direct', icon: Radio, selected: tab === 'live', onPress: () => setTab(tab === 'live' ? 'for_you' : 'live') }] : []),
+  ];
+
+  const top = (
+    <View style={styles.header}>
+      <View style={styles.headerRow}>
+        <Wordmark size={30} color={dark.text} />
+        <View style={styles.headerActions}>
+          <IconButton icon={Search} label="Rechercher" variant="glass" size={20} color={dark.text} onPress={() => router.push('/search')} />
+          <IconButton icon={Bell} label="Notifications" variant="glass" size={20} color={dark.text} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
         </View>
-        <IconButton icon={Bell} label="Notifications" variant="surface" size={20} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
       </View>
-      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
-        <SearchBar onPress={() => router.push('/search')} />
+      <View style={styles.tabs} accessibilityRole="tablist">
+        {(
+          [
+            ['for_you', 'Pour toi'],
+            ['following', 'Abonnements'],
+          ] as const
+        ).map(([key, label]) => {
+          const on = tab === key;
+          return (
+            <Pressable key={key} onPress={() => setTab(key)} style={styles.tab} accessibilityRole="tab" accessibilityState={{ selected: on }} aria-selected={on} accessibilityLabel={label}>
+              <Text weight="700" color={on ? dark.text : dark.textTertiary} style={{ fontSize: 15, lineHeight: 20 }}>
+                {label}
+              </Text>
+              {on ? <View style={styles.tabLine} /> : null}
+            </Pressable>
+          );
+        })}
+        {!isProduction ? (
+          <View style={styles.envTag} accessibilityLabel="Version pilote">
+            <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 10, letterSpacing: 1.2 }}>
+              PILOTE
+            </Text>
+          </View>
+        ) : null}
       </View>
+    </View>
+  );
+
+  const listHeader = (
+    <View>
       <StoryRail />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-        {FEED_TABS.map((t) => (
-          <Chip key={t.key} label={t.label} selected={tab === t.key} onPress={() => setTab(t.key)} />
+        {chips.map(({ key, label, icon: Icon, selected, onPress }) => (
+          <Pressable
+            key={key}
+            onPress={onPress}
+            hitSlop={{ top: 4, bottom: 4 }}
+            style={({ pressed }) => [styles.chip, selected && styles.chipOn, pressed && { transform: [{ scale: 0.96 }] }]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !!selected }}
+            aria-selected={!!selected}
+            accessibilityLabel={label}
+          >
+            <Icon size={14} color={dark.mint} strokeWidth={2.2} />
+            <Text variant="callout" weight="600" color={selected ? dark.text : dark.textStrong} style={{ fontSize: 13 }}>
+              {label}
+            </Text>
+          </Pressable>
         ))}
       </ScrollView>
-      {tab === 'nearby' && !profile?.city ? (
-        <EmptyState
-          compact
-          icon={MapPin}
-          title="Indiquez votre ville"
-          body="Ajoutez votre ville (approximative) dans votre profil pour voir ce qui se passe près de chez vous."
-          actionLabel="Modifier mon profil"
-          onAction={() => router.push('/edit-profile')}
-        />
-      ) : null}
     </View>
   );
 
   const empty = () => {
-    if (active.isPending) return <FeedSkeleton grid={isGridTab} />;
-    if (active.isError) return <ErrorState message={toFrenchError(active.error)} onRetry={onRefresh} />;
-    if (tab === 'nearby' && !profile?.city) return null;
-    const map: Record<FeedTab, { icon: typeof Users; title: string; body: string; action?: [string, () => void] }> = {
-      for_you: { icon: Sparkles, title: 'Votre fil est encore calme', body: 'Suivez des vendeurs et des amis, ou publiez la première photo de votre boutique.', action: ['Explorer', () => router.push('/explore')] },
-      following: { icon: Users, title: 'Aucune publication de vos abonnements', body: 'Suivez des membres depuis Explorer pour retrouver leurs nouveautés ici.', action: ['Trouver des vendeurs', () => router.push('/explore')] },
-      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.' },
-      live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les vendeurs que vous suivez apparaîtront ici dès qu’ils passent en direct.' },
-      occasions: { icon: Tag, title: 'Pas encore d’occasions', body: 'Vendez un objet que vous n’utilisez plus : il trouvera preneur près de chez vous.', action: ['Vendre un article', () => router.push('/publish/listing')] },
-      troc: { icon: Repeat, title: 'Aucun article à échanger', body: 'Proposez un article « À échanger » ou « Vente ou troc ».', action: ['Proposer un troc', () => router.push('/publish/listing')] },
+    if (tab === 'nearby' && !profile?.city) {
+      return (
+        <EmptyState
+          tone="dark"
+          compact
+          icon={MapPin}
+          title="Indiquez votre ville"
+          body="Ajoutez votre ville pour voir ce qui se passe près de chez vous."
+          actionLabel="Modifier mon profil"
+          onAction={() => router.push('/edit-profile')}
+        />
+      );
+    }
+    if (active.isPending) return <FeedSkeleton />;
+    if (active.isError) return <ErrorState tone="dark" message={toFrenchError(active.error)} onRetry={onRefresh} />;
+    const map: Record<HomeTab, { icon: LucideIcon; title: string; body: string; action?: [string, () => void] }> = {
+      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push('/publish/post')] },
+      following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
+      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push('/publish/post')] },
+      live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les directs des vendeurs suivis apparaîtront ici.' },
     };
     const e = map[tab];
-    return <EmptyState icon={e.icon} title={e.title} body={e.body} actionLabel={e.action?.[0]} onAction={e.action?.[1]} />;
+    return <EmptyState tone="dark" icon={e.icon} title={e.title} body={e.body} actionLabel={e.action?.[0]} onAction={e.action?.[1]} />;
   };
 
-  if (tab === 'live') {
+  const footer = () => {
+    if (!isPostTab) return <View style={{ height: dockSpace }} />;
+    if (posts.isFetchingNextPage) return <FeedSkeleton />;
     return (
-      <Screen>
+      <View style={{ paddingBottom: dockSpace }}>
+        {postItems.length > 0 && !posts.hasNextPage ? (
+          <View style={styles.caughtUp}>
+            <Text serif variant="title" tone="fog" align="center" style={{ fontSize: 20 }}>
+              Vous êtes à jour
+            </Text>
+            <Button label="Continuer dans Explorer" variant="outlineDark" pill icon={Compass} onPress={() => router.push('/explore')} style={{ marginTop: spacing.md }} />
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
+  return (
+    <Screen background={dark.background}>
+      {top}
+      {tab === 'live' ? (
         <FlatList
           data={live.data ?? []}
           keyExtractor={(l) => l.id}
-          ListHeaderComponent={header}
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={empty}
+          ListFooterComponent={footer}
           renderItem={({ item }) => <LiveRow live={item} />}
-          refreshControl={<RefreshControl refreshing={live.isRefetching} onRefresh={onRefresh} tintColor={colors.ink} />}
-          contentContainerStyle={{ paddingBottom: spacing.xxl }}
+          refreshControl={<RefreshControl refreshing={live.isRefetching} onRefresh={onRefresh} tintColor={dark.text} />}
         />
-      </Screen>
-    );
-  }
-
-  if (isGridTab) {
-    return (
-      <Screen>
-        <FlatList
-          key="grid"
-          data={productRows}
-          keyExtractor={(row) => row.map((p) => p.id).join('-')}
-          ListHeaderComponent={header}
+      ) : (
+        <FlatList<PostCardData>
+          key="posts"
+          data={tab === 'nearby' && !profile?.city ? [] : postItems}
+          keyExtractor={(p) => p.id}
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={empty}
-          renderItem={({ item }) => (
-            <View style={styles.gridRow}>
-              {item.map((p) => (
-                <ListingCard key={p.id} product={p} width={itemW} />
-              ))}
-            </View>
-          )}
-          onEndReached={() => products.hasNextPage && !products.isFetchingNextPage && products.fetchNextPage()}
+          renderItem={({ item }) => <PostCard post={item} showReason={tab === 'for_you'} />}
+          onEndReached={() => posts.hasNextPage && !posts.isFetchingNextPage && posts.fetchNextPage()}
           onEndReachedThreshold={0.6}
-          refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={onRefresh} tintColor={colors.ink} />}
-          contentContainerStyle={{ paddingBottom: spacing.xxl }}
+          ListFooterComponent={footer}
+          refreshControl={<RefreshControl refreshing={posts.isRefetching && !posts.isFetchingNextPage} onRefresh={onRefresh} tintColor={dark.text} />}
+          removeClippedSubviews
+          windowSize={7}
+          indicatorStyle="white"
         />
-      </Screen>
-    );
-  }
-
-  return (
-    <Screen>
-      <FlatList<PostCardData>
-        key="posts"
-        data={postItems}
-        keyExtractor={(p) => p.id}
-        ListHeaderComponent={header}
-        ListEmptyComponent={empty}
-        renderItem={({ item }) => <PostCard post={item} showReason={tab === 'for_you'} />}
-        onEndReached={() => posts.hasNextPage && !posts.isFetchingNextPage && posts.fetchNextPage()}
-        onEndReachedThreshold={0.6}
-        ListFooterComponent={posts.isFetchingNextPage ? <FeedSkeleton /> : <View style={{ height: spacing.xl }} />}
-        refreshControl={<RefreshControl refreshing={posts.isRefetching && !posts.isFetchingNextPage} onRefresh={onRefresh} tintColor={colors.ink} />}
-        removeClippedSubviews
-        windowSize={7}
-      />
+      )}
     </Screen>
   );
 }
@@ -202,12 +220,12 @@ function LiveRow({ live }: { live: LiveSessionRow }) {
     <Pressable onPress={() => router.push(`/live/${live.id}`)} style={styles.liveRow} accessibilityRole="button" accessibilityLabel={`Live de ${live.host.display_name} : ${live.title}`}>
       <Avatar path={live.host.avatar_path} name={live.host.display_name} size={52} />
       <View style={{ flex: 1, gap: 2 }}>
-        <ProfileName profile={live.host} />
-        <Text variant="callout" numberOfLines={2}>
+        <ProfileName profile={live.host} tone="dark" />
+        <Text variant="callout" tone="fog" numberOfLines={2}>
           {live.title}
         </Text>
         {live.viewer_count !== null ? (
-          <Text variant="caption" tone="secondary">
+          <Text variant="caption" tone="fogSecondary">
             {live.viewer_count} spectateur{live.viewer_count > 1 ? 's' : ''} (selon le fournisseur vidéo)
           </Text>
         ) : null}
@@ -217,42 +235,34 @@ function LiveRow({ live }: { live: LiveSessionRow }) {
   );
 }
 
-function FeedSkeleton({ grid }: { grid?: boolean }) {
-  if (grid) {
-    return (
-      <View style={[styles.gridRow, { paddingTop: spacing.sm }]}>
-        {[0, 1].map((i) => (
-          <View key={i} style={{ flex: 1, gap: 8 }}>
-            <Skeleton height={190} radius={12} />
-            <Skeleton height={14} width="60%" />
-            <Skeleton height={12} width="80%" />
-          </View>
-        ))}
-      </View>
-    );
-  }
+/** Loading state in the Lovable shape: avatar + line, then a 4:5 media block. */
+function FeedSkeleton() {
   return (
-    <View style={{ backgroundColor: colors.surface, paddingVertical: spacing.md, gap: spacing.md, marginBottom: spacing.sm }}>
-      <View style={{ flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, alignItems: 'center' }}>
-        <Skeleton width={38} height={38} radius={19} />
-        <View style={{ gap: 6, flex: 1 }}>
-          <Skeleton height={12} width="40%" />
-          <Skeleton height={10} width="25%" />
+    <View style={{ paddingHorizontal: spacing.lg, paddingTop: 20, gap: spacing.xl }} accessibilityLabel="Chargement">
+      {[0, 1].map((i) => (
+        <View key={i}>
+          <View style={{ flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md }}>
+            <Skeleton tone="dark" width={40} height={40} radius={20} />
+            <Skeleton tone="dark" height={40} radius={12} style={{ flex: 1 }} />
+          </View>
+          <Skeleton tone="dark" height={360} radius={16} />
         </View>
-      </View>
-      <Skeleton height={280} radius={0} />
-      <View style={{ paddingHorizontal: spacing.lg, gap: 8 }}>
-        <Skeleton height={12} width="90%" />
-        <Skeleton height={12} width="55%" />
-      </View>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
-  envTag: { backgroundColor: colors.warningSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2, borderWidth: 1, borderColor: colors.warningSoft },
-  chips: { paddingHorizontal: spacing.lg, gap: 6, paddingBottom: spacing.md },
-  gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.lg },
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderColor: colors.border },
+  header: { backgroundColor: dark.header, borderBottomWidth: 1, borderBottomColor: dark.border },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xs },
+  headerActions: { flexDirection: 'row', gap: spacing.sm },
+  tabs: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, paddingHorizontal: spacing.lg },
+  tab: { height: 40, justifyContent: 'center' },
+  tabLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 2, backgroundColor: colors.mint },
+  envTag: { marginLeft: 'auto', backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  chips: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.xs },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: dark.borderStrong },
+  chipOn: { borderColor: dark.mintLine, backgroundColor: dark.mintSelected },
+  caughtUp: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.lg },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderBottomWidth: 1, borderColor: dark.border },
 });

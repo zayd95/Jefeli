@@ -6,7 +6,7 @@ import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { IconButton } from './IconButton';
 import { Text } from './Text';
-import { colors, spacing } from './theme';
+import { colors, dark, spacing } from './theme';
 
 export function Screen({
   children,
@@ -42,6 +42,7 @@ export function Header({
   back = true,
   subtitle,
   left,
+  tone = 'light',
 }: {
   title?: string;
   subtitle?: string;
@@ -49,7 +50,10 @@ export function Header({
   left?: ReactNode;
   onBack?: () => void;
   back?: boolean;
+  /** dark = Atlantic night header (fog title and icons). */
+  tone?: 'light' | 'dark';
 }) {
+  const isDark = tone === 'dark';
   return (
     <View style={styles.header}>
       <View style={styles.side}>
@@ -59,18 +63,19 @@ export function Header({
               icon={ChevronLeft}
               label="Retour"
               size={26}
+              color={isDark ? dark.text : colors.ink}
               onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
             />
           ) : null)}
       </View>
       <View style={styles.center}>
         {title ? (
-          <Text variant="headline" weight="700" numberOfLines={1} accessibilityRole="header">
+          <Text variant="headline" weight="700" tone={isDark ? 'fog' : 'default'} numberOfLines={1} accessibilityRole="header">
             {title}
           </Text>
         ) : null}
         {subtitle ? (
-          <Text variant="caption" tone="secondary" numberOfLines={1}>
+          <Text variant="caption" tone={isDark ? 'fogSecondary' : 'secondary'} numberOfLines={1}>
             {subtitle}
           </Text>
         ) : null}

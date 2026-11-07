@@ -64,7 +64,7 @@ export function ContentMenu({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} tone="dark">
       {onShare ? <SheetAction icon={Share2} label="Partager" onPress={run(onShare)} /> : null}
       {isOwner && pin ? (
         <SheetAction icon={pin.pinned ? PinOff : Pin} label={pin.pinned ? 'Retirer de mon profil' : 'Épingler sur mon profil'} onPress={run(pin.onToggle)} />

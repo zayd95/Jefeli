@@ -8,6 +8,8 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './specs',
+  // Seeds the DÉMO set if absent and refreshes its 24-hour statuses (local stacks only).
+  globalSetup: './global-setup.ts',
   timeout: 12 * 60 * 1000,
   expect: { timeout: 20_000 },
   fullyParallel: false,

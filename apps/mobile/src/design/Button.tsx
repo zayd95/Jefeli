@@ -2,9 +2,9 @@ import type { LucideIcon } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Text } from './Text';
-import { colors, radius, touchTarget } from './theme';
+import { colors, dark, radius, touchTarget } from './theme';
 
-type Variant = 'primary' | 'cta' | 'outline' | 'ghost' | 'danger' | 'soft';
+type Variant = 'primary' | 'cta' | 'outline' | 'ghost' | 'danger' | 'soft' | 'outlineDark' | 'ghostDark';
 type Size = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -14,6 +14,8 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
   icon?: LucideIcon;
   loading?: boolean;
   fullWidth?: boolean;
+  /** Lovable pill shape (rounded-full) instead of the 12-pt rounded rectangle. */
+  pill?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -24,6 +26,9 @@ const palettes: Record<Variant, { bg: string; bgPressed: string; fg: string; bor
   ghost: { bg: 'transparent', bgPressed: colors.surfaceSubtle, fg: colors.ink },
   danger: { bg: colors.dangerSoft, bgPressed: '#F6D6D8', fg: colors.danger },
   soft: { bg: colors.surfaceSubtle, bgPressed: colors.surfaceMuted, fg: colors.ink },
+  // Atlantic After Dark (Lovable `border-lab-fog/20 text-lab-fog`)
+  outlineDark: { bg: 'transparent', bgPressed: dark.subtle, fg: dark.text, border: dark.borderStrong },
+  ghostDark: { bg: 'transparent', bgPressed: dark.subtle, fg: dark.text },
 };
 
 const heights: Record<Size, number> = { sm: 36, md: touchTarget + 2, lg: 52 };
@@ -36,6 +41,7 @@ export function Button({
   loading,
   disabled,
   fullWidth,
+  pill,
   style,
   ...rest
 }: ButtonProps) {
@@ -59,6 +65,7 @@ export function Button({
           borderWidth: p.border ? 1 : 0,
           opacity: isDisabled && !loading ? 0.45 : 1,
           alignSelf: fullWidth ? 'stretch' : 'auto',
+          borderRadius: pill ? radius.pill : radius.md,
         },
         style,
       ]}

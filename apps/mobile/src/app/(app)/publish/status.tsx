@@ -5,8 +5,9 @@ import { Camera, ImagePlus, ShoppingBag, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { OptionRow, UploadOverlay } from '@/components/Composer';
+import { ChoicePills, OptionRow, UploadOverlay } from '@/components/Composer';
 import { VideoPlayerInline } from '@/components/Media';
+import { PublishHeader } from '@/components/PublishSwitcher';
 import { Button, Chip, colors, fonts, IconButton, Screen, spacing, Text, useToast } from '@/design';
 import { fetchSellerProducts } from '@/lib/api/products';
 import { getSettings } from '@/lib/api/profiles';
@@ -79,21 +80,33 @@ export default function NewStatus() {
   }
 
   if (!media) {
+    // Lovable « Statut » mode, next to Publication and Article in the same switcher.
     return (
       <Screen edges={['top', 'bottom']}>
-        <View style={styles.header}>
-          <Text variant="title">Votre statut</Text>
-          <IconButton icon={X} label="Fermer" onPress={() => goBack()} />
-        </View>
-        <View style={styles.pickArea}>
-          <Text tone="secondary" align="center" style={{ maxWidth: 300 }}>
-            Une photo ou une vidéo (60 s max), visible 24 h. Vous pourrez la garder sur votre profil en l’ajoutant à une sélection.
-          </Text>
-          <View style={{ gap: spacing.md, alignSelf: 'stretch' }}>
-            {Platform.OS !== 'web' ? <Button label="Prendre une photo ou une vidéo" icon={Camera} variant="cta" size="lg" onPress={() => choose(true)} /> : null}
-            <Button label="Choisir dans la galerie" icon={ImagePlus} variant="outline" size="lg" onPress={() => choose(false)} />
+        <PublishHeader mode="status" />
+        <ScrollView contentContainerStyle={styles.pickArea}>
+          <View style={{ gap: 4 }}>
+            <Text serif weight="600" style={{ fontSize: 26, lineHeight: 31, color: colors.ink }}>
+              Votre statut, 24 heures.
+            </Text>
+            <Text variant="caption" tone="secondary" style={{ fontSize: 13 }}>
+              Photo ou vidéo, 60 s max.
+            </Text>
           </View>
-        </View>
+          <View style={{ gap: spacing.md }}>
+            {Platform.OS !== 'web' ? <Button label="Prendre une photo ou une vidéo" icon={Camera} variant="primary" size="lg" pill onPress={() => choose(true)} /> : null}
+            <Button label="Choisir dans la galerie" icon={ImagePlus} variant="outline" size="lg" pill onPress={() => choose(false)} style={{ backgroundColor: colors.surface }} />
+          </View>
+          <View style={{ gap: spacing.sm }}>
+            <Text variant="callout" weight="600" style={{ fontSize: 13 }}>
+              Qui peut voir votre statut ?
+            </Text>
+            <ChoicePills<Audience> value={effectiveAudience} onChange={setAudience} options={(['public', 'followers', 'friends'] as Audience[]).map((k) => ({ key: k, label: AUDIENCE_LABELS[k] }))} />
+            <Text variant="caption" tone="secondary">
+              Les réponses arrivent en message privé.
+            </Text>
+          </View>
+        </ScrollView>
       </Screen>
     );
   }
@@ -161,8 +174,7 @@ export default function NewStatus() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.sm, paddingTop: spacing.sm },
-  pickArea: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.xl },
+  pickArea: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.xl },
   previewWrap: { flex: 1, padding: spacing.sm },
   preview: { flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: '#000' },
   previewTop: { position: 'absolute', top: spacing.sm, right: spacing.sm },

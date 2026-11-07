@@ -129,7 +129,7 @@ export function SearchBar({
 
 // Chromium's `outline-style: auto` focus ring ignores outline-width, so the style itself is
 // removed on web (react-native-web passes it through; the native types don't list 'none').
-const WEB_NO_OUTLINE = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as TextStyle;
+export const WEB_NO_OUTLINE = (Platform.OS === 'web' ? { outlineStyle: 'none' } : {}) as unknown as TextStyle;
 
 const styles = StyleSheet.create({
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -6,6 +6,12 @@ import { AppState, Platform } from 'react-native';
 import { env } from './env';
 import { authStorage } from './secure-storage';
 
+/**
+ * On the web, the URL the app was opened with. Read before the client below starts: supabase-js
+ * consumes an auth callback fragment (detectSessionInUrl) and then clears it from the address bar.
+ */
+export const initialWebUrl = Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.href : null;
+
 export const supabase = createClient<Database>(
   env.supabaseUrl || 'http://localhost:54321',
   env.supabaseKey || 'missing-key',

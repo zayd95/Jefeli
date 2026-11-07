@@ -5,6 +5,7 @@ import { Linking, ScrollView, StyleSheet } from 'react-native';
 
 import { Button, Checkbox, Field, Header, Screen, spacing, Text } from '@/design';
 import { env } from '@/lib/env';
+import { confirmEmailRedirectUrl } from '@/lib/recovery';
 import { supabase } from '@/lib/supabase';
 
 export default function SignUp() {
@@ -25,7 +26,7 @@ export default function SignUp() {
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: { display_name: name.trim() }, emailRedirectTo: 'jefeli://' },
+      options: { data: { display_name: name.trim() }, emailRedirectTo: confirmEmailRedirectUrl() },
     });
     setLoading(false);
     if (err) return setError(toFrenchError(err));

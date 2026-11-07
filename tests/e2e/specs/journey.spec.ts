@@ -14,6 +14,12 @@ const B = { name: `Boutique Test ${RUN}`, email: `b-${RUN}@e2e.jefeli.test`, han
 const LISTING = `Baskets test ${RUN}`;
 const A_ITEM = `Sac test ${RUN}`;
 const DIR = 'journey';
+// The DÉMO admin by default; a pilot moderator bootstrapped by SQL on an unseeded database
+// (docs/PILOT_OPERATIONS.md) when E2E_MODERATOR_EMAIL / E2E_MODERATOR_PASSWORD are set.
+const MODERATOR = {
+  email: process.env.E2E_MODERATOR_EMAIL ?? 'admin@demo.jefeli.test',
+  password: process.env.E2E_MODERATOR_PASSWORD ?? 'Demo-jefeli-2026!',
+};
 
 let ctxA: BrowserContext;
 let ctxB: BrowserContext;
@@ -55,10 +61,12 @@ test.describe.serial('Two-account social commerce journey', () => {
     expect(productUrl).toMatch(/\/p\/[0-9a-f-]{36}$/);
     await shot(b, DIR, 'B-product-owner-view');
 
-    // The boutique is part of the profile — created by the first listing, no wizard.
+    // The boutique is part of the profile — created by the first listing, no wizard. Lovable
+    // compact profile: it is the « Boutique » tab (with its count), not a preview carousel.
     await b.goto('/profile');
-    await expect(b.getByText('Ma boutique', { exact: true }).last()).toBeVisible();
-    await expect(b.getByText('1', { exact: true }).first()).toBeVisible();
+    await expect(b.getByRole('tab', { name: 'Boutique, 1' })).toBeVisible();
+    await b.getByRole('tab', { name: 'Boutique, 1' }).click();
+    await expect(b.getByRole('button', { name: new RegExp(`^${LISTING}, `) })).toBeVisible();
     await shot(b, DIR, 'B-profile-with-boutique');
   });
 
@@ -199,12 +207,12 @@ test.describe.serial('Two-account social commerce journey', () => {
     await expect(a.getByText('Merci pour votre signalement', { exact: true }).last()).toBeVisible();
     await shot(a, DIR, 'A-report-sent');
 
-    // Moderator (seeded demo admin) reviews it in the restricted web console.
+    // A moderator reviews it in the restricted web console.
     const admin = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'fr-FR' });
     const m = await admin.newPage();
     await m.goto(`${WEB_URL}/admin`);
-    await m.getByLabel(/e-mail/i).fill('admin@demo.jefeli.test');
-    await m.getByLabel(/mot de passe/i).fill('Demo-jefeli-2026!');
+    await m.getByLabel(/e-mail/i).fill(MODERATOR.email);
+    await m.getByLabel(/mot de passe/i).fill(MODERATOR.password);
     await m.getByRole('button', { name: /se connecter/i }).click();
     await expect(m.getByText(LISTING).first()).toBeVisible({ timeout: 30_000 });
     await m.getByText(LISTING).first().click();

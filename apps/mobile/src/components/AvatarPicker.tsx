@@ -101,11 +101,7 @@ export function CoverPicker({ userId, path, onChange }: { userId: string; path: 
             Retirer la couverture
           </Text>
         </Pressable>
-      ) : (
-        <Text variant="caption" tone="secondary">
-          Une photo de votre boutique, de vos créations ou de votre quartier.
-        </Text>
-      )}
+      ) : null}
     </View>
   );
 }

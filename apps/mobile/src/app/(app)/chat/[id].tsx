@@ -11,7 +11,7 @@ import { MessageBubble } from '@/components/chat/MessageBubble';
 import { OfferCard } from '@/components/chat/OfferCard';
 import { ProductPicker } from '@/components/chat/ProductPicker';
 import { ProfileName } from '@/components/ProfileName';
-import { Avatar, colors, EmptyState, Header, IconButton, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
+import { Avatar, dark, EmptyState, Header, IconButton, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast } from '@/design';
 import {
   deleteMessage,
   fetchAgreementsForConversation,
@@ -33,8 +33,11 @@ import { useConversationRealtime } from '@/lib/realtime';
 import { compressImage, newObjectPath, pickMedia, uploadErrorMessage, uploadWithRetry, UploadError } from '@/lib/upload';
 import type { MessageRow } from '@/lib/types';
 import { goBack } from '@/lib/nav';
+import { useDarkStatusBar } from '@/lib/statusBar';
 
+/** Conversation on Atlantic night (Lovable thread): mint bubbles for me, deep bubbles for them. */
 export default function ChatScreen() {
+  useDarkStatusBar();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userId } = useAuth();
   const me = userId ?? '';
@@ -126,29 +129,29 @@ export default function ChatScreen() {
 
   if (conv.isPending) {
     return (
-      <Screen>
-        <Header />
+      <Screen background={dark.background}>
+        <Header tone="dark" />
         <View style={{ padding: spacing.lg, gap: spacing.md }}>
-          <Skeleton height={40} width="60%" />
-          <Skeleton height={40} width="45%" style={{ alignSelf: 'flex-end' }} />
+          <Skeleton tone="dark" height={40} width="60%" radius={20} />
+          <Skeleton tone="dark" height={40} width="45%" radius={20} style={{ alignSelf: 'flex-end' }} />
         </View>
       </Screen>
     );
   }
   if (!conv.data) {
     return (
-      <Screen>
-        <Header />
-        <EmptyState icon={MessageCircleOff} title="Conversation introuvable" body="Elle a peut-être été supprimée, ou vous n’en faites pas partie." />
+      <Screen background={dark.background}>
+        <Header tone="dark" />
+        <EmptyState tone="dark" icon={MessageCircleOff} title="Conversation introuvable" body="Elle a peut-être été supprimée, ou vous n’en faites pas partie." />
       </Screen>
     );
   }
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} background={dark.background}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.peerBar}>
-          <IconButton icon={ChevronLeft} label="Retour" size={26} onPress={() => goBack('/messages')} />
+          <IconButton icon={ChevronLeft} label="Retour" size={26} color={dark.text} onPress={() => goBack('/messages')} />
           <Pressable
             style={styles.peer}
             onPress={() => other?.profile && router.push(`/u/${other.profile.handle}`)}
@@ -157,14 +160,14 @@ export default function ChatScreen() {
           >
             <Avatar path={other?.profile?.avatar_path} name={otherName} size={40} />
             <View style={{ flex: 1 }}>
-              {other?.profile ? <ProfileName profile={other.profile} /> : <Text variant="bodyStrong">{otherName}</Text>}
-              <Text variant="caption" tone="secondary" numberOfLines={1}>
+              {other?.profile ? <ProfileName profile={other.profile} tone="dark" /> : <Text variant="bodyStrong" tone="fog">{otherName}</Text>}
+              <Text variant="caption" tone="fogSecondary" numberOfLines={1}>
                 @{other?.profile?.handle}
                 {mine?.muted ? ' · en sourdine' : ''}
               </Text>
             </View>
           </Pressable>
-          <IconButton icon={MoreHorizontal} label="Options de la conversation" onPress={() => setMenu(true)} />
+          <IconButton icon={MoreHorizontal} label="Options de la conversation" color={dark.text} onPress={() => setMenu(true)} />
         </View>
 
         <FlatList
@@ -177,8 +180,8 @@ export default function ChatScreen() {
           ListFooterComponent={
             !messages.hasNextPage && !messages.isPending ? (
               <View style={styles.safety}>
-                <ShieldCheck size={16} color={colors.accentDeep} />
-                <Text variant="caption" tone="secondary" style={{ flex: 1 }}>
+                <ShieldCheck size={16} color={dark.mint} />
+                <Text variant="caption" tone="fogSecondary" style={{ flex: 1 }}>
                   {PLATFORM_DISCLAIMER} Ne partagez jamais de codes reçus par SMS.
                 </Text>
               </View>
@@ -215,7 +218,7 @@ export default function ChatScreen() {
           }}
           ListEmptyComponent={
             messages.isPending ? undefined : (
-              <Text variant="callout" tone="secondary" align="center" style={{ padding: spacing.xl, transform: [{ scaleY: -1 }] }}>
+              <Text variant="callout" tone="fogSecondary" align="center" style={{ padding: spacing.xl, transform: [{ scaleY: -1 }] }}>
                 Dites bonjour à {otherName}.
               </Text>
             )
@@ -232,7 +235,7 @@ export default function ChatScreen() {
 
       <ProductPicker visible={picker} onClose={() => setPicker(false)} me={me} otherId={other?.user_id ?? null} otherName={otherName} onSend={onSendProducts} />
 
-      <Sheet visible={menu} onClose={() => setMenu(false)}>
+      <Sheet visible={menu} onClose={() => setMenu(false)} tone="dark">
         <SheetAction
           icon={mine?.muted ? Bell : BellOff}
           label={mine?.muted ? 'Réactiver les notifications' : 'Mettre en sourdine'}
@@ -285,7 +288,7 @@ export default function ChatScreen() {
         ) : null}
       </Sheet>
 
-      <Sheet visible={!!selected} onClose={() => setSelected(null)}>
+      <Sheet visible={!!selected} onClose={() => setSelected(null)} tone="dark">
         {selected?.sender_id === me ? (
           <SheetAction
             icon={Trash2}
@@ -321,8 +324,9 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  peerBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xs, paddingVertical: spacing.xs, borderBottomWidth: 1, borderColor: colors.border },
+  peerBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xs, paddingVertical: spacing.xs, borderBottomWidth: 1, borderColor: dark.border, backgroundColor: dark.header },
   peer: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44 },
   offerRow: { paddingHorizontal: spacing.md, marginVertical: spacing.sm },
-  safety: { flexDirection: 'row', gap: spacing.sm, margin: spacing.lg, padding: spacing.md, backgroundColor: colors.mintSoft, borderRadius: 12 },
+  // Lovable: a quiet deep card reminding that payment and delivery are settled between members.
+  safety: { flexDirection: 'row', gap: spacing.sm, margin: spacing.lg, padding: spacing.md, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, borderRadius: 16, alignSelf: 'center', maxWidth: 340 },
 });

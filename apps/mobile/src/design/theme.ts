@@ -1,16 +1,25 @@
-import { colors, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
+import { colors, dark, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
-export { colors, radius, spacing, typeScale, touchTarget, palette };
+export { colors, dark, radius, spacing, typeScale, touchTarget, palette };
 
-/** Inter ships every weight as its own family on native. */
+/**
+ * Lovable typography: Hanken Grotesk for body/labels (`font-lab`), Fraunces for editorial
+ * display text (`font-display`). Each weight ships as its own family on native.
+ */
 export const fonts = {
-  regular: 'Inter_400Regular',
-  medium: 'Inter_500Medium',
-  semibold: 'Inter_600SemiBold',
-  bold: 'Inter_700Bold',
-  extrabold: 'Inter_800ExtraBold',
+  regular: 'HankenGrotesk_400Regular',
+  medium: 'HankenGrotesk_500Medium',
+  semibold: 'HankenGrotesk_600SemiBold',
+  bold: 'HankenGrotesk_700Bold',
+  extrabold: 'HankenGrotesk_800ExtraBold',
+  serif: 'Fraunces_400Regular',
+  serifSemibold: 'Fraunces_600SemiBold',
 } as const;
+
+export function serifFor(weight: TextStyle['fontWeight']): string {
+  return weight === '400' || weight === 'normal' || weight === '300' || weight === '500' ? fonts.serif : fonts.serifSemibold;
+}
 
 export function fontFor(weight: TextStyle['fontWeight']): string {
   switch (weight) {
@@ -30,6 +39,12 @@ export function fontFor(weight: TextStyle['fontWeight']): string {
 }
 
 export const shadow = {
+  /** Lovable light product card: `0 8px 24px -16px ink/35`. */
+  paper: Platform.select<ViewStyle>({
+    ios: { shadowColor: '#10252C', shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } },
+    android: { elevation: 2 },
+    default: { boxShadow: '0 8px 24px -16px rgba(16,37,44,0.35)' } as ViewStyle,
+  }),
   card: Platform.select<ViewStyle>({
     ios: { shadowColor: '#10252C', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
     android: { elevation: 1 },

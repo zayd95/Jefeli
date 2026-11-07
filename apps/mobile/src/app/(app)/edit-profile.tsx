@@ -1,14 +1,18 @@
 import { HANDLE_PATTERN, normalizeHandle, toFrenchError } from '@jefeli/shared';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { AvatarPicker, CoverPicker } from '@/components/AvatarPicker';
 import { BoutiqueIdentityFields, boutiqueIdentityValid } from '@/components/BoutiqueIdentityFields';
 import { LocationPicker } from '@/components/LocationPicker';
-import { Button, Field, Header, Screen, spacing, Text, Toggle, useToast } from '@/design';
+import { Button, Chip, colors, Field, Header, Screen, spacing, Text, Toggle, useToast } from '@/design';
+import { fetchCategories } from '@/lib/api/products';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 import { goBack } from '@/lib/nav';
+
+const MAX_INTERESTS = 5;
 
 export default function EditProfile() {
   const { userId, profile, refreshProfile } = useAuth();
@@ -24,6 +28,10 @@ export default function EditProfile() {
   const [merchant, setMerchant] = useState(profile?.is_merchant ?? false);
   const [boutiqueName, setBoutiqueName] = useState(profile?.boutique_name ?? '');
   const [boutiqueCategory, setBoutiqueCategory] = useState<string | null>(profile?.boutique_category_slug ?? null);
+  // Business sectors (Lovable « Intérêts business »): up to five active category slugs, stored in
+  // the existing profiles.interests array that the feed ranking already reads. Never hobbies.
+  const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
+  const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity });
   const [showErrors, setShowErrors] = useState(false);
   const [remote, setRemote] = useState<{ handle: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -61,6 +69,8 @@ export default function EditProfile() {
         // Kept when « Je vends régulièrement » is switched off, so switching it back on is one tap.
         boutique_name: boutiqueName.trim().length >= 2 ? boutiqueName.trim().slice(0, 60) : null,
         boutique_category_slug: boutiqueCategory,
+        // Only when edited: members with more sectors from the former onboarding keep them all.
+        ...(interests.join('|') !== (profile?.interests ?? []).join('|') ? { interests } : {}),
       });
       await refreshProfile();
       toast('Profil mis à jour', 'success');
@@ -88,6 +98,26 @@ export default function EditProfile() {
           hint="Changer votre nom d’utilisateur change l’adresse de votre profil public."
         />
         <Field label="Bio" value={bio} onChangeText={setBio} multiline maxLength={300} counter />
+        <View style={{ gap: spacing.sm }}>
+          <Text variant="callout" weight="600">
+            Intérêts business · jusqu’à {MAX_INTERESTS}
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {(categories.data ?? []).map((c) => {
+              const on = interests.includes(c.slug);
+              const full = !on && interests.length >= MAX_INTERESTS;
+              return (
+                <Chip
+                  key={c.slug}
+                  label={c.name}
+                  selected={on}
+                  onPress={full ? undefined : () => setInterests((v) => (on ? v.filter((x) => x !== c.slug) : [...v, c.slug]))}
+                  style={on ? undefined : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, opacity: full ? 0.45 : 1 }}
+                />
+              );
+            })}
+          </View>
+        </View>
         <LocationPicker
           city={city}
           neighborhood={neighborhood}

@@ -4,6 +4,7 @@ import {
   formatClock, toFrenchError, describeCashDifference, signedDifferenceLabel, canRespond, canWithdraw,
   shareUrls,
   formatMemberSince, publicStorageUrl, timeLeft, formatListingPrice, hasDisplayedPrice,
+  suggestHandle, toSenegalE164,
 } from '../src';
 
 const NN = '\u00A0';
@@ -140,5 +141,40 @@ describe('toFrenchError — boutique identity checks', () => {
     expect(toFrenchError({ message: 'new row for relation "profiles" violates check constraint "profiles_boutique_name_length"' })).toBe(
       'Le nom de la boutique doit compter entre 2 et 60 caractères.',
     );
+    // A double tap on « Envoyer la proposition » (reproduced in integration 15): not « invalid form ».
+    expect(toFrenchError({ code: '23505', message: 'duplicate key value violates unique constraint "offers_one_pending_per_pair"' })).toBe(
+      'Vous avez déjà une proposition en attente pour cet article.',
+    );
+    // « Nouveau mot de passe » after a recovery link, when the member re-types the old one.
+    expect(toFrenchError({ code: 'same_password', message: 'New password should be different from the old password.' })).toBe(
+      'Choisissez un mot de passe différent de l’ancien.',
+    );
+  });
+});
+
+describe('one-screen onboarding helpers', () => {
+  it('suggests a valid, editable handle from the display name', () => {
+    expect(suggestHandle('Awa Ndiaye')).toBe('awa.ndiaye');
+    expect(suggestHandle('  Aïssatou   Diop ')).toBe('aissatou.diop');
+    expect(suggestHandle('Awa ')).toBe('awa');
+    expect(HANDLE_PATTERN.test(suggestHandle('Mamadou Lamine Ndiaye-Sarr'))).toBe(true);
+    expect(suggestHandle('x'.repeat(40)).length).toBe(30);
+  });
+});
+
+describe('Senegal-only SMS numbers (+221)', () => {
+  it('accepts Senegalese mobile and fixed numbers in common spellings', () => {
+    expect(toSenegalE164('77 123 45 67')).toBe('+221771234567');
+    expect(toSenegalE164('+221 76 000 11 22')).toBe('+221760001122');
+    expect(toSenegalE164('00221 70 999 88 77')).toBe('+221709998877');
+    expect(toSenegalE164('221781234567')).toBe('+221781234567');
+    expect(toSenegalE164('33 821 00 00')).toBe('+221338210000');
+  });
+  it('refuses numbers outside Senegal or malformed ones', () => {
+    expect(toSenegalE164('+33 6 12 34 56 78')).toBeNull();
+    expect(toSenegalE164('+1 415 555 0100')).toBeNull();
+    expect(toSenegalE164('77 123 45')).toBeNull();
+    expect(toSenegalE164('79 123 45 67')).toBeNull();
+    expect(toSenegalE164('')).toBeNull();
   });
 });

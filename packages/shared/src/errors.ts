@@ -56,6 +56,7 @@ const AUTH_ERRORS: Array<[RegExp, string]> = [
   [/invalid login credentials/i, 'E-mail ou mot de passe incorrect.'],
   [/user already registered/i, 'Un compte existe déjà avec cet e-mail.'],
   [/password should be at least/i, 'Le mot de passe doit contenir au moins 8 caractères.'],
+  [/should be different from the old password/i, 'Choisissez un mot de passe différent de l’ancien.'],
   [/email not confirmed/i, 'Confirmez votre e-mail avant de vous connecter.'],
   [/rate limit|too many requests/i, 'Trop de tentatives. Réessayez dans quelques minutes.'],
   [/invalid.*(otp|token)|token has expired/i, 'Code invalide ou expiré.'],
@@ -83,6 +84,8 @@ function errorMessageRaw(err: unknown): string {
 /** French message for any error coming from Supabase / fetch / our RPCs. */
 /** Table checks whose violation deserves a precise message (matched on the constraint name). */
 const CONSTRAINT_ERRORS: [string, string][] = [
+  // Two taps in the same instant: the unique index (not the RPC check) rejects the second one.
+  ['offers_one_pending_per_pair', 'Vous avez déjà une proposition en attente pour cet article.'],
   ['profiles_boutique_identity_required', 'Pour être affiché comme vendeur, indiquez le nom et la catégorie de votre boutique.'],
   ['profiles_boutique_name_length', 'Le nom de la boutique doit compter entre 2 et 60 caractères.'],
 ];

@@ -8,28 +8,18 @@ import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle }
 
 import { Button } from './Button';
 import { Text } from './Text';
-import { colors, radius, shadow, spacing } from './theme';
+import { colors, dark, radius, shadow, spacing } from './theme';
 
+/** Lovable wordmark: Fraunces semibold « Jëfëli » with a gold full stop. */
 export function Wordmark({ size = 28, color = colors.ink }: { size?: number; color?: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end' }} accessibilityRole="header" accessibilityLabel="Jëfëli">
-      <Text
-        weight="800"
-        color={color}
-        style={{ fontSize: size, lineHeight: size * 1.18, letterSpacing: -size * 0.055 }}
-      >
+      <Text serif weight="600" color={color} style={{ fontSize: size, lineHeight: size * 1.2, letterSpacing: -size * 0.025 }}>
         Jëfëli
+        <Text serif weight="600" color={colors.gold} style={{ fontSize: size, lineHeight: size * 1.2 }}>
+          .
+        </Text>
       </Text>
-      <View
-        style={{
-          width: size * 0.2,
-          height: size * 0.2,
-          borderRadius: size * 0.05,
-          backgroundColor: colors.accentDeep,
-          marginLeft: size * 0.06,
-          marginBottom: size * 0.2,
-        }}
-      />
     </View>
   );
 }
@@ -97,7 +87,17 @@ export function VerifiedBadge({ size = 16 }: { size?: number }) {
   );
 }
 
-export function DemoBadge() {
+export function DemoBadge({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
+  if (tone === 'dark') {
+    // Lovable DemoTag on Atlantic night: quiet fog pill, still clearly « DÉMO ».
+    return (
+      <View style={styles.demoDark} accessibilityLabel="Compte de démonstration">
+        <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 9.5, letterSpacing: 1.1 }}>
+          DÉMO
+        </Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.demo} accessibilityLabel="Compte de démonstration">
       <Text variant="micro" weight="800" color={colors.warning} style={{ fontSize: 9.5, letterSpacing: 0.6 }}>
@@ -144,7 +144,19 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
   );
 }
 
-export function Skeleton({ width, height, radius: r = radius.sm, style }: { width?: number | `${number}%`; height: number; radius?: number; style?: StyleProp<ViewStyle> }) {
+export function Skeleton({
+  width,
+  height,
+  radius: r = radius.sm,
+  style,
+  tone = 'light',
+}: {
+  width?: number | `${number}%`;
+  height: number;
+  radius?: number;
+  style?: StyleProp<ViewStyle>;
+  tone?: 'light' | 'dark';
+}) {
   const [opacity] = useState(() => new Animated.Value(0.55));
   useEffect(() => {
     const loop = Animated.loop(
@@ -156,7 +168,7 @@ export function Skeleton({ width, height, radius: r = radius.sm, style }: { widt
     loop.start();
     return () => loop.stop();
   }, [opacity]);
-  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: colors.skeleton, opacity }, style]} />;
+  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: tone === 'dark' ? dark.raised : colors.skeleton, opacity }, style]} />;
 }
 
 export function EmptyState({
@@ -166,6 +178,7 @@ export function EmptyState({
   actionLabel,
   onAction,
   compact,
+  tone = 'light',
 }: {
   icon: LucideIcon;
   title: string;
@@ -173,17 +186,20 @@ export function EmptyState({
   actionLabel?: string;
   onAction?: () => void;
   compact?: boolean;
+  /** Dark = Lovable editorial empty state on Atlantic night (serif title, fog body). */
+  tone?: 'light' | 'dark';
 }) {
+  const isDark = tone === 'dark';
   return (
     <View style={[styles.empty, compact && { paddingVertical: spacing.xl }]}>
-      <View style={styles.emptyIcon}>
-        <Icon size={26} color={colors.ink} strokeWidth={1.8} />
+      <View style={[styles.emptyIcon, isDark && { backgroundColor: dark.mintSoft, borderWidth: 1, borderColor: dark.mintLine }]}>
+        <Icon size={26} color={isDark ? dark.mint : colors.ink} strokeWidth={1.8} />
       </View>
-      <Text variant="headline" align="center" style={{ marginTop: spacing.md }}>
+      <Text variant={isDark ? 'title' : 'headline'} serif={isDark} tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }}>
         {title}
       </Text>
       {body ? (
-        <Text variant="callout" tone="secondary" align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
+        <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
           {body}
         </Text>
       ) : null}
@@ -194,19 +210,20 @@ export function EmptyState({
   );
 }
 
-export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorState({ message, onRetry, tone = 'light' }: { message: string; onRetry?: () => void; tone?: 'light' | 'dark' }) {
+  const isDark = tone === 'dark';
   return (
     <View style={styles.empty} accessibilityLiveRegion="polite">
-      <View style={[styles.emptyIcon, { backgroundColor: colors.dangerSoft }]}>
-        <CircleAlert size={26} color={colors.danger} strokeWidth={1.8} />
+      <View style={[styles.emptyIcon, { backgroundColor: isDark ? dark.subtle : colors.dangerSoft }]}>
+        <CircleAlert size={26} color={isDark ? dark.danger : colors.danger} strokeWidth={1.8} />
       </View>
-      <Text variant="headline" align="center" style={{ marginTop: spacing.md }}>
+      <Text variant="headline" tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }}>
         Oups
       </Text>
-      <Text variant="callout" tone="secondary" align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
+      <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
         {message}
       </Text>
-      {onRetry ? <Button label="Réessayer" variant="outline" icon={RefreshCw} onPress={onRetry} style={{ marginTop: spacing.lg }} /> : null}
+      {onRetry ? <Button label="Réessayer" variant={isDark ? 'outlineDark' : 'outline'} icon={RefreshCw} onPress={onRetry} style={{ marginTop: spacing.lg }} /> : null}
     </View>
   );
 }
@@ -239,6 +256,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F0DFA8',
   },
+  demoDark: { backgroundColor: dark.subtle, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
   live: {
     flexDirection: 'row',
     alignItems: 'center',

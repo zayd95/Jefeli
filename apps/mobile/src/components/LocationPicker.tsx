@@ -10,26 +10,30 @@ export function LocationPicker({
   neighborhood,
   onChange,
   compact,
+  cityOnly,
 }: {
   city: string;
   neighborhood: string;
   onChange: (next: { city: string; neighborhood: string }) => void;
   compact?: boolean;
+  /** One-screen onboarding: the city only (all cities + « Autre »), the neighbourhood comes later. */
+  cityOnly?: boolean;
 }) {
   const isDakar = city.trim().toLowerCase() === 'dakar';
+  const other = !SENEGAL_CITIES.includes(city);
   return (
     <View style={{ gap: spacing.md }}>
       <View style={styles.note}>
         <MapPin size={16} color={colors.textSecondary} />
         <Text variant="caption" tone="secondary" style={{ flex: 1 }}>
-          Localisation approximative, choisie par vous. Jëfëli n’utilise pas votre position GPS.
+          Ville choisie par vous, sans GPS.
         </Text>
       </View>
       <Text variant="callout" weight="600">
         Ville
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-        {SENEGAL_CITIES.slice(0, compact ? 8 : 17).map((c) => (
+        {SENEGAL_CITIES.slice(0, compact && !cityOnly ? 8 : 17).map((c) => (
           <Chip
             key={c}
             label={c}
@@ -38,11 +42,12 @@ export function LocationPicker({
             style={city === c ? undefined : styles.idle}
           />
         ))}
+        {cityOnly ? <Chip label="Autre ville" selected={other} onPress={() => onChange({ city: other ? city : '', neighborhood: '' })} style={other ? undefined : styles.idle} /> : null}
       </ScrollView>
-      {!SENEGAL_CITIES.includes(city) ? (
-        <Field value={city} onChangeText={(t) => onChange({ city: t, neighborhood })} placeholder="Autre ville" maxLength={60} />
+      {other ? (
+        <Field value={city} onChangeText={(t) => onChange({ city: t, neighborhood })} placeholder="Autre ville" maxLength={60} accessibilityLabel="Autre ville" />
       ) : null}
-      {isDakar ? (
+      {cityOnly ? null : isDakar ? (
         <>
           <Text variant="callout" weight="600">
             Quartier (facultatif)

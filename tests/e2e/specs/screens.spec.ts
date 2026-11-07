@@ -38,13 +38,15 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '04-explore');
 
     await page.goto('/u/awa_couture');
-    await expect(page.getByText('Sa boutique', { exact: true })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /^Publications/ })).toHaveAttribute('aria-selected', 'true');
     await capture(page, device, '05-profile-boutique');
-    await page.getByRole('tab', { name: 'Boutique' }).click();
+    await page.getByRole('tab', { name: /^Boutique/ }).click();
     await capture(page, device, '06-profile-boutique-tab');
 
+    // Compact profile: products live in the « Boutique » tab (no carousel above the tabs).
     await page.goto('/u/baolmode');
-    await page.getByRole('button', { name: /Baskets blanches/ }).first().click();
+    await page.getByRole('tab', { name: /^Boutique/ }).click();
+    await page.getByRole('button', { name: /Baskets blanches.*F CFA/ }).first().click();
     await expect(page.getByText('Très bon état', { exact: true }).last()).toBeVisible();
     await capture(page, device, '07-product');
 
@@ -59,7 +61,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '09-status-viewer');
 
     await page.goto('/publish');
-    await expect(page.getByRole('button', { name: /^Live\./ })).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByRole('button', { name: /^Live\./ }).last()).toHaveAttribute('aria-disabled', 'true');
     await capture(page, device, '10-publish-live-disabled');
 
     await page.goto('/publish/listing');

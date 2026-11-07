@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Text } from './Text';
-import { colors, touchTarget } from './theme';
+import { colors, dark, touchTarget } from './theme';
 
 export interface IconButtonProps extends Omit<PressableProps, 'style'> {
   icon: LucideIcon;
@@ -12,7 +12,8 @@ export interface IconButtonProps extends Omit<PressableProps, 'style'> {
   filled?: boolean;
   fillColor?: string;
   badge?: number;
-  variant?: 'plain' | 'surface' | 'overlay';
+  /** glass = Lovable `.lab-glass` round button on dark/photo surfaces. */
+  variant?: 'plain' | 'surface' | 'overlay' | 'glass';
   style?: StyleProp<ViewStyle>;
 }
 
@@ -38,14 +39,15 @@ export function IconButton({
         styles.base,
         variant === 'surface' && styles.surface,
         variant === 'overlay' && styles.overlay,
+        variant === 'glass' && styles.glass,
         pressed && { opacity: 0.6 },
         style,
       ]}
     >
       <Icon size={size} color={color} strokeWidth={2} fill={filled ? (fillColor ?? color) : 'transparent'} />
       {badge ? (
-        <View style={[styles.badge, variant === 'surface' && styles.badgeOnSurface]} accessibilityLabel={`${badge} non lus`}>
-          <Text variant="micro" color={colors.white} weight="700">
+        <View style={[styles.badge, (variant === 'surface' || variant === 'glass') && styles.badgeOnSurface, variant === 'glass' && styles.badgeOnGlass]} accessibilityLabel={`${badge} non lus`}>
+          <Text variant="micro" color={variant === 'glass' ? colors.night : colors.white} weight="700">
             {badge > 99 ? '99+' : String(badge)}
           </Text>
         </View>
@@ -57,7 +59,9 @@ export function IconButton({
 const styles = StyleSheet.create({
   base: { width: touchTarget, height: touchTarget, alignItems: 'center', justifyContent: 'center', borderRadius: touchTarget / 2 },
   surface: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  overlay: { backgroundColor: 'rgba(16,37,44,0.45)' },
+  overlay: { backgroundColor: colors.overlay },
+  glass: { width: 40, height: 40, borderRadius: 20, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
+  badgeOnGlass: { backgroundColor: colors.mint, borderColor: dark.background },
   badgeOnSurface: { top: -4, right: -4 },
   badge: {
     position: 'absolute',

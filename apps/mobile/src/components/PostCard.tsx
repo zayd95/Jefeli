@@ -1,11 +1,23 @@
+/**
+ * Social post card, ported from the approved Lovable feed (Atlantic After Dark):
+ *   - no white card: posts sit on #091B19, separated by air;
+ *   - author row, then a quiet uppercase eyebrow with a coloured dot (« Demande d’aide »,
+ *     « Je propose », « Vitrine », « Moment »…);
+ *   - text-only posts become a restrained patterned card with the words in the editorial serif;
+ *   - media posts are full-bleed at their genuine aspect ratio, a tagged article floats on the
+ *     photo as a glass chip;
+ *   - the vote pill, comments, share, save, and one mint text action (« Écrire » / « Demander »).
+ * Every behaviour of the native card is kept: votes, saves, pins, edit/delete, report and block
+ * menu, private replies, product conversations and genuine comment previews.
+ */
 import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bookmark, HandHelping, MessageCircle, MessageCircleQuestionMark, MoreHorizontal, Pin, Search, Send, type LucideIcon } from 'lucide-react-native';
+import { Bookmark, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
 import { memo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Avatar, colors, IconButton, radius, spacing, Text, useToast } from '@/design';
+import { Avatar, colors, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
@@ -19,11 +31,17 @@ import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { VoteControl } from './VoteControl';
 
-const INTENT_STYLE: Record<Exclude<PostIntent, 'share'>, { icon: LucideIcon; bg: string; fg: string }> = {
-  seek: { icon: Search, bg: colors.mintSoft, fg: colors.ink },
-  offer: { icon: HandHelping, bg: colors.warningSoft, fg: colors.warning },
-  opinion: { icon: MessageCircleQuestionMark, bg: colors.surfaceMuted, fg: colors.ink },
-};
+type Eyebrow = { label: string; dot: string };
+
+function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Eyebrow {
+  if (intent === 'seek') return { label: 'Demande d’aide', dot: dark.gold };
+  if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.mint };
+  if (intent === 'opinion') return { label: INTENT_LABELS.opinion, dot: dark.textSecondary };
+  if (tagged) return { label: 'Vitrine', dot: dark.mint };
+  if (post.media[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
+  if (post.media.length > 0) return { label: 'Moment', dot: dark.textSecondary };
+  return { label: 'Publication', dot: dark.textSecondary };
+}
 
 function PostCardInner({
   post,
@@ -40,6 +58,7 @@ function PostCardInner({
   const { userId } = useAuth();
   const toast = useToast();
   const qc = useQueryClient();
+  const { width: screenWidth } = useWindowDimensions();
   const [expanded, setExpanded] = useState(false);
   const [menu, setMenu] = useState(false);
   const [contacting, setContacting] = useState(false);
@@ -49,12 +68,15 @@ function PostCardInner({
   const inFeed = !onOpenComments; // the post screen lists every comment below the card
   const bucket = post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media';
   const reason = showReason && post.reason ? FEED_REASON_LABELS[post.reason] : null;
-  const tagged = post.tagged.map((t) => t.product).filter(Boolean);
-  const long = post.body.length > 180;
+  const tagged = post.tagged.map((t) => t.product).filter((p): p is NonNullable<typeof p> => !!p);
   const intent: PostIntent = isPostIntent(post.intent) ? post.intent : 'share';
   const isOwn = post.author_id === userId;
   const firstName = author.display_name.split(' ')[0] ?? author.display_name;
   const previews = post.comments_preview ?? [];
+  const hasMedia = post.media.length > 0;
+  const long = post.body.length > (hasMedia ? 180 : 260);
+  const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
+  const mediaWidth = Math.min(screenWidth, 640);
   const openPost = (focusComment = false) =>
     router.push({ pathname: '/post/[id]', params: focusComment ? { id: post.id, comment: '1' } : { id: post.id } });
 
@@ -111,27 +133,54 @@ function PostCardInner({
     }
   }
 
-  // « Écrire » on a tagged article: for other members, on ordinary shares (requests and offers have their own button).
-  const canWriteAbout = (p: { seller_id: string; status: string }) => !isOwn && p.seller_id !== userId && p.status !== 'sold' && intent === 'share';
-
-  const visibilityLabel = post.visibility === 'friends' ? ' · Amis' : post.visibility === 'followers' ? ' · Abonnés' : '';
-  const intentStyle = intent === 'share' ? null : INTENT_STYLE[intent];
-  // A contextual next step for requests and offers; ordinary shares keep the product « Voir » card.
+  const visibilityLabel = post.visibility === 'friends' ? 'Amis' : post.visibility === 'followers' ? 'Abonnés' : null;
+  // The first tagged article still available from someone else: « Demander » opens a product conversation.
+  const askable = !isOwn && intent === 'share' ? tagged.find((p) => p.seller_id !== userId && p.status !== 'sold') : undefined;
+  // A contextual next step for requests and offers (Lovable « Je peux aider » in gold for requests).
   const cta =
     isOwn || intent === 'share'
       ? null
       : intent === 'opinion'
-        ? { label: 'Donner mon avis', onPress: () => (onOpenComments ? onOpenComments() : openPost(true)) }
+        ? { label: 'Donner mon avis', hint: undefined, tone: 'outline' as const, onPress: () => (onOpenComments ? onOpenComments() : openPost(true)) }
         : intent === 'seek'
-          ? { label: 'Je peux aider', hint: `Écrire à ${firstName} en privé`, onPress: contactAuthor }
-          : { label: `Écrire à ${firstName}`, onPress: contactAuthor };
+          ? { label: 'Je peux aider', hint: `Écrire à ${firstName} en privé`, tone: 'gold' as const, onPress: contactAuthor }
+          : { label: `Écrire à ${firstName}`, hint: undefined, tone: 'mint' as const, onPress: contactAuthor };
+  // One quiet mint text action on the vote row (Lovable « Écrire » / « Demander »), for ordinary shares.
+  const rowAction = isOwn || intent !== 'share' ? null : askable ? { label: 'Demander', onPress: () => contactAboutProduct(askable.id), a11y: `Écrire au vendeur à propos de ${askable.title}` } : { label: 'Écrire', onPress: contactAuthor, a11y: `Écrire à ${firstName} en privé` };
+
+  const ctaButton = cta ? (
+    <Pressable
+      onPress={cta.onPress}
+      disabled={contacting}
+      style={({ pressed }) => [styles.cta, cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
+      accessibilityRole="button"
+      accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
+    >
+      <Text variant="callout" weight="700" color={cta.tone === 'outline' ? dark.text : colors.night}>
+        {cta.label}
+      </Text>
+    </Pressable>
+  ) : null;
+
+  const bodyText = post.body ? (
+    <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
+      <Text variant="body" color={dark.textStrong} numberOfLines={expanded ? undefined : 4} style={{ lineHeight: 23 }}>
+        {post.body}
+      </Text>
+      {long && !expanded ? (
+        <Text variant="callout" tone="fogSecondary" weight="600">
+          … voir plus
+        </Text>
+      ) : null}
+    </Pressable>
+  ) : null;
 
   return (
     <View style={styles.card}>
       {showPinned && post.pinned_at ? (
         <View style={styles.pinned}>
-          <Pin size={13} color={colors.textSecondary} strokeWidth={2.4} />
-          <Text variant="caption" tone="secondary" weight="700">
+          <Pin size={13} color={dark.gold} strokeWidth={2.4} />
+          <Text variant="caption" tone="gold" weight="700">
             Épinglé
           </Text>
         </View>
@@ -143,141 +192,162 @@ function PostCardInner({
           accessibilityRole="button"
           accessibilityLabel={`Profil de ${author.display_name}`}
         >
-          <Avatar path={author.avatar_path} name={author.display_name} size={38} />
-          <View style={{ flexShrink: 1 }}>
-            <ProfileName profile={author} />
-            <Text variant="caption" tone="secondary" numberOfLines={1}>
-              {[post.city, timeAgo(post.created_at)].filter(Boolean).join(' · ')}
-              {visibilityLabel}
-              {reason ? ` · ${reason}` : ''}
+          <Avatar path={author.avatar_path} name={author.display_name} size={40} />
+          <View style={{ flexShrink: 1, gap: 1 }}>
+            <ProfileName profile={author} tone="dark" />
+            <Text variant="caption" tone="fogSecondary" numberOfLines={1} style={{ fontSize: 12 }}>
+              {[post.city, timeAgo(post.created_at), visibilityLabel, reason].filter(Boolean).join(' · ')}
             </Text>
           </View>
         </Pressable>
-        <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} color={colors.textSecondary} />
+        <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} color={dark.textSecondary} />
       </View>
 
-      {intentStyle ? (
-        <View style={[styles.intent, { backgroundColor: intentStyle.bg }]} accessibilityLabel={`Type de publication : ${INTENT_LABELS[intent]}`}>
-          <intentStyle.icon size={15} color={intentStyle.fg} strokeWidth={2.2} />
-          <Text variant="caption" weight="700" color={intentStyle.fg}>
-            {INTENT_LABELS[intent]}
-          </Text>
-        </View>
-      ) : null}
+      <View
+        style={styles.eyebrow}
+        accessible={intent !== 'share'}
+        accessibilityLabel={intent !== 'share' ? `Type de publication : ${INTENT_LABELS[intent]}` : undefined}
+      >
+        <View style={[styles.eyebrowDot, { backgroundColor: eyebrow.dot }]} />
+        <Text variant="micro" weight="700" tone="fogSecondary" style={styles.eyebrowText}>
+          {eyebrow.label.toUpperCase()}
+        </Text>
+      </View>
 
-      {post.media.length > 0 ? (
-        <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication" disabled={post.media[0]?.kind === 'video'}>
-          <MediaCarousel media={post.media} bucket={bucket} />
-        </Pressable>
-      ) : null}
-
-      <View style={styles.body}>
-        {post.body ? (
-          <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())}>
-            <Text variant={post.media.length === 0 ? 'headline' : 'body'} weight={post.media.length === 0 ? '500' : '400'} numberOfLines={expanded ? undefined : 4}>
-              {post.body}
-            </Text>
-            {long && !expanded ? (
-              <Text variant="callout" tone="secondary" weight="600">
-                … voir plus
+      {!hasMedia ? (
+        // Lovable text card: deep surface, woven motif, words in the editorial serif.
+        <View style={styles.quote}>
+          <Motif />
+          {post.body ? (
+            <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
+              <Text serif weight="400" color={dark.text} numberOfLines={expanded ? undefined : 8} style={styles.quoteText}>
+                {'« '}
+                <Text serif weight="400" color={dark.text} style={styles.quoteText}>
+                  {post.body}
+                </Text>
+                {' »'}
               </Text>
-            ) : null}
-          </Pressable>
-        ) : null}
-
-        {tagged.length > 0
-          ? tagged.slice(0, 2).map((p) =>
-              p ? (
-                // Two sibling buttons (never a button inside a button): open the article, or write to the seller.
-                <View key={p.id} style={styles.product}>
-                  <Pressable
-                    onPress={() => router.push(`/p/${p.id}`)}
-                    style={({ pressed }) => [styles.productMain, pressed && { opacity: 0.7 }]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Voir l’article ${p.title}, ${formatListingPrice(p)}`}
-                  >
-                    <Thumb media={[...p.media].sort((a, b) => a.position - b.position)[0]} style={styles.productThumb} />
-                    <View style={{ flex: 1 }}>
-                      <Text variant="callout" weight="600" numberOfLines={1}>
-                        {p.title}
-                      </Text>
-                      <PriceLabel product={p} size="inline" />
-                      {p.status !== 'active' ? (
-                        <Text variant="caption" tone="secondary" weight="600">
-                          {p.status === 'sold' ? 'Vendu' : p.status === 'reserved' ? 'Réservé' : ''}
-                        </Text>
-                      ) : null}
-                    </View>
-                    {canWriteAbout(p) ? null : (
-                      <Text variant="callout" weight="700">
-                        Voir →
-                      </Text>
-                    )}
-                  </Pressable>
-                  {canWriteAbout(p) ? (
-                    <Pressable
-                      onPress={() => contactAboutProduct(p.id)}
-                      disabled={contacting}
-                      style={({ pressed }) => [styles.productCta, pressed && { backgroundColor: colors.actionPressed }, contacting && { opacity: 0.6 }]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Écrire au vendeur à propos de ${p.title}`}
-                      hitSlop={4}
-                    >
-                      <MessageCircle size={15} color={colors.actionText} strokeWidth={2.4} />
-                      <Text variant="caption" weight="800" color={colors.actionText}>
-                        Écrire
-                      </Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              ) : null,
-            )
-          : null}
-
-        {cta ? (
-          <Pressable
-            onPress={cta.onPress}
-            disabled={contacting}
-            style={({ pressed }) => [styles.cta, pressed && { backgroundColor: colors.actionPressed }, contacting && { opacity: 0.6 }]}
-            accessibilityRole="button"
-            accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
-          >
-            <Text variant="callout" weight="700" color={colors.actionText}>
-              {cta.label}
-            </Text>
-          </Pressable>
-        ) : null}
-
-        <View style={styles.actions}>
-          <View style={styles.actionGroup}>
-            <VoteControl post={post} />
-            <Pressable
-              onPress={onOpenComments ?? (() => openPost(post.comment_count === 0))}
-              style={styles.action}
-              accessibilityRole="button"
-              accessibilityLabel={post.comment_count > 0 ? `Commentaires, ${post.comment_count}` : 'Commenter'}
-              hitSlop={6}
-            >
-              <MessageCircle size={22} color={colors.ink} strokeWidth={2} />
-              <Text variant="callout" weight="600">
-                {post.comment_count > 0 ? formatCount(post.comment_count) : 'Commenter'}
-              </Text>
+              {long && !expanded ? (
+                <Text variant="callout" tone="fogSecondary" weight="600" style={{ marginTop: 4 }}>
+                  … voir plus
+                </Text>
+              ) : null}
             </Pressable>
-            {post.visibility === 'public' ? (
-              <Pressable onPress={() => shareLinks.post(post.id, author.display_name)} style={styles.action} accessibilityRole="button" accessibilityLabel="Partager" hitSlop={6}>
-                <Send size={21} color={colors.ink} strokeWidth={2} />
+          ) : null}
+          {ctaButton ? (
+            <View style={styles.quoteActions}>
+              {ctaButton}
+              {intent === 'seek' ? (
+                <Text variant="caption" tone="fogSecondary" style={{ flex: 1 }}>
+                  ou recommandez quelqu’un en commentaire
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      ) : (
+        <>
+          {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
+          <View>
+            <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication" disabled={post.media[0]?.kind === 'video'}>
+              <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" />
+            </Pressable>
+            {tagged[0] ? (
+              <Pressable
+                onPress={() => router.push(`/p/${tagged[0]!.id}`)}
+                style={({ pressed }) => [styles.productChip, pressed && { transform: [{ scale: 0.97 }] }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Voir l’article ${tagged[0].title}, ${formatListingPrice(tagged[0])}`}
+              >
+                <Thumb media={[...tagged[0].media].sort((a, b) => a.position - b.position)[0]} style={styles.productChipThumb} />
+                <View style={{ flexShrink: 1, minWidth: 0 }}>
+                  <Text variant="caption" weight="600" tone="fog" numberOfLines={1} style={{ fontSize: 13 }}>
+                    {tagged[0].title}
+                  </Text>
+                  {tagged[0].status === 'sold' || tagged[0].status === 'reserved' ? (
+                    <Text variant="caption" weight="700" tone="gold">
+                      {tagged[0].status === 'sold' ? 'Vendu' : 'Réservé'}
+                    </Text>
+                  ) : (
+                    <PriceLabel product={tagged[0]} size="card" compact tone="dark" style={{ fontSize: 13, lineHeight: 17 }} />
+                  )}
+                </View>
               </Pressable>
             ) : null}
           </View>
-          <Pressable onPress={toggleSave} style={styles.action} accessibilityRole="button" accessibilityLabel={post.saved ? 'Retirer des enregistrements' : 'Enregistrer'} hitSlop={6}>
-            <Bookmark size={22} color={colors.ink} fill={post.saved ? colors.ink : 'transparent'} strokeWidth={2} />
-          </Pressable>
-        </View>
+          {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
+        </>
+      )}
 
-        {inFeed && (previews.length > 0 || post.comment_count > 0) ? (
-          <CommentPreviewList post={post} previews={previews} onOpen={() => openPost()} />
+      {/* Further tagged articles (or the first one on a text post) as quiet dark rows. */}
+      {tagged.slice(hasMedia ? 1 : 0, 2).map((p) => (
+        <Pressable
+          key={p.id}
+          onPress={() => router.push(`/p/${p.id}`)}
+          style={({ pressed }) => [styles.productRow, pressed && { backgroundColor: dark.raised }]}
+          accessibilityRole="button"
+          accessibilityLabel={`Voir l’article ${p.title}, ${formatListingPrice(p)}`}
+        >
+          <Thumb media={[...p.media].sort((a, b) => a.position - b.position)[0]} style={styles.productRowThumb} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text variant="callout" weight="600" tone="fog" numberOfLines={1}>
+              {p.title}
+            </Text>
+            {p.status !== 'active' ? (
+              <Text variant="caption" tone="gold" weight="700">
+                {p.status === 'sold' ? 'Vendu' : p.status === 'reserved' ? 'Réservé' : ''}
+              </Text>
+            ) : (
+              <PriceLabel product={p} size="card" tone="dark" />
+            )}
+          </View>
+          <Text variant="caption" weight="700" tone="mint">
+            Voir
+          </Text>
+        </Pressable>
+      ))}
+
+      <View style={styles.actions}>
+        <VoteControl post={post} />
+        <Pressable
+          onPress={onOpenComments ?? (() => openPost(post.comment_count === 0))}
+          style={({ pressed }) => [styles.action, pressed && { transform: [{ scale: 0.96 }] }]}
+          accessibilityRole="button"
+          accessibilityLabel={post.comment_count > 0 ? `Commentaires, ${post.comment_count}` : 'Commenter'}
+          hitSlop={4}
+        >
+          <MessageCircle size={20} color={dark.textStrong} strokeWidth={1.7} />
+          <Text variant="callout" weight="600" color={dark.textStrong} style={{ fontSize: 13 }}>
+            {formatCount(post.comment_count)}
+          </Text>
+        </Pressable>
+        {post.visibility === 'public' ? (
+          <Pressable onPress={() => shareLinks.post(post.id, author.display_name)} style={styles.iconAction} accessibilityRole="button" accessibilityLabel="Partager" hitSlop={4}>
+            <Share2 size={20} color={dark.textStrong} strokeWidth={1.7} />
+          </Pressable>
+        ) : null}
+        <Pressable onPress={toggleSave} style={styles.iconAction} accessibilityRole="button" accessibilityLabel={post.saved ? 'Retirer des enregistrements' : 'Enregistrer'} hitSlop={4}>
+          <Bookmark size={20} color={post.saved ? dark.mint : dark.textStrong} fill={post.saved ? dark.mint : 'transparent'} strokeWidth={1.7} />
+        </Pressable>
+        {rowAction ? (
+          <Pressable
+            onPress={rowAction.onPress}
+            disabled={contacting}
+            style={({ pressed }) => [styles.rowAction, pressed && { transform: [{ scale: 0.96 }] }, contacting && { opacity: 0.6 }]}
+            accessibilityRole="button"
+            accessibilityLabel={rowAction.a11y}
+          >
+            <Send size={16} color={dark.mint} strokeWidth={2} />
+            <Text variant="callout" weight="700" tone="mint" style={{ fontSize: 13 }}>
+              {rowAction.label}
+            </Text>
+          </Pressable>
         ) : null}
       </View>
+
+      {inFeed && (previews.length > 0 || post.comment_count > 0) ? (
+        <CommentPreviewList post={post} previews={previews} onOpen={() => openPost()} />
+      ) : null}
 
       <ContentMenu
         visible={menu}
@@ -303,23 +373,14 @@ function CommentPreviewList({ post, previews, onOpen }: { post: PostCardData; pr
   const more = post.comment_count - previews.length;
   return (
     <View style={styles.previews}>
-      {more > 0 ? (
-        <Pressable onPress={onOpen} accessibilityRole="button" hitSlop={4}>
-          <Text variant="callout" tone="secondary" weight="600">
-            {previews.length === 0
-              ? `Voir ${post.comment_count === 1 ? 'le commentaire' : `les ${post.comment_count} commentaires`}`
-              : `Voir ${more === 1 ? 'l’autre commentaire' : `les ${more} autres commentaires`}`}
-          </Text>
-        </Pressable>
-      ) : null}
       {previews.map((c) => (
         <Pressable key={c.comment_id} onPress={onOpen} accessibilityRole="button" accessibilityLabel={`Commentaire de ${c.author.display_name} : ${c.body}`}>
-          <Text variant="callout" numberOfLines={2}>
-            <Text variant="callout" weight="700">
+          <Text variant="callout" color={dark.textStrong} numberOfLines={2} style={{ lineHeight: 20 }}>
+            <Text variant="callout" weight="700" tone="fog">
               {c.author.display_name}
             </Text>
             {c.by_post_author ? (
-              <Text variant="caption" weight="700" color={colors.accentDeep}>
+              <Text variant="caption" weight="700" tone="mint">
                 {' '}· Auteur
               </Text>
             ) : null}{' '}
@@ -327,6 +388,15 @@ function CommentPreviewList({ post, previews, onOpen }: { post: PostCardData; pr
           </Text>
         </Pressable>
       ))}
+      {more > 0 ? (
+        <Pressable onPress={onOpen} accessibilityRole="button" hitSlop={4}>
+          <Text variant="callout" tone="fogSecondary" style={{ fontSize: 13 }}>
+            {previews.length === 0
+              ? `Voir ${post.comment_count === 1 ? 'le commentaire' : `les ${post.comment_count} commentaires`}`
+              : `Voir ${more === 1 ? 'l’autre commentaire' : `les ${more} autres commentaires`}`}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -334,37 +404,63 @@ function CommentPreviewList({ post, previews, onOpen }: { post: PostCardData; pr
 export const PostCard = memo(PostCardInner);
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.border, marginBottom: spacing.sm },
-  pinned: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  productCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, borderRadius: radius.pill, paddingHorizontal: spacing.md, minHeight: 36 },
-  author: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.xs, paddingVertical: spacing.sm },
+  card: { backgroundColor: dark.background, paddingVertical: 20 },
+  pinned: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  author: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.lg, paddingRight: spacing.xs, paddingBottom: spacing.md },
   authorLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1, minHeight: 44 },
-  intent: {
+  eyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  eyebrowDot: { width: 6, height: 6, borderRadius: 3 },
+  eyebrowText: { fontSize: 11, lineHeight: 14, letterSpacing: 1.5 },
+  quote: {
+    marginHorizontal: spacing.lg,
+    padding: 20,
+    borderRadius: radius.xxl,
+    borderWidth: 1,
+    borderColor: dark.goldLine,
+    backgroundColor: dark.surface,
+    overflow: 'hidden',
+    gap: spacing.lg,
+  },
+  quoteText: { fontSize: 22, lineHeight: 30 },
+  quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  cta: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
+  ctaGold: { backgroundColor: dark.gold },
+  ctaMint: { backgroundColor: dark.mint },
+  ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
+  ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  productChip: {
+    position: 'absolute',
+    left: spacing.lg,
+    bottom: spacing.lg,
+    maxWidth: '80%',
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 5,
-    marginLeft: spacing.lg,
-    marginBottom: spacing.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
+    gap: 10,
+    padding: 6,
+    paddingRight: 12,
+    borderRadius: 16,
+    backgroundColor: dark.glass,
+    borderWidth: 1,
+    borderColor: dark.glassBorder,
   },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.md, gap: spacing.md },
-  product: {
+  productChipThumb: { width: 44, height: 44, borderRadius: 12 },
+  productRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
     padding: spacing.sm,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: dark.border,
+    backgroundColor: dark.surface,
   },
-  productMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56 },
-  productThumb: { width: 56, height: 56, borderRadius: radius.sm },
-  cta: { alignSelf: 'flex-start', backgroundColor: colors.action, borderRadius: radius.pill, paddingHorizontal: spacing.lg, minHeight: 40, justifyContent: 'center' },
-  actions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  actionGroup: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexShrink: 1 },
-  action: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, minWidth: 32 },
-  previews: { gap: 6, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm },
+  productRowThumb: { width: 52, height: 52, borderRadius: 13 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.md, paddingTop: 10 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: spacing.md, borderRadius: radius.pill },
+  iconAction: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  rowAction: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill },
+  previews: { gap: 6, paddingHorizontal: spacing.lg, paddingTop: 4 },
 });

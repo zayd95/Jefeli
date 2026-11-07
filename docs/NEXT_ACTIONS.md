@@ -1,5 +1,47 @@
 # Next actions
 
+## Owner (now): P1 private-pilot decisions
+
+Read `docs/GO_NO_GO.md` (one page), then `docs/P1_READINESS_REPORT.md` if you want the detail.
+1. Approve or reject the code as the private-pilot candidate (draft PR #2 stays unmerged until
+   you say so).
+2. Decide the paid/external items: pilot Supabase project, e-mail sending, Expo account
+   (Android APK) and, only for iPhone testers, the Apple Developer Program; web hosting for the
+   legal pages, shared links and `/admin`.
+3. Fill the 19 placeholders in the legal pages (company, contact e-mail, CDP receipt, retention
+   periods) with your legal counsel; choose the support channel; name 1–2 moderators.
+4. Then follow `docs/SETUP_PRODUCTION.md` §1 and §3, run the two-phone script in
+   `docs/PILOT_TEST_PLAN.md` §3, and only then invite sellers (`docs/PILOT_OPERATIONS.md` §3).
+
+Developer, once the owner has an Expo account: `eas init`, commit the project id, create the
+EAS environment variables, build the Android `preview` APK, and record the first device results
+in RELEASE_STATUS (P1-08, DEV-02).
+
+## Owner (earlier): re-check the microcopy pass on the iPhone
+
+`git pull` on `feature/lovable-native-parity-20261104`, then `pnpm preview:expo-go` and, in Expo Go:
+- create a new account: the « Bienvenue chez vous. » screen should feel calm, « Disponible »
+  appears only once your pseudo is checked, and with the keyboard open you can still reach the
+  18+ box and the « Entrer dans Jëfëli » button;
+- browse Explorer, Messages, Publier and your profile: say if any removed line is missed.
+Before/after images: `docs/evidence/microcopy-pass/compare/`.
+
+## Owner (now): review the Lovable native port — branch `feature/lovable-native-parity-20261104`, draft PR #2
+
+1. Look at the side-by-side images first: `docs/evidence/lovable-parity/compare/` (Lovable on the
+   left, native on the right, 390 and 360 pt), then `native/` (360 / 390 / 412) and `states/`
+   (loading, empty, validation). The README there lists every deliberate difference.
+2. On the Mac (Docker Desktop running): `git fetch && git checkout feature/lovable-native-parity-20261104`,
+   `pnpm install`, `pnpm preview:expo-go --reset-demo`, then open it on the iPhone with Expo Go.
+3. Check on the iPhone, with screenshots of anything wrong:
+   - Accueil, Messages and Profil are dark; Explorer, article pages and forms are near-white;
+     the status-bar icons are light on the dark screens and dark on the light ones;
+   - the floating dock clears the home indicator and Plus opens « Publication » directly;
+   - the article form scrolls in one page and the keyboard never hides the field you type in;
+   - « Plus d’infos » on a profile opens reviews, statuses and lives.
+4. Decide: approve the visual parity (then the PR can leave draft), or list the changes.
+
+
 ## Owner (now): next Expo Go playtest — post-playtest refinement
 On the Mac (Docker Desktop running):
 
