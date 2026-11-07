@@ -17,6 +17,8 @@ const DB_ERRORS: Record<string, string> = {
   media_not_found: 'Un fichier n’a pas été envoyé correctement. Réessayez l’envoi.',
   too_many_media: 'Maximum 10 photos ou vidéos.',
   invalid_media: 'Format de fichier non pris en charge.',
+  video_too_long: 'Vidéo trop longue : 3 minutes maximum.',
+  video_duration_required: 'Durée de la vidéo illisible. Essayez avec une autre vidéo.',
   empty_post: 'Écrivez quelque chose ou ajoutez une photo.',
   empty_message: 'Le message est vide.',
   invalid_visibility: 'Choisissez qui peut voir ce contenu.',

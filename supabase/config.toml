@@ -431,3 +431,6 @@ verify_jwt = false
 
 [functions.cleanup-stories]
 verify_jwt = false
+
+[functions.cleanup-media]
+verify_jwt = false

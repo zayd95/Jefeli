@@ -66,7 +66,6 @@ export default function PrivacySettings() {
           <Toggle value={s.notify_messages} onChange={(v) => patch({ notify_messages: v })} label="Messages" description="Le contenu des messages n’est jamais affiché sur l’écran verrouillé." />
           <Toggle value={s.notify_offers} onChange={(v) => patch({ notify_offers: v })} label="Propositions et accords" />
           <Toggle value={s.notify_social} onChange={(v) => patch({ notify_social: v })} label="Abonnés, commentaires, j’aime" />
-          <Toggle value={s.notify_live} onChange={(v) => patch({ notify_live: v })} label="Lives des comptes suivis" />
         </View>
       </ScrollView>
     </Screen>

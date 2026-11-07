@@ -49,6 +49,13 @@ jefeli-staging**. To apply, in order (each is idempotent and touches no rows):
 1. `supabase/migrations/20261105000200_merchant_identity_prepare.sql` (no-op, keeps history complete)
 2. `supabase/migrations/20261106000200_boutique_identity_followup.sql` (replaces `review_verification_request`)
 3. `supabase/migrations/20261108000100_feedback.sql` (new `feedback` table, extended data export)
+4. `supabase/migrations/20261109000100_media_videos.sql` (W1.1: 180 s videos, kind/MIME match,
+   upload quota, orphan listing; new checks are `NOT VALID`, no rows changed), then deploy the
+   `cleanup-media` Edge Function (`verify_jwt = false`, service key checked inside). Details in
+   `docs/W1_1_MEDIA.md`. Rollback: `drop trigger post_media_check on public.post_media` (and
+   `product_media_check`, `stories_media_check`), drop the four new constraints, restore the
+   previous « jefeli: upload to own folder » policy (same text without `private.upload_quota_ok()`)
+   and the previous `stories_duration_ms_check` (`0..60000`).
 
 Rollback for 2 and 3: the previous definitions of `review_verification_request` and
 `export_my_data`, saved from staging before any change, are in §6; `drop table public.feedback`

@@ -20,7 +20,7 @@ export default function Home() {
           </div>
           <div>
             <p className="hero-lead">
-              Jëfëli réunit publications, statuts, lives et annonces dans un même réseau social. Chaque membre a un
+              Jëfëli réunit publications, vidéos, statuts et annonces dans un même réseau social. Chaque membre a un
               profil, et sa boutique se crée toute seule à partir de ses annonces&nbsp;: neuf, occasion ou troc, on
               discute et on s’arrange directement entre membres.
             </p>
@@ -61,7 +61,7 @@ export default function Home() {
           <span className="pillar-num">02</span>
           <h2>Partage</h2>
           <p>
-            Photos, vidéos, statuts de 24 h et lives. Un profil ou un article se partage en un lien sur WhatsApp,
+            Photos, vidéos jusqu’à 3 minutes et statuts de 24 h. Un profil ou un article se partage en un lien sur WhatsApp,
             Facebook ou TikTok.
           </p>
         </article>
@@ -88,7 +88,7 @@ export default function Home() {
         <div className="card dark-card">
           <h2>Nos engagements</h2>
           <ul>
-            <li>Aucun chiffre inventé&nbsp;: abonnés, avis et mentions «&nbsp;En direct&nbsp;» reflètent la réalité.</li>
+            <li>Aucun chiffre inventé&nbsp;: abonnés et avis reflètent la réalité.</li>
             <li>Le badge «&nbsp;Vendeur vérifié&nbsp;» n’est attribué qu’après examen par l’équipe.</li>
             <li>Signalement possible sur chaque profil, article, message ou live.</li>
           </ul>

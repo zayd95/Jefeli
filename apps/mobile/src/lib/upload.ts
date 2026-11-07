@@ -26,6 +26,10 @@ export interface LocalMedia {
   fileSize?: number | null;
   /** Web only: the original File from the picker. */
   file?: Blob | null;
+  /** Web only: a poster frame captured in the browser before upload (native uses expo-video-thumbnails). */
+  posterFile?: Blob | null;
+  /** Web only: an object URL of `posterFile`, to preview the cover frame in the composer. */
+  posterUri?: string | null;
 }
 
 export interface UploadedMedia {
@@ -40,14 +44,15 @@ export interface UploadedMedia {
 export class UploadError extends Error {
   constructor(
     message: string,
-    public readonly code: 'too_large' | 'network' | 'server' | 'canceled' | 'unsupported' | 'permission',
+    public readonly code: 'too_large' | 'network' | 'server' | 'canceled' | 'unsupported' | 'permission' | 'quota',
   ) {
     super(message);
   }
 }
 
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-export const MAX_VIDEO_SECONDS = 60;
+/** Same limit in publications, listings and statuses; enforced again by the database (≤ 180 000 ms). */
+export const MAX_VIDEO_SECONDS = 180;
 const MAX_IMAGE_EDGE = 1600;
 
 // ---------------------------------------------------------------------------
@@ -82,19 +87,77 @@ export async function pickMedia(opts: {
   const res = opts.camera ? await ImagePicker.launchCameraAsync(common) : await ImagePicker.launchImageLibraryAsync(common);
   if (res.canceled) return null;
 
-  return res.assets.map((a) => {
+  const picked = res.assets.map((a) => {
     const kind: MediaKind = a.type === 'video' ? 'video' : 'image';
     return {
       uri: a.uri,
       kind,
       width: a.width || 1080,
       height: a.height || 1080,
-      durationMs: a.duration ?? null,
+      // expo-image-picker reports milliseconds on iOS/Android but seconds on the web
+      // (HTMLVideoElement.duration); 0 when the browser cannot read the file.
+      durationMs: a.duration ? (Platform.OS === 'web' ? a.duration * 1000 : a.duration) : null,
       mimeType: a.mimeType ?? (kind === 'video' ? 'video/mp4' : 'image/jpeg'),
-      fileSize: a.fileSize ?? null,
+      fileSize: a.fileSize ?? a.file?.size ?? null,
       file: a.file ?? null,
-    };
+    } satisfies LocalMedia;
   });
+  const checked = await Promise.all(picked.map((m) => (Platform.OS === 'web' && m.kind === 'video' ? probeWebVideo(m) : m)));
+  for (const m of checked) assertMediaLimits(m);
+  return checked;
+}
+
+/** Duration and size limits, checked as soon as a file is chosen (and again before upload). */
+export function assertMediaLimits(m: LocalMedia): void {
+  if (m.fileSize && m.fileSize > MAX_UPLOAD_BYTES) throw new UploadError(m.kind === 'video' ? 'video_too_heavy' : 'too_large', 'too_large');
+  if (m.kind === 'video' && m.durationMs && m.durationMs > MAX_VIDEO_SECONDS * 1000 + 500) throw new UploadError('too_long', 'too_large');
+}
+
+/**
+ * Web: read a chosen video's real duration and size with the browser's own decoder, and capture a
+ * poster frame (JPEG, longest edge 720 px). A format the browser cannot decode keeps the picker's
+ * values and gets no poster; the database still requires a declared duration for videos.
+ */
+async function probeWebVideo(m: LocalMedia): Promise<LocalMedia> {
+  if (typeof document === 'undefined') return m;
+  const src = m.file ? URL.createObjectURL(m.file) : m.uri;
+  const video = document.createElement('video');
+  video.preload = 'auto';
+  video.muted = true;
+  video.playsInline = true;
+  const once = (event: string, ms = 10_000) =>
+    new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`timeout:${event}`)), ms);
+      video.addEventListener(event, () => (clearTimeout(timer), resolve()), { once: true });
+      video.addEventListener('error', () => (clearTimeout(timer), reject(new Error('decode'))), { once: true });
+    });
+  try {
+    video.src = src;
+    await once('loadedmetadata');
+    const durationMs = Number.isFinite(video.duration) ? Math.round(video.duration * 1000) : m.durationMs ?? null;
+    const width = video.videoWidth || m.width;
+    const height = video.videoHeight || m.height;
+    let posterFile: Blob | null = null;
+    try {
+      video.currentTime = Math.min(0.4, (video.duration || 1) / 2);
+      await once('seeked', 5000);
+      const scale = Math.min(1, 720 / Math.max(width, height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      posterFile = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.75));
+    } catch {
+      posterFile = null;
+    }
+    return { ...m, durationMs, width, height, posterFile, posterUri: posterFile ? URL.createObjectURL(posterFile) : null };
+  } catch {
+    return m;
+  } finally {
+    video.removeAttribute('src');
+    video.load();
+    if (m.file) URL.revokeObjectURL(src);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -120,7 +183,10 @@ export async function compressImage(media: LocalMedia): Promise<LocalMedia> {
 }
 
 async function videoPoster(media: LocalMedia): Promise<LocalMedia | null> {
-  if (media.kind !== 'video' || Platform.OS === 'web') return null;
+  if (media.kind !== 'video') return null;
+  if (Platform.OS === 'web') {
+    return media.posterFile ? { uri: '', kind: 'image', width: media.width, height: media.height, mimeType: 'image/jpeg', file: media.posterFile } : null;
+  }
   try {
     const thumb = await VideoThumbnails.getThumbnailAsync(media.uri, { time: 400, quality: 0.7 });
     return { uri: thumb.uri, kind: 'image', width: thumb.width, height: thumb.height, mimeType: 'image/jpeg' };
@@ -204,6 +270,8 @@ function uploadOnce(args: UploadArgs, token: string, body: Blob | FormData): Pro
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
       else if (xhr.status === 413) reject(new UploadError('too_large', 'too_large'));
+      // Storage answers 403 « row-level security » once the member's upload quota is used up.
+      else if (xhr.status === 403 && /row-level security/i.test(xhr.responseText)) reject(new UploadError('quota', 'quota'));
       else if (xhr.status >= 500) reject(new UploadError(`server_${xhr.status}`, 'server'));
       else if (xhr.status === 415 || xhr.status === 400) reject(new UploadError(xhr.responseText || 'unsupported', 'unsupported'));
       else reject(new UploadError(xhr.responseText || `http_${xhr.status}`, 'server'));
@@ -239,7 +307,7 @@ export async function uploadWithRetry(args: UploadArgs, attempts = 4): Promise<v
       return;
     } catch (e) {
       lastErr = e;
-      if (e instanceof UploadError && (e.code === 'canceled' || e.code === 'too_large' || e.code === 'unsupported')) throw e;
+      if (e instanceof UploadError && (e.code === 'canceled' || e.code === 'too_large' || e.code === 'unsupported' || e.code === 'quota')) throw e;
       if (i < attempts - 1) await sleep(1000 * 2 ** i);
     }
   }
@@ -256,12 +324,7 @@ export async function uploadMediaBatch(
   opts: { bucket: 'public-media' | 'private-media'; folder: string; onProgress?: (f: number) => void; signal?: AbortSignal },
 ): Promise<UploadedMedia[]> {
   const prepared = await Promise.all(items.map((m) => compressImage(m)));
-  for (const m of prepared) {
-    if (m.fileSize && m.fileSize > MAX_UPLOAD_BYTES) throw new UploadError('too_large', 'too_large');
-    if (m.kind === 'video' && m.durationMs && m.durationMs > (MAX_VIDEO_SECONDS + 1) * 1000) {
-      throw new UploadError('too_long', 'too_large');
-    }
-  }
+  for (const m of prepared) assertMediaLimits(m);
   const fractions = prepared.map(() => 0);
   const report = () => opts.onProgress?.(fractions.reduce((a, b) => a + b, 0) / Math.max(1, fractions.length));
 
@@ -273,7 +336,7 @@ export async function uploadMediaBatch(
     const poster = await videoPoster(m);
     if (poster) {
       posterPath = newObjectPath(userId, opts.folder, 'image/jpeg');
-      await uploadWithRetry({ bucket: opts.bucket, path: posterPath, uri: poster.uri, mimeType: 'image/jpeg', signal: opts.signal });
+      await uploadWithRetry({ bucket: opts.bucket, path: posterPath, uri: poster.uri, mimeType: 'image/jpeg', file: poster.file, signal: opts.signal });
     }
     await uploadWithRetry({
       bucket: opts.bucket,
@@ -295,7 +358,9 @@ export async function uploadMediaBatch(
       poster_path: posterPath,
       width: Math.round(m.width),
       height: Math.round(m.height),
-      duration_ms: m.durationMs ? Math.round(m.durationMs) : null,
+      // Containers often report a few ms over the recording cap (180.03 s for a 3-minute phone
+      // clip). assertMediaLimits already refused anything beyond 180.5 s, so declare at most 180 s.
+      duration_ms: m.durationMs ? Math.min(Math.round(m.durationMs), MAX_VIDEO_SECONDS * 1000) : null,
     });
   }
   return results;
@@ -306,8 +371,12 @@ export function uploadErrorMessage(e: unknown): string {
     switch (e.code) {
       case 'too_large':
         return e.message === 'too_long'
-          ? `Vidéo trop longue : ${MAX_VIDEO_SECONDS} secondes maximum.`
-          : 'Fichier trop volumineux (50 Mo maximum).';
+          ? 'Vidéo trop longue : 3 minutes maximum.'
+          : e.message === 'video_too_heavy'
+            ? 'Vidéo trop lourde (50 Mo maximum). Filmez en qualité standard ou raccourcissez-la.'
+            : 'Fichier trop volumineux (50 Mo maximum).';
+      case 'quota':
+        return 'Limite d’envoi atteinte pour aujourd’hui. Réessayez demain.';
       case 'network':
         return 'Envoi interrompu : connexion instable. Votre brouillon est conservé, réessayez.';
       case 'canceled':

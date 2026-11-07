@@ -43,10 +43,6 @@ export default function NewStatus() {
 
   async function publish() {
     if (!userId || !media) return;
-    if (media.kind === 'video' && media.durationMs && media.durationMs > 60_000) {
-      toast('Un statut vidéo dure 60 secondes maximum.', 'error');
-      return;
-    }
     abort.current = new AbortController();
     setUploading(true);
     try {
@@ -90,7 +86,7 @@ export default function NewStatus() {
               Votre statut, 24 heures.
             </Text>
             <Text variant="caption" tone="secondary" style={{ fontSize: 13 }}>
-              Photo ou vidéo, 60 s max.
+              Photo ou vidéo, 3 min max.
             </Text>
           </View>
           <View style={{ gap: spacing.md }}>
@@ -118,7 +114,7 @@ export default function NewStatus() {
           {media.kind === 'image' ? (
             <Image source={{ uri: media.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
           ) : (
-            <VideoPlayerInline uri={media.uri} autoPlay />
+            <VideoPlayerInline uri={media.uri} active />
           )}
           <View style={styles.previewTop}>
             <IconButton icon={X} label="Changer de média" color={colors.white} variant="overlay" onPress={() => setMedia(null)} />

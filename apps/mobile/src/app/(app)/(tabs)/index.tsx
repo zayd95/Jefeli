@@ -10,11 +10,12 @@
  */
 import { toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Bell, Compass, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View, type ListViewToken } from 'react-native';
 
+import { ActivePostContext, pauseAllVideos } from '@/components/Media';
 import { PostCard } from '@/components/PostCard';
 import { ProfileName } from '@/components/ProfileName';
 import { StoryRail } from '@/components/StoryRail';
@@ -30,6 +31,8 @@ import { useDarkStatusBar } from '@/lib/statusBar';
 import type { PostCardData } from '@/lib/types';
 
 type HomeTab = 'for_you' | 'following' | 'nearby' | 'live';
+
+const VIEWABILITY = { itemVisiblePercentThreshold: 60, minimumViewTime: 250 };
 
 export default function Home() {
   useDarkStatusBar();
@@ -57,6 +60,24 @@ export default function Home() {
   const live = useQuery({ queryKey: ['live-now'], queryFn: fetchLiveNow, enabled: tab === 'live', refetchInterval: 20_000 });
 
   const postItems = useMemo(() => posts.data?.pages.flatMap((p) => p.items) ?? [], [posts.data]);
+
+  // Video playback (W1.1): the topmost card at least 60 % on screen is the « active » one; its
+  // video may autoplay muted. Leaving Accueil (another tab, a pushed screen) pauses everything.
+  const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [focused, setFocused] = useState(true);
+  // FlatList requires a callback that never changes identity.
+  const onViewable = useCallback(({ viewableItems }: { viewableItems: ListViewToken[] }) => {
+    setActivePostId((viewableItems.find((v) => v.isViewable)?.item as PostCardData | undefined)?.id ?? null);
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setFocused(true);
+      return () => {
+        setFocused(false);
+        pauseAllVideos();
+      };
+    }, []),
+  );
   const active = isPostTab ? posts : live;
   const onRefresh = useCallback(() => {
     active.refetch();
@@ -194,6 +215,7 @@ export default function Home() {
           refreshControl={<RefreshControl refreshing={live.isRefetching} onRefresh={onRefresh} tintColor={dark.text} />}
         />
       ) : (
+        <ActivePostContext.Provider value={focused ? activePostId : null}>
         <FlatList<PostCardData>
           key="posts"
           data={tab === 'nearby' && !profile?.city ? [] : postItems}
@@ -201,6 +223,8 @@ export default function Home() {
           ListHeaderComponent={listHeader}
           ListEmptyComponent={empty}
           renderItem={({ item }) => <PostCard post={item} showReason={tab === 'for_you'} />}
+          viewabilityConfig={VIEWABILITY}
+          onViewableItemsChanged={onViewable}
           onEndReached={() => posts.hasNextPage && !posts.isFetchingNextPage && posts.fetchNextPage()}
           onEndReachedThreshold={0.6}
           ListFooterComponent={footer}
@@ -209,6 +233,7 @@ export default function Home() {
           windowSize={7}
           indicatorStyle="white"
         />
+        </ActivePostContext.Provider>
       )}
     </Screen>
   );

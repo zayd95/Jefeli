@@ -116,7 +116,7 @@ export default function Notifications() {
           ) : q.isError ? (
             <ErrorState message={toFrenchError(q.error)} onRetry={() => q.refetch()} />
           ) : (
-            <EmptyState icon={Bell} title="Rien de nouveau" body="Abonnements, commentaires, propositions et lives apparaîtront ici." />
+            <EmptyState icon={Bell} title="Rien de nouveau" body="Abonnements, commentaires et propositions apparaîtront ici." />
           )
         }
         ListFooterComponent={

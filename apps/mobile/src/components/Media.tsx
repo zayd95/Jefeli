@@ -1,27 +1,143 @@
+import { useEventListener } from 'expo';
 import { Image } from 'expo-image';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { Play, Volume2, VolumeX } from 'lucide-react-native';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
+import { Play, RotateCcw, Volume2, VolumeX } from 'lucide-react-native';
+import { createContext, useContext, useEffect, useId, useState, useSyncExternalStore } from 'react';
+import {
+  AccessibilityInfo,
+  ActivityIndicator,
+  AppState,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 
-import { colors, dark, Text } from '@/design';
+import { colors, dark, Text, videoFill } from '@/design';
 import { useMediaUrl, type Bucket } from '@/lib/media';
 import type { MediaRow } from '@/lib/types';
 import { fill } from '@/design/fill';
 
-/** Poster-first video: nothing is downloaded until the member taps play (data-friendly). */
-export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { uri: string; posterUri?: string | null; autoPlay?: boolean; loop?: boolean }) {
-  const [started, setStarted] = useState(!!autoPlay);
+// ---------------------------------------------------------------------------
+// Playback rules (W1.1): one video plays at a time, everything pauses when the app goes to the
+// background or the browser tab is hidden, and the feed autoplays only its most visible video,
+// muted, unless the member asked to save data or reduce motion.
+// ---------------------------------------------------------------------------
+
+let playingKey: string | null = null;
+const listeners = new Set<() => void>();
+function setPlaying(key: string | null) {
+  if (playingKey === key) return;
+  playingKey = key;
+  listeners.forEach((l) => l());
+}
+const subscribePlaying = (l: () => void) => {
+  listeners.add(l);
+  return () => listeners.delete(l);
+};
+const getPlaying = () => playingKey;
+
+if (Platform.OS === 'web') {
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => document.hidden && setPlaying(null));
+} else {
+  AppState.addEventListener('change', (state) => state !== 'active' && setPlaying(null));
+}
+
+function webAutoplayAllowed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (connection?.saveData || connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g') return false;
+  return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** May a feed video start by itself (muted)? No on data saving, 2G or reduced motion. */
+function useAutoplayAllowed(): boolean {
+  const [allowed, setAllowed] = useState(() => (Platform.OS === 'web' ? webAutoplayAllowed() : true));
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((reduce) => alive && setAllowed(!reduce));
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (reduce) => setAllowed(!reduce));
+    return () => {
+      alive = false;
+      sub.remove();
+    };
+  }, []);
+  return allowed;
+}
+
+/** Pause whatever is playing (e.g. when the feed screen loses focus). */
+export function pauseAllVideos() {
+  setPlaying(null);
+}
+
+/** The feed tells its cards which post is the most visible one (FlatList viewability). */
+export const ActivePostContext = createContext<string | null | undefined>(undefined);
+export function useIsActivePost(postId: string): boolean | undefined {
+  const active = useContext(ActivePostContext);
+  return active === undefined ? undefined : active === postId;
+}
+
+/**
+ * Poster first. Outside the feed (`active` undefined) nothing is downloaded until the member taps
+ * play. In the feed, the most visible card's video starts muted when autoplay is allowed, and
+ * pauses as soon as the card is no longer the most visible one.
+ */
+export function VideoPlayerInline({
+  uri,
+  posterUri,
+  active,
+  loop = true,
+}: {
+  uri: string;
+  posterUri?: string | null;
+  active?: boolean;
+  loop?: boolean;
+}) {
+  const key = useId();
+  const autoplayAllowed = useAutoplayAllowed();
+  const playing = useSyncExternalStore(subscribePlaying, getPlaying, getPlaying) === key;
+  const [tapped, setTapped] = useState(false);
+  // Loaded when the member tapped play, or while this is the feed's active card and autoplay is
+  // allowed. An autoplayed video that leaves the screen releases its source (memory, data).
+  const started = tapped || (active === true && autoplayAllowed);
   const [muted, setMuted] = useState(true);
+  const [status, setStatus] = useState<VideoPlayerStatus>('idle');
   const player = useVideoPlayer(started ? uri : null, (p) => {
     p.loop = loop;
     p.muted = true;
-    if (started) p.play();
   });
+  useEventListener(player, 'statusChange', ({ status: next }) => setStatus(next));
+
+  // Autoplay in the feed: the active card claims playback; a card that stops being active pauses.
+  useEffect(() => {
+    if (active && autoplayAllowed) {
+      setPlaying(key);
+    } else if (active === false && getPlaying() === key) {
+      setPlaying(null);
+    }
+  }, [active, autoplayAllowed, key]);
+  useEffect(() => {
+    if (!started) return;
+    if (playing) player.play();
+    else player.pause();
+  }, [playing, started, player]);
+  useEffect(() => () => {
+    if (getPlaying() === key) setPlaying(null);
+  }, [key]);
+
+  const start = () => {
+    setTapped(true);
+    setPlaying(key);
+  };
 
   if (!started) {
     return (
-      <Pressable style={StyleSheet.absoluteFill} onPress={() => setStarted(true)} accessibilityRole="button" accessibilityLabel="Lire la vidéo">
+      <Pressable style={StyleSheet.absoluteFill} onPress={start} accessibilityRole="button" accessibilityLabel="Lire la vidéo">
         {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.ink }]} />}
         <View style={styles.playWrap}>
           <View style={styles.play}>
@@ -33,7 +149,35 @@ export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { u
   }
   return (
     <View style={StyleSheet.absoluteFill}>
-      <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
+      <VideoView player={player} style={videoFill} contentFit="cover" nativeControls={false} />
+      {status !== 'readyToPlay' && posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => (status === 'error' ? player.replace(uri) : playing ? setPlaying(null) : setPlaying(key))}
+        accessibilityRole="button"
+        accessibilityLabel={status === 'error' ? 'Réessayer la lecture' : playing ? 'Mettre en pause' : 'Lire la vidéo'}
+      >
+        {status === 'error' ? (
+          <View style={styles.playWrap}>
+            <View style={styles.errorPill}>
+              <RotateCcw size={16} color={colors.white} />
+              <Text variant="caption" weight="600" color={colors.white}>
+                Lecture impossible · Réessayer
+              </Text>
+            </View>
+          </View>
+        ) : status === 'loading' && playing ? (
+          <View style={styles.playWrap}>
+            <ActivityIndicator color={colors.white} />
+          </View>
+        ) : !playing ? (
+          <View style={styles.playWrap}>
+            <View style={styles.play}>
+              <Play size={24} color={dark.text} fill={dark.text} />
+            </View>
+          </View>
+        ) : null}
+      </Pressable>
       <Pressable
         style={styles.mute}
         onPress={() => {
@@ -51,13 +195,28 @@ export function VideoPlayerInline({ uri, posterUri, autoPlay, loop = true }: { u
   );
 }
 
-export function MediaItem({ media, bucket, width, height, tone = 'light' }: { media: MediaRow; bucket: Bucket; width: number; height: number; tone?: 'light' | 'dark' }) {
+export function MediaItem({
+  media,
+  bucket,
+  width,
+  height,
+  tone = 'light',
+  active,
+}: {
+  media: MediaRow;
+  bucket: Bucket;
+  width: number;
+  height: number;
+  tone?: 'light' | 'dark';
+  /** Feed only: this slide is the one on screen in the most visible card. */
+  active?: boolean;
+}) {
   const uri = useMediaUrl(bucket, media.storage_path);
   const poster = useMediaUrl(bucket, media.poster_path);
   return (
     <View style={{ width, height, backgroundColor: tone === 'dark' ? dark.surface : colors.surfaceMuted }}>
       {media.kind === 'video' ? (
-        uri ? <VideoPlayerInline uri={uri} posterUri={poster} /> : null
+        uri ? <VideoPlayerInline uri={uri} posterUri={poster} active={active} /> : null
       ) : uri ? (
         <Image
           source={{ uri }}
@@ -86,12 +245,15 @@ export function MediaCarousel({
   width: fixedWidth,
   height: fixedHeight,
   tone = 'light',
+  active,
 }: {
   media: MediaRow[];
   bucket: Bucket;
   width?: number;
   height?: number;
   tone?: 'light' | 'dark';
+  /** Feed only: whether this carousel's card is the most visible one. */
+  active?: boolean;
 }) {
   const { width: screenWidth } = useWindowDimensions();
   const width = fixedWidth ?? Math.min(screenWidth, 640);
@@ -107,11 +269,11 @@ export function MediaCarousel({
   return (
     <View style={{ width, height }}>
       {media.length === 1 ? (
-        <MediaItem media={media[0] as MediaRow} bucket={bucket} width={width} height={height} tone={tone} />
+        <MediaItem media={media[0] as MediaRow} bucket={bucket} width={width} height={height} tone={tone} active={active} />
       ) : (
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64}>
-          {media.map((m) => (
-            <MediaItem key={m.id} media={m} bucket={bucket} width={width} height={height} tone={tone} />
+          {media.map((m, i) => (
+            <MediaItem key={m.id} media={m} bucket={bucket} width={width} height={height} tone={tone} active={active === undefined ? undefined : active && i === index} />
           ))}
         </ScrollView>
       )}
@@ -158,5 +320,6 @@ const styles = StyleSheet.create({
   dots: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 5 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.55)' },
   dotOn: { backgroundColor: colors.white, width: 16 },
+  errorPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: dark.glass },
   videoTag: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(16,37,44,0.6)', alignItems: 'center', justifyContent: 'center' },
 });
