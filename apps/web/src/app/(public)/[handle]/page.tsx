@@ -321,14 +321,16 @@ function ProfileIdentity({ profile, showBio = false }: { profile: PublicProfile;
 
 function PostItem({ post }: { post: PostRow }) {
   const media = sortMedia(post.post_media).filter((m) => m.bucket === 'public-media');
-  const first = media[0];
+  // A voice is never drawn as a thumbnail (W1.2).
+  const first = media.find((m) => m.kind !== 'audio');
+  const voiceOnly = !first && media.some((m) => m.kind === 'audio');
   const thumb = first ? publicMediaUrl(first.kind === 'image' ? first.storage_path : first.poster_path) : null;
   const body = post.body.trim();
   return (
     <Link href={`/post/${post.id}`} className="card post-item">
       <div style={{ minWidth: 0 }}>
         {post.pinned_at ? <PinnedChip /> : null}
-        <p className="post-item-body">{body || (media.length ? 'Publication avec médias' : 'Publication')}</p>
+        <p className="post-item-body">{body || (voiceOnly ? 'Publication vocale' : media.length ? 'Publication avec médias' : 'Publication')}</p>
         <div className="meta-row">
           <span>{timeAgo(post.created_at)}</span>
           <span aria-label={`${post.upvote_count} ${post.upvote_count > 1 ? 'votes' : 'vote'} pour`}>

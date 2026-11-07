@@ -582,6 +582,9 @@ button { font: inherit; color: inherit; }
 .post-body { padding: 14px 16px 0; font-size: 16px; line-height: 1.55; }
 .post-media { display: grid; gap: 2px; margin-top: 14px; background: var(--c-surface-muted); }
 .post-media img, .post-media video { width: 100%; max-height: 720px; object-fit: contain; background: var(--c-surface-muted); }
+.post-voice { margin: 0; padding: 14px 16px; display: grid; gap: 8px; background: var(--c-surface); }
+.post-voice figcaption { font-weight: 700; font-size: 14px; }
+.post-voice audio { width: 100%; }
 .post-foot { padding: 14px 16px 16px; }
 .post-products { display: grid; gap: 10px; padding: 0 16px 16px; }
 .mini-product { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px; }
