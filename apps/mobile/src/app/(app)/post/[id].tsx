@@ -7,7 +7,7 @@ import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextIn
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PostCard } from '@/components/PostCard';
-import { Avatar, Button, colors, dark, EmptyState, Field, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, Field, fieldFontSize, fonts, Header, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
 import { addComment, deleteComment, editPost, fetchComments, fetchPost } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { patchPost } from '@/lib/postCache';
@@ -231,6 +231,6 @@ const styles = StyleSheet.create({
   reply: { paddingLeft: spacing.lg + 40 },
   // Lovable comment field: fog-tinted pill on night, mint send.
   composer: { borderTopWidth: 1, borderColor: dark.border, paddingHorizontal: spacing.md, paddingTop: spacing.sm, backgroundColor: dark.header },
-  input: { flex: 1, minHeight: 44, maxHeight: 110, borderRadius: 22, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.subtle, paddingHorizontal: spacing.lg, paddingVertical: 10, fontFamily: fonts.regular, fontSize: 15, color: dark.text },
+  input: { flex: 1, minHeight: 44, maxHeight: 110, borderRadius: 22, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.subtle, paddingHorizontal: spacing.lg, paddingVertical: 10, fontFamily: fonts.regular, fontSize: fieldFontSize(15), color: dark.text },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
 });

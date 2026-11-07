@@ -7,7 +7,7 @@
  */
 import { expect, test } from '@playwright/test';
 
-import { btn, field, latestAuthLink, newDevice, runId, shot, signIn, signUp } from './helpers';
+import { APP_URL, btn, field, latestAuthLink, newDevice, runId, shot, signIn, signUp } from './helpers';
 
 const RUN = runId();
 const OLD = 'Test-jefeli-2026!';
@@ -34,7 +34,7 @@ test.describe.serial('P1 account recovery: forgotten password, from the e-mail l
 
     link = await latestAuthLink(MEMBER.email, /reset your password/i);
     // The link brings the member back to this app's own reset screen (not the old jefeli:// on the web).
-    expect(new URL(link).searchParams.get('redirect_to')).toBe('http://localhost:8081/reset-password');
+    expect(new URL(link).searchParams.get('redirect_to')).toBe(`${APP_URL}/reset-password`);
     await page.goto(link);
     await expect(page.getByRole('textbox', { name: 'Nouveau mot de passe' })).toBeVisible({ timeout: 20_000 });
     await shot(page, DIR, 'new-password-form');

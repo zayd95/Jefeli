@@ -3,6 +3,8 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 export const WEB_URL = process.env.WEB_URL ?? 'http://localhost:3000';
+/** The app under test: Expo web dev server by default, or a production export / deployment. */
+export const APP_URL = (process.env.APP_URL ?? 'http://localhost:8081').replace(/\/+$/, '');
 export const ROOT = path.resolve(__dirname, '..', '..', '..');
 export const EVIDENCE = path.join(ROOT, 'docs', 'evidence', 'e2e');
 export const FIXTURE = (name: string) => path.join(__dirname, '..', 'fixtures', name);

@@ -70,7 +70,9 @@
     "export:web": "expo export --platform web",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "doctor": "expo-doctor"
+    "doctor": "expo-doctor",
+    "web:export": "expo export --platform web && node scripts/web-finalize.mjs",
+    "web:serve": "node scripts/serve-export.mjs"
   },
   "private": true
 }
