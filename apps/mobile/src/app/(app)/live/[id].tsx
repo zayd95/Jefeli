@@ -1,6 +1,6 @@
 import { formatListingPrice, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { EyeOff, Flag, MessageCircle, Pin, PinOff, Radio, Send, Share2, UserX, X } from 'lucide-react-native';
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -23,6 +23,7 @@ import {
 import { messageAboutProduct } from '@/lib/api/messages';
 import { fetchSellerProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { useFlag } from '@/lib/flags';
 import { isLiveSdkAvailable } from '@/lib/live';
 import { useLiveRealtime } from '@/lib/realtime';
 import { shareLinks } from '@/lib/share';
@@ -32,7 +33,14 @@ const LiveVideo = lazy(() => import('@/components/live/StreamLive').then((m) => 
 
 type TokenResponse = { apiKey: string; token: string; callType: string; callId: string; isHost: boolean };
 
-export default function LiveScreen() {
+/** Live is not part of the product (W1.1): the screen stays in the code, unreachable while the flag is off. */
+export default function LiveScreenGate() {
+  const enabled = useFlag('live_streaming');
+  if (!enabled) return <Redirect href="/" />;
+  return <LiveScreen />;
+}
+
+function LiveScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { userId, profile } = useAuth();
   const qc = useQueryClient();

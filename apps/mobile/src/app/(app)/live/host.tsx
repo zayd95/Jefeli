@@ -1,6 +1,6 @@
 import { toFrenchError } from '@jefeli/shared';
 import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { Radio, ShieldAlert } from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -8,13 +8,21 @@ import { ScrollView, View } from 'react-native';
 import { Button, Card, colors, EmptyState, Field, Header, Screen, spacing, Text, useToast } from '@/design';
 import { liveFunction, type LiveProviderStatus } from '@/lib/api/live';
 import { isLiveSdkAvailable } from '@/lib/live';
+import { useFlag } from '@/lib/flags';
 import { goBack } from '@/lib/nav';
 
 /**
  * Go Live: the server creates the session + provider call and returns a host token.
  * The session only shows "EN DIRECT" once the provider confirms the stream started.
  */
-export default function HostLive() {
+/** Live is not part of the product (W1.1): the screen stays in the code, unreachable while the flag is off. */
+export default function HostLiveGate() {
+  const enabled = useFlag('live_streaming');
+  if (!enabled) return <Redirect href="/" />;
+  return <HostLive />;
+}
+
+function HostLive() {
   const toast = useToast();
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);

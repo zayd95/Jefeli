@@ -8,7 +8,7 @@ import { useFlag } from '@/lib/flags';
 
 const POINTS = [
   { icon: Search, title: 'Découvre', body: 'Les boutiques et les bonnes affaires près de chez toi, à Dakar et ailleurs.' },
-  { icon: Store, title: 'Partage', body: 'Publications, statuts et lives : ta boutique fait partie de ton profil.' },
+  { icon: Store, title: 'Partage', body: 'Publications, vidéos et statuts : ta boutique fait partie de ton profil.' },
   { icon: MessageCircle, title: 'Vends', body: 'Discute, négocie ou propose un troc directement en message privé.' },
 ];
 

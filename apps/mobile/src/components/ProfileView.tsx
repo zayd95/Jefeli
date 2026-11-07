@@ -7,7 +7,7 @@
  *     Message / Follow for visitors), and « Plus d'infos » for the rest;
  *   - only two primary tabs, Publications and Boutique: three compact post previews or four
  *     product tiles before « Voir plus ». No boutique carousel and no pinned hero above them.
- * Statuses, highlights, reviews, lives, boutique details, privacy, friends, report and block stay
+ * Statuses, highlights, reviews, boutique details, privacy, friends, report and block stay
  * reachable (avatar ring, « Plus d'infos » and sheets, the ⋯ menu), on the same native APIs.
  */
 import { formatMemberSince, plural, timeAgo, toFrenchError, INTENT_LABELS, isPostIntent } from '@jefeli/shared';
@@ -27,7 +27,6 @@ import {
   MessageCircle,
   MoreHorizontal,
   Plus,
-  Radio,
   Send,
   Settings,
   Share2,
@@ -40,9 +39,8 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, IconButton, LiveBadge, Motif, radius, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
+import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, IconButton, Motif, radius, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
 import { fill } from '@/design/fill';
-import { fetchLiveByHost } from '@/lib/api/live';
 import { openConversationWith } from '@/lib/api/messages';
 import { fetchReviews } from '@/lib/api/offers';
 import { fetchPinnedPosts, fetchUserPosts } from '@/lib/api/posts';
@@ -91,7 +89,6 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const [menu, setMenu] = useState(false);
   const [shareSheet, setShareSheet] = useState(false);
   const [reviewsSheet, setReviewsSheet] = useState(false);
-  const [livesSheet, setLivesSheet] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [allInterests, setAllInterests] = useState(false);
   const [postLimit, setPostLimit] = useState(POST_STEP);
@@ -124,7 +121,6 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     queryFn: () => fetchPinnedPosts(userId, profile.id),
     enabled: !locked && tab === 'posts',
   });
-  const lives = useQuery({ queryKey: ['host-lives', profile.id], queryFn: () => fetchLiveByHost(profile.id), enabled: !locked && (showInfo || livesSheet) });
   const reviews = useQuery({ queryKey: ['reviews', profile.id], queryFn: () => fetchReviews(profile.id), enabled: !locked && reviewsSheet });
 
   const productList = useMemo(() => products.data ?? [], [products.data]);
@@ -134,7 +130,6 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     return [...pinned, ...(posts.data?.pages.flat() ?? []).filter((p) => !pinnedIds.has(p.id))];
   }, [pinnedPosts.data, posts.data]);
   const hasStories = (stories.data?.length ?? 0) > 0;
-  const isLiveNow = (lives.data ?? []).some((l) => l.status === 'live');
   const interests = profile.interests ?? [];
   const interestLabel = (slug: string) => categories.data?.find((c) => c.slug === slug)?.name ?? slug;
   const boutiqueCategory = profile.boutique_category_slug ? interestLabel(profile.boutique_category_slug) : null;
@@ -209,8 +204,8 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
 
   const ring = (
     <View style={styles.avatarRing}>
-      {hasStories || isLiveNow ? (
-        <LinearGradient colors={isLiveNow ? [colors.live, colors.live] : [dark.mint, dark.mint, dark.gold]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={[fill, { borderRadius: 36 }]} />
+      {hasStories ? (
+        <LinearGradient colors={[dark.mint, dark.mint, dark.gold]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={[fill, { borderRadius: 36 }]} />
       ) : (
         <View style={[fill, { borderRadius: 36, backgroundColor: dark.borderStrong }]} />
       )}
@@ -409,7 +404,6 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                   <InfoLink key={h.id} icon={Star} label={`Sélection · ${h.title} (${h.items.length})`} onPress={() => router.push(`/highlight/${h.id}`)} />
                 ))}
                 {isSelf ? <InfoLink icon={Plus} label="Publier un statut (24 h)" onPress={() => router.push('/publish/status')} /> : null}
-                <InfoLink icon={Radio} label={isLiveNow ? 'En direct maintenant' : 'Lives'} onPress={() => setLivesSheet(true)} />
                 <BoutiqueInfo boutique={boutique.data} isSelf={isSelf} />
               </>
             ) : null}
@@ -605,36 +599,6 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         )}
       </Sheet>
 
-      <Sheet visible={livesSheet} onClose={() => setLivesSheet(false)} title="Lives" scroll>
-        {lives.isPending ? (
-          <Skeleton height={48} />
-        ) : (lives.data ?? []).length === 0 ? (
-          <Text tone="secondary">{isSelf ? 'Le direct vidéo arrive bientôt.' : 'Ses prochains lives apparaîtront ici.'}</Text>
-        ) : (
-          (lives.data ?? []).map((l) => (
-            <Pressable
-              key={l.id}
-              style={styles.liveItem}
-              onPress={() => {
-                if (l.status !== 'live') return;
-                setLivesSheet(false);
-                router.push(`/live/${l.id}`);
-              }}
-              disabled={l.status !== 'live'}
-              accessibilityRole="button"
-            >
-              <View style={{ flex: 1 }}>
-                <Text variant="bodyStrong">{l.title}</Text>
-                <Text variant="caption" tone="secondary">
-                  {l.status === 'live' ? 'En cours' : l.status === 'ended' ? `Terminé · ${timeAgo(l.ended_at ?? l.created_at)}` : 'En préparation'}
-                </Text>
-              </View>
-              {l.status === 'live' ? <LiveBadge compact /> : null}
-            </Pressable>
-          ))
-        )}
-      </Sheet>
-
       <ContentMenu
         visible={menu}
         onClose={() => setMenu(false)}
@@ -757,5 +721,4 @@ const styles = StyleSheet.create({
   gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginTop: spacing.md },
   emptyTab: { paddingVertical: spacing.xxl, paddingHorizontal: spacing.xl, alignItems: 'center' },
   review: { flexDirection: 'row', gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, borderColor: colors.border },
-  liveItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, borderBottomWidth: 1, borderColor: colors.border },
 });

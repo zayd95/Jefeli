@@ -8,16 +8,14 @@
 import { isPostIntent, POST_INTENTS, toFrenchError, type Audience, type PostIntent } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, Radio } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ChoicePills, MediaPickerStrip, UploadOverlay } from '@/components/Composer';
 import { Thumb } from '@/components/Media';
 import { PublishHeader } from '@/components/PublishSwitcher';
-import { Avatar, Button, colors, fonts, radius, Screen, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
-import { liveFunction, type LiveProviderStatus } from '@/lib/api/live';
-import { useFlag } from '@/lib/flags';
+import { Avatar, Button, colors, fonts, Screen, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
 import { createPost } from '@/lib/api/posts';
 import { fetchSellerProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
@@ -53,9 +51,6 @@ export default function NewPost() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [focused, setFocused] = useState(false);
-  const liveFlag = useFlag('live_streaming');
-  const provider = useQuery({ queryKey: ['live-provider-status'], queryFn: () => liveFunction<LiveProviderStatus>('status'), retry: 0, staleTime: 60_000, enabled: liveFlag });
-  const liveReady = liveFlag && provider.data?.configured === true;
   const abort = useRef<AbortController | null>(null);
 
   const myProducts = useQuery({ queryKey: ['my-active-products', userId], queryFn: () => fetchSellerProducts(userId ?? '', { onlyActive: true }), enabled: !!userId });
@@ -183,20 +178,6 @@ export default function NewPost() {
           ) : null}
         </View>
 
-        <Pressable
-          disabled={!liveReady}
-          onPress={() => router.push('/live/host')}
-          style={[styles.live, !liveReady && { opacity: 0.7 }]}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !liveReady }}
-          aria-disabled={!liveReady}
-          accessibilityLabel={`Live. ${liveReady ? 'Présentez vos articles en direct.' : 'Arrive avec l’activation du direct vidéo.'}`}
-        >
-          <Radio size={18} color={liveReady ? colors.ink : colors.textSecondary} />
-          <Text variant="caption" weight="600" tone={liveReady ? 'default' : 'secondary'} style={{ flex: 1 }}>
-            {liveReady ? 'Lancer un live vidéo' : 'Live vidéo · bientôt'}
-          </Text>
-        </Pressable>
       </ScrollView>
       <UploadOverlay visible={uploading} progress={progress} label="Publication en cours…" onCancel={() => abort.current?.abort()} />
     </Screen>
@@ -214,5 +195,4 @@ const styles = StyleSheet.create({
   product: { padding: 6, borderRadius: 16, backgroundColor: colors.surface, gap: 4, borderWidth: 2, borderColor: 'transparent' },
   productOn: { borderColor: colors.mint, backgroundColor: colors.mintSoft },
   check: { position: 'absolute', top: 10, right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
-  live: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 48, paddingHorizontal: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
 });
