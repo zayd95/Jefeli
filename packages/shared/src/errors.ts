@@ -83,6 +83,8 @@ function errorMessageRaw(err: unknown): string {
 /** French message for any error coming from Supabase / fetch / our RPCs. */
 /** Table checks whose violation deserves a precise message (matched on the constraint name). */
 const CONSTRAINT_ERRORS: [string, string][] = [
+  // Two taps in the same instant: the unique index (not the RPC check) rejects the second one.
+  ['offers_one_pending_per_pair', 'Vous avez déjà une proposition en attente pour cet article.'],
   ['profiles_boutique_identity_required', 'Pour être affiché comme vendeur, indiquez le nom et la catégorie de votre boutique.'],
   ['profiles_boutique_name_length', 'Le nom de la boutique doit compter entre 2 et 60 caractères.'],
 ];

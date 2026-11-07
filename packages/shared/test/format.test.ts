@@ -141,6 +141,10 @@ describe('toFrenchError — boutique identity checks', () => {
     expect(toFrenchError({ message: 'new row for relation "profiles" violates check constraint "profiles_boutique_name_length"' })).toBe(
       'Le nom de la boutique doit compter entre 2 et 60 caractères.',
     );
+    // A double tap on « Envoyer la proposition » (reproduced in integration 15): not « invalid form ».
+    expect(toFrenchError({ code: '23505', message: 'duplicate key value violates unique constraint "offers_one_pending_per_pair"' })).toBe(
+      'Vous avez déjà une proposition en attente pour cet article.',
+    );
   });
 });
 

@@ -2,7 +2,7 @@ import { formatAmountInput, formatXOF, parseXOF, PLATFORM_DISCLAIMER, toFrenchEr
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeftRight, Check, PackagePlus } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { OptionRow } from '@/components/Composer';
@@ -40,6 +40,8 @@ export default function OfferComposer() {
   const [payerChoice, setPayer] = useState<'buyer' | 'seller' | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  // State updates land after the next render; two taps in one frame would both pass `busy`.
+  const inFlight = useRef(false);
 
   // Counter-offers start from the previous terms; explicit choices override them.
   const offered = offeredChoice ?? original.data?.offered_product_id ?? null;
@@ -51,7 +53,8 @@ export default function OfferComposer() {
   const valid = kind === 'price' ? value !== null && value > 0 : !!offered;
 
   async function submit() {
-    if (!p) return;
+    if (!p || inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     try {
       const args = {
@@ -71,6 +74,7 @@ export default function OfferComposer() {
     } catch (e) {
       toast(toFrenchError(e), 'error');
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
