@@ -33,6 +33,13 @@ const PASSWORD = process.env.DEMO_PASSWORD ?? 'Demo-jefeli-2026!';
 const DOMAIN = 'demo.jefeli.test';
 
 const host = new URL(URL_).hostname;
+// Projects that hold real members (W1 web beta): never seeded, whatever the flags. Add a project
+// here before it receives real accounts.
+const PROTECTED_PROJECT_REFS = ['gbsoifwllbacwsknydkq']; // jefeli-staging, backend of the web beta
+if (PROTECTED_PROJECT_REFS.some((ref) => host === `${ref}.supabase.co` || host.startsWith(`${ref}.`))) {
+  console.error(`Refusing to seed ${host}: this project holds real members. DÉMO data is never written there.`);
+  process.exit(1);
+}
 if (!['localhost', '127.0.0.1'].includes(host) && process.env.ALLOW_DEMO_SEED !== 'staging') {
   console.error(`Refusing to seed ${host}: demo data is for local/staging only (set ALLOW_DEMO_SEED=staging for a staging project).`);
   process.exit(1);
