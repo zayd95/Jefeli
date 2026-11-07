@@ -3,10 +3,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEventListener } from 'expo';
+import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
 import { Bookmark, Eye, Flag, Heart, MoreHorizontal, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar, Button, colors, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
@@ -15,6 +16,8 @@ import { addToHighlight, deleteStory, fetchStoryViewers, likeStory, markStoryVie
 import { useAuth } from '@/lib/auth';
 import { useMediaUrl } from '@/lib/media';
 import type { ProfileLite, StoryRow } from '@/lib/types';
+
+import { fill, videoFill } from '@/design/fill';
 
 import { Thumb } from './Media';
 import { goBack } from '@/lib/nav';
@@ -52,7 +55,11 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
     setIndex((i) => Math.max(0, i - 1));
   };
 
-  const duration = story?.media_kind === 'video' ? Math.min(60_000, Math.max(3000, story.duration_ms ?? 15_000)) : IMAGE_MS;
+  // Images run on a timer. A video drives its own progress (player time) and moves on only when
+  // it has played to the end, so buffering on a slow connection never skips it; up to 3 minutes.
+  const [videoFailed, setVideoFailed] = useState<string | null>(null);
+  const timed = story?.media_kind !== 'video' || videoFailed === story?.id;
+  const duration = IMAGE_MS;
 
   useEffect(() => {
     elapsedBefore.current = 0;
@@ -62,6 +69,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
 
   const typing = reply.length > 0;
   useEffect(() => {
+    if (!timed) return;
     if (paused || typing || menu || viewers || highlightSheet) {
       elapsedBefore.current += Date.now() - startedAt.current;
       return;
@@ -75,7 +83,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
       } else setProgress(p);
     }, 50);
     return () => clearInterval(t);
-  }, [paused, typing, menu, viewers, highlightSheet, duration, next]);
+  }, [timed, paused, typing, menu, viewers, highlightSheet, duration, next]);
 
   const mediaUri = useMediaUrl('private-media', story?.storage_path);
   const posterUri = useMediaUrl('private-media', story?.poster_path);
@@ -108,7 +116,22 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
     <View style={styles.root}>
       <View style={StyleSheet.absoluteFill}>
         {story.media_kind === 'video' ? (
-          mediaUri ? <StoryVideo uri={mediaUri} muted={muted} paused={paused || typing} /> : null
+          mediaUri ? (
+            <StoryVideo
+              key={story.id}
+              uri={mediaUri}
+              posterUri={posterUri}
+              muted={muted}
+              paused={paused || typing || menu || viewers || highlightSheet}
+              onProgress={setProgress}
+              onEnd={next}
+              onError={() => {
+                elapsedBefore.current = 0;
+                startedAt.current = Date.now();
+                setVideoFailed(story.id);
+              }}
+            />
+          ) : null
         ) : mediaUri ? (
           <Image source={{ uri: mediaUri }} style={StyleSheet.absoluteFill} contentFit="cover" placeholder={posterUri ? { uri: posterUri } : undefined} />
         ) : null}
@@ -294,11 +317,37 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   );
 }
 
-function StoryVideo({ uri, muted, paused }: { uri: string; muted: boolean; paused: boolean }) {
+function StoryVideo({
+  uri,
+  posterUri,
+  muted,
+  paused,
+  onProgress,
+  onEnd,
+  onError,
+}: {
+  uri: string;
+  posterUri: string | null;
+  muted: boolean;
+  paused: boolean;
+  onProgress: (fraction: number) => void;
+  onEnd: () => void;
+  onError: () => void;
+}) {
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
+    p.timeUpdateEventInterval = 0.1;
     p.play();
   });
+  const [status, setStatus] = useState<VideoPlayerStatus>(player.status);
+  useEventListener(player, 'statusChange', ({ status: next }) => {
+    setStatus(next);
+    if (next === 'error') onError();
+  });
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
+    if (player.duration > 0) onProgress(Math.min(1, currentTime / player.duration));
+  });
+  useEventListener(player, 'playToEnd', onEnd);
   useEffect(() => {
     // expo-video's documented API mutates the player instance.
     // eslint-disable-next-line react-hooks/immutability
@@ -308,10 +357,27 @@ function StoryVideo({ uri, muted, paused }: { uri: string; muted: boolean; pause
     if (paused) player.pause();
     else player.play();
   }, [paused, player]);
-  return <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />;
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <VideoView player={player} style={videoFill} contentFit="cover" nativeControls={false} />
+      {status !== 'readyToPlay' && posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : null}
+      {status === 'loading' || status === 'idle' ? (
+        <View style={styles.videoState} pointerEvents="none">
+          <ActivityIndicator color={colors.white} />
+        </View>
+      ) : status === 'error' ? (
+        <View style={styles.videoState} pointerEvents="none">
+          <Text variant="callout" weight="600" color={colors.white}>
+            Vidéo indisponible
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  videoState: { ...fill, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1, backgroundColor: '#000' },
   shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 180 },
   shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 },

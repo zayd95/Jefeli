@@ -26,7 +26,7 @@ import { shareLinks } from '@/lib/share';
 import type { CommentPreview, PostCardData } from '@/lib/types';
 
 import { ContentMenu } from './ContentMenu';
-import { MediaCarousel, Thumb } from './Media';
+import { MediaCarousel, Thumb, useIsActivePost } from './Media';
 import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { VoteControl } from './VoteControl';
@@ -62,6 +62,7 @@ function PostCardInner({
   const [expanded, setExpanded] = useState(false);
   const [menu, setMenu] = useState(false);
   const [contacting, setContacting] = useState(false);
+  const activeOnScreen = useIsActivePost(post.id);
   const author = post.author;
   if (!author) return null;
 
@@ -249,9 +250,15 @@ function PostCardInner({
         <>
           {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
           <View>
-            <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication" disabled={post.media[0]?.kind === 'video'}>
-              <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" />
-            </Pressable>
+            {post.media[0]?.kind === 'video' ? (
+              // A video handles its own taps (play, pause, sound): no disabled wrapper around it, which
+              // screen readers would announce as « dimmed » for the play button too.
+              <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
+            ) : (
+              <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication">
+                <MediaCarousel media={post.media} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
+              </Pressable>
+            )}
             {tagged[0] ? (
               <Pressable
                 onPress={() => router.push(`/p/${tagged[0]!.id}`)}
