@@ -316,8 +316,9 @@ async function main() {
   const cover = await upload(u.awa, 'avatars', 'cover', img.waxGreen);
   must(await u.awa.client.from('profiles').update({ cover_path: cover.path }).eq('id', u.awa.id), 'cover awa');
 
+  const fixtureListing = { awa: dress, baol: shoes };
   for (const f of STATUS_FIXTURES) {
-    await createStatusFixture(u[f.user], f, f.product === dress.title ? dress.id : shoes.id, f.image === 'dress' ? img.dress : img.shoes);
+    await createStatusFixture(u[f.user], f, fixtureListing[f.user].id, f.image === 'dress' ? img.dress : img.shoes);
   }
 
   console.log('Social graph…');

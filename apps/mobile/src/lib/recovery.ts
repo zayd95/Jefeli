@@ -17,6 +17,11 @@ export function resetPasswordRedirectUrl(): string {
   return Linking.createURL(RESET_PASSWORD_PATH);
 }
 
+/** Where the sign-up confirmation link brings the member back (same per-runtime rules as above). */
+export function confirmEmailRedirectUrl(): string {
+  return Linking.createURL('/sign-in');
+}
+
 export type RecoveryLink = { kind: 'session'; accessToken: string; refreshToken: string } | { kind: 'invalid' };
 
 /** Reads a recovery callback URL. Null when the URL carries no auth callback at all. */
