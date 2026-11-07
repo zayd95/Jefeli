@@ -1,6 +1,23 @@
 # Next actions
 
-## Owner (now): re-check the microcopy pass on the iPhone
+## Owner (now): P1 private-pilot decisions
+
+Read `docs/GO_NO_GO.md` (one page), then `docs/P1_READINESS_REPORT.md` if you want the detail.
+1. Approve or reject the code as the private-pilot candidate (draft PR #2 stays unmerged until
+   you say so).
+2. Decide the paid/external items: pilot Supabase project, e-mail sending, Expo account
+   (Android APK) and, only for iPhone testers, the Apple Developer Program; web hosting for the
+   legal pages, shared links and `/admin`.
+3. Fill the 19 placeholders in the legal pages (company, contact e-mail, CDP receipt, retention
+   periods) with your legal counsel; choose the support channel; name 1–2 moderators.
+4. Then follow `docs/SETUP_PRODUCTION.md` §1 and §3, run the two-phone script in
+   `docs/PILOT_TEST_PLAN.md` §3, and only then invite sellers (`docs/PILOT_OPERATIONS.md` §3).
+
+Developer, once the owner has an Expo account: `eas init`, commit the project id, create the
+EAS environment variables, build the Android `preview` APK, and record the first device results
+in RELEASE_STATUS (P1-08, DEV-02).
+
+## Owner (earlier): re-check the microcopy pass on the iPhone
 
 `git pull` on `feature/lovable-native-parity-20261104`, then `pnpm preview:expo-go` and, in Expo Go:
 - create a new account: the « Bienvenue chez vous. » screen should feel calm, « Disponible »

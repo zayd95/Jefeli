@@ -354,14 +354,41 @@ before/after renders at 360×640, 390×844 and 412×915: `docs/evidence/microcop
   notes, validation/errors/toasts, accessibility labels.
 - Touch targets: 40-pt pills get 48-pt hit areas; small profile links get larger ones.
 
+### P1 — private pilot readiness (Nov 7)
+
+Goal: make the approved native app a private-pilot candidate for a small group of real
+sellers and buyers in Dakar, without changing the visual direction or adding product scope.
+Full report: `docs/P1_READINESS_REPORT.md`; decision sheet: `docs/GO_NO_GO.md`.
+
+Defects reproduced, then fixed (each with a test that failed first):
+- E2E runs broke with time: the DÉMO statuses are 24-hour statuses created at seed time
+  (`5b7a635`: seed refreshes them relative to now; E2E global setup runs it).
+- A double-tapped offer raised the unique-index error, shown as a misleading French message;
+  the offer screen and offer card now ignore a second tap in flight (`2ff8b90`).
+- « Mot de passe oublié » sent a link to `jefeli://reset-password`, a route that did not exist:
+  « Unmatched Route », no way to set a new password (`d6dd671`: `reset-password` screen, per-runtime
+  redirect URL, form only for a session opened by that recovery link).
+- A first-time DÉMO seed failed half-way (Awa's status was tied to Baol's listing) (`6022568`).
+
+New tests: integration `15-adversarial` (18: races, stale/expired offers, immutable terms, blocks
+after an agreement, deleted/private content, storage limits, forged tokens); E2E `resilience` (6),
+`account-recovery` (3), `email-confirmation` (1, gated). The suites also ran on a database with no
+DÉMO data, with a moderator granted by SQL. Screenshot numbering is now per evidence folder.
+
+Not changed on purpose: no error boundary (a release build turns an uncaught error into a crash
+that TestFlight/Play report; a boundary without a reporting service would hide it), no in-app
+support link (owner's channel is not chosen), `eas.json` (its defaults were checked in the EAS CLI
+source and already fit).
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 23 unit tests (on `0b1f547`, Lovable parity pass) |
-| `pnpm test:integration` (with `.env.test` functions) | 241/241 (on `0b1f547`, after `supabase db reset`) |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, screens 3 sizes) | 25/25 (on `0b1f547` after `supabase db reset` + `pnpm seed`; earlier on `0c71062` and `507f7ff`) |
-| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) with the Fraunces / Hanken Grotesk assets (on `0b1f547`) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 23 unit tests (on `3c02230`, P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 259/259 (on `3c02230`); also 259/259 on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, screens 3 sizes, email-confirmation gated) | 34 passed, 1 skipped (on `3c02230`); journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
+| `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |

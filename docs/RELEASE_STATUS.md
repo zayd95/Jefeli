@@ -1,14 +1,16 @@
 # Jëfëli — release status
 
-**Readiness: Gate A (developer preview) reached locally. Not yet at Gate B (invited pilot).**
-Public release is **not authorised**.
+**Readiness: Gate A (developer preview) reached locally. P1 private-pilot candidate prepared
+(code verified in browser and backend); Gate B (invited pilot) waits for the owner items in
+`docs/GO_NO_GO.md`.** Public release is **not authorised**.
 
 - Branch `claude/jefeli-pilot`, draft PR #1 → `main` (main holds only the owner's spec package)
 - Branch `feature/lovable-native-parity-20261104`, draft PR #2 → `claude/jefeli-pilot`: the
   approved Lovable visual port in native Expo code. Verified on code commit `0b1f547` (see
   « Lovable native parity pass » below). **Not merged; waits for the owner's screenshot and
   iPhone review.**
-- Latest verification: code commits `0c71062` (post-playtest refinement) and `507f7ff` (visual pass), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
+- **P1 verification (7 Nov) on `3c02230`:** `pnpm check` pass, integration 259/259, E2E 34 passed + 1 gated skip; on an empty database integration 259/259 and E2E journeys 31/31. See « P1 private-pilot readiness » below.
+- Earlier verification: code commits `0c71062` (post-playtest refinement) and `507f7ff` (visual pass), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
 - Environment: Ubuntu 24.04 cloud container, local Supabase CLI 2.122 stack (Postgres 17,
   GoTrue, PostgREST, Realtime, Storage, Edge Runtime). The Expo SDK 58 **web build** was driven
   by Playwright/Chromium 1.63. The Next.js 16 web app ran in dev mode.
@@ -42,7 +44,7 @@ executed here.
 | SAF-01 | Report, block, admin queue | **PASS** | E2E `SAF-01` (report → moderator hides it in `/admin` → listing unavailable → block → profile hidden); integration `08` |
 | SAF-02 | No fake badge; reviews only after a completed agreement | **PASS** | integration `01`, `07`, `08` (verification only via admin RPC; review refused before both confirmations) |
 | SEC-01 | Automated RLS matrix | **PASS** | `tests/integration`: **234/234** (199 after the feed pass, 162 before it). The first run found 11 real defects, fixed in migration `…0900_security_fixes.sql` (see `tests/integration/README.md`) |
-| DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart PASS | Reload persistence PASS. Upload retry/backoff, cancel, local drafts and French permission-denied messages are implemented but NOT_TESTED under real network loss or denied OS permissions |
+| DEV-01 | Restart, denied permissions, poor network, upload retry, empty states | **PARTIAL** · restart, network loss, drafts PASS (browser) | Reload persistence PASS. P1 E2E `resilience`: two network cuts during an upload (automatic retry publishes), a cut while sending a message (text kept, retry sends), draft restored after a reload. Denied OS permissions and real device network loss are still NOT_TESTED |
 | DEV-02 | Real iOS/Android captures, safe areas, keyboard | **BLOCKED_EXTERNAL** (devices) · web renders PASS | `docs/evidence/e2e/screens/{iphone-se,iphone-15-pro-max,pixel-7}` (16 screens each, browser renders, no overflow). Real safe areas and keyboard behaviour need devices |
 | REL-01 | Clean install / migrate / test | **PASS** | Locally: `supabase db reset` → seed → `pnpm check` → integration → E2E. GitHub Actions on PR #1 (head `f18c9dd`): both jobs green, with the typecheck/lint/unit/web build plus all 162 integration tests on a fresh Supabase stack ([run 41378067524](https://github.com/zayd95/Jefeli/actions/runs/41378067524)) |
 | REL-02 | README, env names, staging link, checklist, owner script | **PASS** · staging link **BLOCKED_EXTERNAL** | `README.md`, `.env.example`, `docs/SETUP_PRODUCTION.md`, `docs/TEST_IPHONE_FR.md`. There is no hosted staging project or deployment yet (needs owner accounts and approval) |
@@ -137,6 +139,23 @@ haptics, font rendering on iOS/Android. The owner's iPhone review is required be
 | COPY-03 | Redundant subtexts removed/shortened on Accueil, Explorer, Publier, Messages, Profil, Boutique, Statuts; trust, payment, privacy, barter/offer, validation and a11y text preserved | **PASS** (review + renders) | `docs/evidence/microcopy-pass/README.md` lists every string |
 | COPY-04 | Touch targets ≥ 44 pt on pills and small links | **PASS** (code review) | hit areas extended without changing the visual size |
 
+### P1 private-pilot readiness (branch `feature/lovable-native-parity-20261104`, draft PR #2)
+
+Report: `docs/P1_READINESS_REPORT.md`. Decision sheet: `docs/GO_NO_GO.md`. Browser renders and
+local backend only; no device.
+
+| ID | Requirement | Status | Evidence |
+|---|---|---|---|
+| P1-01 | DÉMO statuses never expire mid-run; fresh seed works | **PASS** after 2 fixes | Seed refreshes fixture statuses relative to now (E2E global setup); a first-time seed failed half-way (`invalid_product`), fixed and re-run on an empty database |
+| P1-02 | Real-member journeys with no DÉMO data | **PASS** | Empty database (migrations only, 0 users): integration 259/259; E2E journey, community, pricing, resilience, account-recovery 31/31; moderation by a SQL-granted `moderator` |
+| P1-03 | E-mail confirmation path | **PASS** (local, confirmations on) · **NOT_TESTED** with the pilot project's e-mail sender | E2E `email-confirmation` (gated by `E2E_EMAIL_CONFIRMATIONS=1`) |
+| P1-04 | Forgotten password | **PASS** after fix (browser) · **NOT_TESTED** deep link on a phone | Reproduced: the reset link opened « Unmatched Route ». New `reset-password` screen; E2E `account-recovery` 3/3 (new password, old refused, used link, no form without a recovery link) |
+| P1-05 | Duplicate / concurrent / stale offers, immutable terms | **PASS** after fix | integration `15-adversarial` (18 tests); a concurrent duplicate showed a misleading error, now « Vous avez déjà une proposition en attente… », and the UI ignores the second tap |
+| P1-06 | Network cuts, restart during publication, resume after token expiry, stale links | **PASS** (browser) · **NOT_TESTED** on a device | E2E `resilience` 6/6 |
+| P1-07 | Blocking after a conversation/agreement, deleted/hidden/private content, forged tokens, oversized/invalid media | **PASS** | integration `15-adversarial` |
+| P1-08 | Installable build path | **BLOCKED_EXTERNAL** | Documented and checked against the EAS CLI 27.5.0 source (APK by default for `preview`, EAS environment variables required because `.env` is not uploaded). Needs an Expo account; iPhone needs the Apple Developer Program |
+| P1-09 | Operations, safety, metrics | **PASS** (documents, queries run) | `docs/PILOT_OPERATIONS.md`, `docs/PILOT_METRICS.md` (12 read-only queries run by `scripts/check-pilot-metrics.sh`), backup/restore drill on the local stack |
+
 ### Other workstreams
 
 | Workstream | Status | Notes |
@@ -146,7 +165,7 @@ haptics, font rendering on iOS/Android. The owner's iPhone review is required be
 | Account deletion / data export | **PASS** | integration `11` (deletes files in all buckets, profile and auth user); export RPC returns only the caller's data |
 | Apple / Facebook login, contacts matching | **NOT_STARTED** (by design) | Flags exist and are off. Needs an Apple Developer account, Meta app review and a privacy decision. Invites use a profile link + QR code instead (no contact import) |
 | Moderation console | **PASS** | Web workstream ran its own Playwright pass: non-staff gate, take in charge, remove with reason, approve verification, reverse an appeal, toggle a flag |
-| Legal drafts (CGU, confidentialité, règles) | **Draft** | `apps/web/src/app/legal/*`, marked « Projet — à valider ». Needs owner and legal review (Senegal law 2008-12, CDP) |
+| Legal drafts (CGU, confidentialité, règles) | **Draft** | `apps/web/src/app/(public)/legal/*`, marked « Projet — à valider », 19 placeholders left (P1 count). Needs owner and legal review (Senegal law 2008-12, CDP) |
 | Brand / domain clearance | **Pending owner** | `Jëfëli` is used as a working name. Not described as cleared |
 | Owner preview on a phone browser (`pnpm preview:lan`) | **PASS** in iPhone-on-Wi-Fi conditions · **NOT_TESTED** on the owner's computer and iPhone | Verified on a non-loopback http origin (Chromium, iPhone 15 size): 21-step walkthrough, new sign-up, E2E journey 11/11. Not yet run on macOS/Windows or in iOS Safari. Microphone recording is refused by browsers on http, so voice notes need a device build. There is no cloud preview: the cloud session cannot accept inbound connections |
 | Native app in Expo Go (`pnpm preview:expo-go`) | **PASS** up to the bundle Expo Go loads · **NOT_TESTED** on the iPhone | Verified: Expo SDK 58.0.22 is the latest published SDK; `expo install --check` finds dependencies up to date (offline check); `expo export -p ios -p android` compiles Hermes bundles. Metro in Expo Go mode on a LAN address serves an `exposdk:58.0.0` manifest whose URLs all use the LAN IP, and a 17 MB iOS dev bundle with the LAN Supabase URL and local publishable key (no `127.0.0.1`). The web build through the same Metro passes the 21-step walkthrough. Live: the Stream/WebRTC code is lazy-loaded only when the native module exists, so Expo Go shows « Direct indisponible ». Push: reports "unavailable" without an EAS project id. Not run on a physical iPhone from here |

@@ -17,8 +17,21 @@ exposure**. Nothing here was done automatically. Prices are assumptions to verif
    pnpm exec supabase db push        # applies supabase/migrations/* (RLS, RPCs, buckets, cron jobs)
    ```
 3. Auth settings (Dashboard › Authentication):
-   - Turn on **Confirm email** for staging and production. Set the Site URL to the web domain. Add
-     redirect URLs `jefeli://**` and the web domain.
+   - **Confirm email**: on for staging and production. The app handles it (« Vérifiez votre
+     e-mail », then the link opens sign-in); verified locally with confirmations on
+     (`tests/e2e/specs/email-confirmation.spec.ts`, P1).
+   - **E-mail sending**: confirmation and password-reset e-mails go through Supabase's built-in
+     sender unless a custom SMTP is configured. That built-in sender is meant for testing: a very
+     low hourly rate and, as far as we know, delivery only to the project team's own addresses
+     (supabase.com could not be reached from the build environment to re-check). **Verify in the dashboard before inviting anyone**: send a reset
+     to a non-team address. If it does not arrive, either configure an SMTP provider (owner
+     approval; many have a free tier) or turn « Confirm email » off for the private pilot and accept
+     unconfirmed addresses (password reset still needs e-mail). See `docs/GO_NO_GO.md`.
+   - **Site URL**: the web domain. **Redirect URLs** (the app now sends per-runtime links,
+     `apps/mobile/src/lib/recovery.ts`): `jefeli://**` for installed builds, plus
+     `https://<web domain>/**`. Add `exp://**` **only on a staging project used with Expo Go**:
+     it lets any Expo Go address receive sign-in tokens from an e-mail link, so never on the pilot
+     or production project.
    - Set the password minimum to 8 and keep rate limits on.
    - Phone OTP: add an SMS provider (paid) only after approval, then enable the `phone_auth` flag
      (step 5).
@@ -41,6 +54,15 @@ exposure**. Nothing here was done automatically. Prices are assumptions to verif
    -- First administrator (after that person has signed up in the app)
    insert into public.staff_roles (user_id, role)
    select id, 'admin' from auth.users where email = '<admin email>';
+
+   -- Pilot moderators: least privilege (reports, hide/restore, warnings, suspensions; no
+   -- verification grants, no feature flags). Verified on an unseeded database in P1.
+   insert into public.staff_roles (user_id, role)
+   select id, 'moderator' from auth.users where email = lower('<moderator email>')
+   on conflict (user_id) do update set role = excluded.role;
+
+   -- Removing a staff member
+   delete from public.staff_roles where user_id = (select id from auth.users where email = lower('<email>'));
 
    -- Feature flags are toggled in the web console (/admin › Réglages) by an admin.
    ```
@@ -69,20 +91,57 @@ exposure**. Nothing here was done automatically. Prices are assumptions to verif
 
 ## 3. Mobile builds (EAS)
 
-1. Create an Expo account. Then run `cd apps/mobile && npx eas-cli login && npx eas-cli init`,
-   which writes `extra.eas.projectId`. Also set `EXPO_PUBLIC_EAS_PROJECT_ID` (this enables push).
+Facts below were checked in the EAS CLI source (`eas-cli` / `@expo/eas-json` 27.5.0, P1), not
+on a real build: no Expo account was available.
+
+1. Create an Expo account (free plan is enough to start). Then run
+   `cd apps/mobile && npx eas-cli login && npx eas-cli init`, which writes `extra.eas.projectId`
+   into `app.json` (commit it). Push tokens need that id (`src/lib/push.ts`).
 2. Bundle identifiers are placeholders: `sn.jefeli.app` (iOS and Android). Confirm or change
-   them in `app.json` before the first build.
-3. iPhone builds need an **Apple Developer Program** membership. Register the test devices, then
-   run `npx eas-cli build --profile development --platform ios`, then `npx eas-cli build --profile preview`.
-4. Android: `npx eas-cli build --profile preview --platform android` produces an installable APK
-   or AAB link.
-5. Set `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `EXPO_PUBLIC_WEB_BASE_URL`
-   and `EXPO_PUBLIC_ENV` as EAS environment variables per profile.
-6. Store submission (App Store / Play) is **not authorised** until legal review and an explicit
-   owner decision.
+   them in `app.json` before the first build: they cannot change once testers have installed it.
+3. **Configuration of the build**: `apps/mobile/.env` is gitignored, so EAS never receives it. A
+   build without these variables opens on « Configuration manquante ». Create them once per EAS
+   environment (the `preview` profile reads the « preview » environment, `production` reads
+   « production », by default):
+   ```bash
+   cd apps/mobile
+   npx eas-cli env:create --environment preview --name EXPO_PUBLIC_SUPABASE_URL --value https://<ref>.supabase.co --visibility plaintext
+   npx eas-cli env:create --environment preview --name EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY --value <publishable key> --visibility plaintext
+   npx eas-cli env:create --environment preview --name EXPO_PUBLIC_WEB_BASE_URL --value https://<web domain> --visibility plaintext
+   npx eas-cli env:create --environment preview --name EXPO_PUBLIC_ENV --value staging --visibility plaintext
+   npx eas-cli env:create --environment preview --name EXPO_PUBLIC_EAS_PROJECT_ID --value <projectId> --visibility plaintext
+   ```
+   These are public values (they end up in the app). Never put the service-role key here.
+4. **Android (no store needed)**: `npx eas-cli build --profile preview --platform android`. The
+   `preview` profile is `distribution: internal`, for which EAS builds an **APK** by default; the
+   build page gives a link/QR code that testers open on their phone (they allow « installer des
+   applications inconnues » once). A Google Play internal-testing track is the alternative
+   (one-time Play Console fee).
+5. **iPhone**: needs an **Apple Developer Program** membership (yearly fee, owner approval). Then
+   either internal distribution (register each tester's device UDID, then
+   `npx eas-cli build --profile preview --platform ios`) or TestFlight
+   (`npx eas-cli build --profile production --platform ios` then `npx eas-cli submit -p ios`,
+   internal testers need no App Review). Expo Go is not a pilot channel: it needs the developer's
+   machine running.
+6. **Push**: Android needs a Firebase project and its FCM V1 service-account key uploaded with
+   `npx eas-cli credentials`; iOS needs an APNs key (Apple Developer account). Without them the app
+   still works and shows in-app notifications; nothing is pushed.
+7. **Crashes**: no crash-reporting SDK is installed. A JavaScript error that nothing catches
+   closes the app in a release build; TestFlight (App Store Connect › TestFlight › Crashes) reports
+   those crashes at no cost, and so does the Play Console for installs through a Play testing
+   track. A
+   sideloaded APK reports nothing: ask testers to tell support what they were doing. Adding a
+   service such as Sentry is an owner decision.
+8. Store submission (App Store / Play public listing) is **not authorised** until legal review and
+   an explicit owner decision.
 
 ## 4. Web app (share pages + admin)
+
+The pilot needs it: the terms, privacy policy and community rules the app links to at sign-up
+and in Réglages, every shared/WhatsApp link (`EXPO_PUBLIC_WEB_BASE_URL`), and the moderation
+console (`/admin`) are all served by `apps/web`. Without it those links point nowhere. A
+moderator can also run the console locally (`pnpm web` with the pilot project's public URL and
+key) if no deployment is approved yet; the legal pages and shared links still need one.
 
 - Deploy `apps/web` (Next.js 16) to Vercel or any Node host, only once **public exposure is
   approved**. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
