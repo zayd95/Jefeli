@@ -56,6 +56,7 @@ const AUTH_ERRORS: Array<[RegExp, string]> = [
   [/invalid login credentials/i, 'E-mail ou mot de passe incorrect.'],
   [/user already registered/i, 'Un compte existe déjà avec cet e-mail.'],
   [/password should be at least/i, 'Le mot de passe doit contenir au moins 8 caractères.'],
+  [/should be different from the old password/i, 'Choisissez un mot de passe différent de l’ancien.'],
   [/email not confirmed/i, 'Confirmez votre e-mail avant de vous connecter.'],
   [/rate limit|too many requests/i, 'Trop de tentatives. Réessayez dans quelques minutes.'],
   [/invalid.*(otp|token)|token has expired/i, 'Code invalide ou expiré.'],

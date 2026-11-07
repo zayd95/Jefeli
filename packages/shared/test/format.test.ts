@@ -145,6 +145,10 @@ describe('toFrenchError — boutique identity checks', () => {
     expect(toFrenchError({ code: '23505', message: 'duplicate key value violates unique constraint "offers_one_pending_per_pair"' })).toBe(
       'Vous avez déjà une proposition en attente pour cet article.',
     );
+    // « Nouveau mot de passe » after a recovery link, when the member re-types the old one.
+    expect(toFrenchError({ code: 'same_password', message: 'New password should be different from the old password.' })).toBe(
+      'Choisissez un mot de passe différent de l’ancien.',
+    );
   });
 });
 

@@ -114,3 +114,23 @@ export async function publishListing(
   await btn(page, 'Publier l’article').click();
   await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 60_000 });
 }
+
+/** Local Supabase mail catcher (Mailpit, `supabase start`); no e-mail leaves the machine. */
+export const MAILPIT_URL = process.env.MAILPIT_URL ?? 'http://127.0.0.1:54324';
+
+/** The Supabase Auth link (…/auth/v1/verify?…) in the newest e-mail sent to `to`. */
+export async function latestAuthLink(to: string, subject: RegExp, timeoutMs = 15_000): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const res = await fetch(`${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`);
+    const list = (await res.json()) as { messages?: Array<{ ID: string; Subject: string }> };
+    const hit = list.messages?.find((m) => subject.test(m.Subject));
+    if (hit) {
+      const msg = (await (await fetch(`${MAILPIT_URL}/api/v1/message/${hit.ID}`)).json()) as { HTML?: string; Text?: string };
+      const link = `${msg.HTML ?? ''} ${msg.Text ?? ''}`.match(/https?:\/\/[^"'\s<>]+\/auth\/v1\/verify\?[^"'\s<>]+/)?.[0];
+      if (link) return link.replace(/&amp;/g, '&');
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error(`No e-mail matching ${subject} for ${to}`);
+}

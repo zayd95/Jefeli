@@ -88,6 +88,8 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
       <Stack.Protected guard={signedIn && onboarded}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
+      {/* Reached from the recovery e-mail, signed in or not: stays open until the password is saved. */}
+      <Stack.Screen name="reset-password" />
     </Stack>
   );
 }
