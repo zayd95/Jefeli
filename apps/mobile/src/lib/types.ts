@@ -9,7 +9,7 @@ export type ProfileLite = Pick<
 
 export type MediaRow = {
   id: string;
-  kind: 'image' | 'video' | string;
+  kind: 'image' | 'video' | 'audio' | string;
   storage_path: string;
   poster_path: string | null;
   width: number | null;
@@ -17,6 +17,10 @@ export type MediaRow = {
   duration_ms: number | null;
   position: number;
   bucket?: string;
+  /** Voice rows (W1.2): spoken language, waveform preview and « visite guidée » cues. */
+  language?: string | null;
+  waveform?: number[] | null;
+  cues?: unknown;
 };
 
 export type ProductCard = Tables<'products'> & {

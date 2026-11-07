@@ -11,7 +11,7 @@ import { adminClient, createListing, createUser, expectError, follow, hasPsql, m
 const WEBM_AUDIO = Buffer.from('1a45dfa39f4286810142f7810142f2810442f381084282847765626d', 'hex');
 const MP4_BYTES = Buffer.from('000000186674797069736f6d0000020069736f6d69736f32', 'hex');
 
-async function upload(user: TestUser, bucket: Bucket, ext: string, type: string, bytes: Buffer): Promise<string> {
+async function upload(user: TestUser, bucket: Bucket, ext: string, type: string, bytes: typeof WEBM_AUDIO): Promise<string> {
   const path = `${user.id}/${ext === 'webm' ? 'audio' : 'videos'}/${token(12)}.${ext}`;
   const { error } = await user.client.storage.from(bucket).upload(path, new Blob([bytes], { type }), { contentType: type });
   if (error) throw new Error(`upload failed: ${error.message}`);

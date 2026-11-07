@@ -1,13 +1,14 @@
 import type { PostIntent } from '@jefeli/shared';
 
 import type { UploadedMedia } from '../upload';
+import type { UploadedVoice } from '../voice';
 import { supabase, unwrap } from '../supabase';
 import type { CommentPreview, CommentRow, PostCardData, VoteValue } from '../types';
 import { PROFILE_LITE } from './profiles';
 
 export const POST_SELECT = `*,
   author:profiles!posts_author_id_fkey(${PROFILE_LITE}),
-  media:post_media(id, kind, bucket, storage_path, poster_path, width, height, duration_ms, position),
+  media:post_media(id, kind, bucket, storage_path, poster_path, width, height, duration_ms, position, language, waveform, cues),
   tagged:post_products(product:products(id, title, price_xof, price_mode, status, listing_mode, condition, seller_id, media:product_media(storage_path, kind, poster_path, position)))`;
 
 export const FEED_PAGE = 12;
@@ -109,7 +110,7 @@ export async function fetchSavedPosts(userId: string): Promise<PostCardData[]> {
 export async function createPost(args: {
   body: string;
   visibility: 'public' | 'followers' | 'friends';
-  media: UploadedMedia[];
+  media: (UploadedMedia | UploadedVoice)[];
   productIds: string[];
   intent?: PostIntent;
 }): Promise<string> {

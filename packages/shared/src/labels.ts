@@ -172,3 +172,18 @@ export const PRICE_MODES: { key: 'fixed' | 'on_request' | 'negotiable'; label: s
   { key: 'on_request', label: 'Prix sur demande', hint: 'Les acheteurs vous écrivent pour connaître le prix.' },
   { key: 'negotiable', label: 'À discuter', hint: 'Indiquez un prix de départ si vous le souhaitez.' },
 ];
+
+/** Spoken language of a voice publication (W1.2), shown before listening: « 🎙 Wolof · 0:42 ». */
+export const VOICE_LANGUAGES = [
+  { key: 'wo', label: 'Wolof' },
+  { key: 'fr', label: 'Français' },
+  { key: 'ff', label: 'Pulaar' },
+  { key: 'srr', label: 'Sérère' },
+  { key: 'dyo', label: 'Diola' },
+  { key: 'mnk', label: 'Mandinka' },
+  { key: 'other', label: 'Autre langue' },
+] as const;
+export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number]['key'];
+export function voiceLanguageLabel(key: string | null | undefined): string | null {
+  return VOICE_LANGUAGES.find((l) => l.key === key)?.label ?? null;
+}
