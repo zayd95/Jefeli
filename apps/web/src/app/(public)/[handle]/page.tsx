@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { deepLinks, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
+import { formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
+import { appLinks, opensInBrowser } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
 import { IconComment, IconLock, IconPin, IconPlay, IconUpvote } from '@/components/icons';
 import { Avatar, DemoChip, PinnedChip, ProductCard, Stars, VerifiedBadge, locationLabel } from '@/components/ui';
@@ -102,10 +103,10 @@ export default async function ProfilePage({ params }: Props) {
               <h2>Ce compte est privé</h2>
               <p className="muted small" style={{ maxWidth: 360 }}>
                 Seuls les abonnés acceptés voient ses publications et sa boutique. Envoyez une demande d’abonnement
-                depuis l’application.
+                depuis {opensInBrowser ? 'Jëfëli' : 'l’application'}.
               </p>
               <div style={{ width: '100%', maxWidth: 360, marginTop: 6 }}>
-                <OpenInApp href={deepLinks.profile(profile.handle)} label="Ouvrir dans l’app" />
+                <OpenInApp href={appLinks.profile(profile.handle)} label={opensInBrowser ? 'Ouvrir dans Jëfëli' : 'Ouvrir dans l’app'} />
               </div>
             </div>
           </div>
@@ -150,9 +151,13 @@ export default async function ProfilePage({ params }: Props) {
           <div className="profile-actions">
             <div style={{ flex: 1 }}>
               <OpenInApp
-                href={deepLinks.profile(profile.handle)}
-                label="Suivre dans l’app"
-                note="Pour suivre ce compte ou lui écrire, ouvrez l’application Jëfëli (phase pilote)."
+                href={appLinks.profile(profile.handle)}
+                label={opensInBrowser ? 'Suivre ou écrire sur Jëfëli' : 'Suivre dans l’app'}
+                note={
+                  opensInBrowser
+                    ? 'Jëfëli s’ouvre dans votre navigateur : rien à télécharger.'
+                    : 'Pour suivre ce compte ou lui écrire, ouvrez l’application Jëfëli (phase pilote).'
+                }
               />
             </div>
           </div>

@@ -29,6 +29,8 @@ export const env = {
   supabaseUrl,
   supabaseAnonKey,
   siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/+$/, ''),
+  /** The mobile web app (Expo web build). When set, « open in Jëfëli » buttons go there instead of the native app. */
+  appUrl: (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, ''),
   appEnv,
   isProduction: appEnv === 'production',
 } as const;

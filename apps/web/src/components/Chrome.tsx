@@ -4,9 +4,18 @@ import { Wordmark } from './ui';
 
 export function EnvBanner() {
   if (env.isProduction) return null;
+  // Staging (web beta) holds real members and no DÉMO data; only local stacks are seeded.
   return (
     <div className="env-banner" role="note">
-      <strong>Environnement de test</strong> · contenus DÉMO fictifs
+      {env.appEnv === 'staging' ? (
+        <>
+          <strong>Version bêta</strong> · environnement de recette
+        </>
+      ) : (
+        <>
+          <strong>Environnement de test</strong> · contenus DÉMO fictifs
+        </>
+      )}
     </div>
   );
 }

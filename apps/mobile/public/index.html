@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!--
+      viewport-fit=cover: iPhone safe areas (notch, home indicator) reach the app's own insets.
+      No maximum-scale: pinch-zoom stays available; text fields are ≥ 16 px on the web so iOS
+      Safari does not zoom in when one gets focus.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>%WEB_TITLE%</title>
+    <meta name="description" content="Découvre, échange, achète et vends près de chez toi. Le réseau social du commerce sénégalais, directement dans ton navigateur." />
+    <!-- Social previews of the app's own link (TikTok, KaaySamp, WhatsApp). The absolute origin is filled at build time (scripts/web-finalize.mjs). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Jëfëli" />
+    <meta property="og:locale" content="fr_SN" />
+    <meta property="og:title" content="Jëfëli — Découvre, échange, vends" />
+    <meta property="og:description" content="Le réseau social du commerce sénégalais : articles neufs et d’occasion, Wecci (troc), offres et discussions entre membres. Sans téléchargement." />
+    <meta property="og:url" content="%APP_ORIGIN%/" />
+    <meta property="og:image" content="%APP_ORIGIN%/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jëfëli — Découvre, échange, vends." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="%APP_ORIGIN%/og.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Jëfëli" />
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+        background-color: #fafbfa;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Jëfëli a besoin de JavaScript pour fonctionner. Activez-le dans votre navigateur, puis rechargez la page.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

@@ -7,7 +7,7 @@ import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Thumb } from '@/components/Media';
-import { Avatar, Button, colors, EmptyState, fonts, IconButton, LiveBadge, Screen, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, EmptyState, fieldFontSize, fonts, IconButton, LiveBadge, Screen, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
 import {
   fetchCurrentPin,
   fetchLiveComments,
@@ -289,6 +289,6 @@ const styles = StyleSheet.create({
   commentText: { marginBottom: 6, textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 4 },
   pinCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.md, marginBottom: spacing.sm, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   footer: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingBottom: spacing.sm, minHeight: 56 },
-  input: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: 15, backgroundColor: 'rgba(0,0,0,0.3)' },
+  input: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: 'rgba(0,0,0,0.3)' },
   pinRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
 });

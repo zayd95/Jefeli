@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts, Sheet, SheetAction, spacing, Text, useToast, dark, WEB_NO_OUTLINE } from '@/design';
+import { colors, fieldFontSize, fonts, Sheet, SheetAction, spacing, Text, useToast, dark, WEB_NO_OUTLINE } from '@/design';
 
 export interface VoiceClip {
   uri: string;
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   bar: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs, paddingHorizontal: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderColor: dark.border, backgroundColor: dark.header },
   iconBtn: { width: 44, height: 48, alignItems: 'center', justifyContent: 'center' },
   inputWrap: { flex: 1, minHeight: 48, maxHeight: 120, borderRadius: 16, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.subtle, paddingHorizontal: spacing.md, justifyContent: 'center' },
-  input: { fontFamily: fonts.regular, fontSize: 15, color: dark.text, paddingVertical: 12, maxHeight: 110 },
+  input: { fontFamily: fonts.regular, fontSize: fieldFontSize(15), color: dark.text, paddingVertical: 12, maxHeight: 110 },
   send: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.ink, borderWidth: 1, borderColor: dark.mintLine, alignItems: 'center', justifyContent: 'center' },
   recording: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md, borderRadius: 16, backgroundColor: dark.subtle },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },

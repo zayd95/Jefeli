@@ -309,6 +309,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"feedback": {
+                  Row: {
+                    "app_version": string | null,"created_at": string,"id": string,"kind": string,"message": string,"platform": string,"status": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_version"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"message": string,"platform"?: string,"status"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "app_version"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"message"?: string,"platform"?: string,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "feedback_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"follows": {
                   Row: {
                     "accepted_at": string | null,"created_at": string,"followee_id": string,"follower_id": string,"status": string

@@ -7,13 +7,13 @@ import {
   LISTING_MODE_LABELS,
   PLATFORM_DISCLAIMER,
   PRODUCT_STATUS_LABELS,
-  deepLinks,
   hasDisplayedPrice,
   shareUrls,
   timeAgo,
 } from '@jefeli/shared';
 import { Gallery, type GalleryItem } from '@/components/Gallery';
 import { OPEN_IN_APP_NOTE, OpenInApp } from '@/components/OpenInApp';
+import { appLinks, opensInBrowser } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
 import {
   IconBox,
@@ -154,8 +154,12 @@ export default async function ProductPage({ params }: Props) {
 
           <div className="cta-block cta-sticky">
             <OpenInApp
-              href={deepLinks.product(product.id)}
-              label={isAvailable ? 'Écrire au vendeur dans l’app' : 'Ouvrir dans l’app'}
+              href={appLinks.product(product.id)}
+              label={
+                isAvailable
+                  ? opensInBrowser ? 'Écrire au vendeur' : 'Écrire au vendeur dans l’app'
+                  : opensInBrowser ? 'Voir sur Jëfëli' : 'Ouvrir dans l’app'
+              }
               note={
                 // Kept to one short line: on a phone this bar is sticky and must not hide the price.
                 isAvailable
@@ -163,14 +167,14 @@ export default async function ProductPage({ params }: Props) {
                     ? product.price_mode === 'on_request'
                       ? 'Le prix est donné par le vendeur en message.'
                       : 'Le prix se discute avec le vendeur en message.'
-                    : 'Ouvre l’application Jëfëli (phase pilote).'
+                    : OPEN_IN_APP_NOTE
                   : product.status === 'sold'
-                    ? 'Cet article est vendu. Découvrez les autres articles du vendeur dans l’application.'
+                    ? `Cet article est vendu. Découvrez les autres articles du vendeur ${opensInBrowser ? 'sur Jëfëli' : 'dans l’application'}.`
                     : 'Cet article est réservé pour le moment. Il peut redevenir disponible.'
               }
             />
           </div>
-          <p className="cta-note">{OPEN_IN_APP_NOTE}</p>
+          {opensInBrowser ? null : <p className="cta-note">{OPEN_IN_APP_NOTE}</p>}
 
           <div className="stack-16" style={{ marginTop: 24 }}>
             {seller ? (

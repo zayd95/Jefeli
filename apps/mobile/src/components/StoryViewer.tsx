@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Avatar, Button, colors, Field, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
 import { fetchProduct } from '@/lib/api/products';
 import { addToHighlight, deleteStory, fetchStoryViewers, likeStory, markStoryViewed, replyToStory } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   sticker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.md, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   stickerCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
-  replyInput: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: 15, backgroundColor: 'rgba(0,0,0,0.25)' },
+  replyInput: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: 'rgba(0,0,0,0.25)' },
   ownerBar: { flexDirection: 'row', justifyContent: 'center', gap: spacing.md, paddingBottom: spacing.md },
   ownerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)' },
 });

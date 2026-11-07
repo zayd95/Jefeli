@@ -6,7 +6,7 @@
  */
 import { expect, test } from '@playwright/test';
 
-import { btn, field, latestAuthLink, newDevice, runId, shot } from './helpers';
+import { APP_URL, btn, field, latestAuthLink, newDevice, runId, shot } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -36,7 +36,7 @@ test('a new member confirms their e-mail from the link and lands in onboarding',
   await expect(page.getByText('Confirmez votre e-mail avant de vous connecter.')).toBeVisible();
 
   const link = await latestAuthLink(EMAIL, /confirm/i);
-  expect(new URL(link).searchParams.get('redirect_to')).toBe('http://localhost:8081/sign-in');
+  expect(new URL(link).searchParams.get('redirect_to')).toBe(`${APP_URL}/sign-in`);
   await page.goto(link);
   await expect(page.getByText('Bienvenue chez vous.')).toBeVisible({ timeout: 20_000 });
   await shot(page, DIR, 'confirmed-onboarding');

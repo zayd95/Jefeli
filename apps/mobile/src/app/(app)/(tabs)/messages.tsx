@@ -11,7 +11,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
 
 import { ProfileName } from '@/components/ProfileName';
-import { Avatar, colors, dark, EmptyState, ErrorState, fonts, Screen, Skeleton, spacing, Text, WEB_NO_OUTLINE } from '@/design';
+import { Avatar, colors, dark, EmptyState, ErrorState, fieldFontSize, fonts, Screen, Skeleton, spacing, Text, WEB_NO_OUTLINE } from '@/design';
 import { fetchConversations } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   head: { minHeight: 62, justifyContent: 'center', paddingHorizontal: spacing.lg, borderBottomWidth: 1, borderBottomColor: dark.border },
   intro: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, gap: spacing.lg },
   search: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: 48, paddingHorizontal: spacing.lg, borderRadius: 999, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
-  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: 14, color: dark.text, paddingVertical: 8 },
+  searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: fieldFontSize(14), color: dark.text, paddingVertical: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 85, marginHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: dark.border },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
