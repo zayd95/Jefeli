@@ -24,5 +24,8 @@ export default defineConfig({
     navigationTimeout: 60_000,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // A fake microphone (a test tone) for voice recording (W1.2). Access is still granted per
+    // context (newDevice({ mic: true })), so a refused permission stays testable.
+    launchOptions: { args: ['--use-fake-device-for-media-stream'] },
   },
 });

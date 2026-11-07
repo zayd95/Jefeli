@@ -56,6 +56,13 @@ jefeli-staging**. To apply, in order (each is idempotent and touches no rows):
    `product_media_check`, `stories_media_check`), drop the four new constraints, restore the
    previous « jefeli: upload to own folder » policy (same text without `private.upload_quota_ok()`)
    and the previous `stories_duration_ms_check` (`0..60000`).
+5. `supabase/migrations/20261110000100_connected_media.sql` (W1.2: voice in publications and
+   statuses, narration cues, voice-message checks, `share_to_status`; no rows changed). Details in
+   `docs/W1_2_SMART_CREATE.md`. Rollback: restore the previous `create_post`, `create_story`,
+   `can_view_story`, `messages_before_insert`, `check_media_row` and `assert_media_object` (their
+   W1.1 / P1 texts are in the earlier migrations), drop `share_to_status`, the new `post_media`
+   columns and constraints, `stories.post_id` and the new `stories` constraints (only after
+   deleting any `post`/`product`/`audio` statuses), and remove the audio types from `public-media`.
 
 Rollback for 2 and 3: the previous definitions of `review_verification_request` and
 `export_my_data`, saved from staging before any change, are in §6; `drop table public.feedback`

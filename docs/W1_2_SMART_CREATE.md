@@ -159,3 +159,45 @@ Orphan cleanup keeps every file referenced by a post, article, message or live s
 - Speech-to-text, translation, AI features.
 - A paid video provider (decision pending, W1.1 §5).
 - Native device tests: no iPhone or Android device in this environment.
+
+## 6. What was built and verified (local stack, Chromium)
+
+| Journey (brief) | Status | Evidence |
+|---|---|---|
+| + menu: three choices over the dimmed feed; Live gone; closes by ×, outside tap, Escape; sheet on narrow screens | **PASS** (browser) | E2E `smart-create` SC-01 (arc geometry, ≥ 44 pt targets), SC-08 (360/390/412 pt) |
+| Seller: 4 photos + narration in Wolof + an article, published | **PASS** | SC-02 (real recording from the fake microphone, upload, `create_post`) |
+| Buyer: photos without sound, chooses to listen, gallery follows the narration, article, contact | **PASS** | SC-03 (no sound before the press; « Photo 2 sur 4 » then 3 at the recorded moments; article → « Envoyer un message » → chat with the article as context) |
+| Audio-only publication in the feed and on the profile | **PASS** | SC-05 (« Ma voix » quick start, voice card, « Publication vocale » on the profile) |
+| Chat: voice about an article, preview before sending, seller answers by voice | **PASS** | SC-04 (pause/resume, preview, « À propos de … » under the bubble, both voices listed after reload) |
+| Existing post shared to a 24-hour status by reference; expiry keeps the post | **PASS** | SC-06; integration `18-connected-media` (no copy, audience never wider, hidden when the post is deleted or the article archived, files not listed as orphans) |
+| Reliability: refused microphone, cancelled take, refresh with a draft | **PASS** (browser) | SC-07 (« Micro non autorisé » at 360 pt, nothing attached after « Annuler », photo + voice restored from IndexedDB after a reload, then published) |
+| Server rules: one voice, never with a video, 180 s, audio files only, owner's files only, cues valid, voice messages checked, private voice never public | **PASS** | integration `18-connected-media` (14) |
+
+Suites on this branch: `pnpm check` pass (unit 25/25) · integration **294/294** · E2E **46 passed,
+1 gated skip** (e-mail confirmation), including `smart-create` 8/8. The W1.1 video spec expected
+the chat URL to end at the conversation id; a conversation opened from an article now carries
+`?about=<article>`, and its pattern was updated (the journey itself is unchanged). Native path:
+`expo export --platform ios --platform android` builds both Hermes bundles (≈ 11 MB each).
+Evidence: `docs/evidence/e2e/smart-create/`.
+
+## 7. Not verified, or limited (stated, not hidden)
+
+- **No physical iPhone or Android device, no simulator.** The recorder and players use expo-audio's
+  native APIs (metering, pause/resume, AAC); they compile in the native bundles but were not run
+  on a phone.
+- **Safari (iPhone):**
+  - Chrome records WebM/Opus. iPhone playback of those files is untested (recent iOS versions
+    play WebM audio; older ones may not).
+  - Safari records MP4, which plays everywhere.
+  - A voice status starts by itself when opened. Safari may ask for a tap; the play button is in
+    the status header.
+- A recording interrupted by the app being closed (not just backgrounded) is lost. Backgrounding
+  pauses it; a finished take is kept with the draft.
+- The voice length is declared by the app, like video length in W1.1: the server checks it is
+  ≤ 180 s and the bucket caps the size at 50 MB. A transcoding provider would measure it (W1.1 §5).
+- Waveforms are computed on the device and are decorative: the server checks only their shape
+  (≤ 64 values, 0–100).
+- « Visite guidée » cues are taps during the recording. Removing a photo afterwards drops the cues
+  that pointed to it; reordering photos is not supported (the strip has no reordering).
+- Explorer is unchanged (product-first). Publications appear in Accueil and on profiles; articles
+  tagged in them open their live page with the same visibility rules.

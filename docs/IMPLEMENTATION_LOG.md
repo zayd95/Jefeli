@@ -400,13 +400,42 @@ seconds, so an undecodable 10-minute file passed as 0.6 s; a clip at the 3-minut
 would have been refused by the server. Environment note: Metro started with `CI=1` does not watch files, which
 served a stale bundle for two runs; dev servers are now started without it.
 
+### W1.2 — smart create & connected media (branch `feature/w1.2-smart-create`, 7 Nov)
+
+Design (audit first, then changes to the brief) and verification: `docs/W1_2_SMART_CREATE.md`.
+
+| Commit | What |
+|---|---|
+| `87fc5e5` | Audit and optimized design |
+| `3df6f02` | Server: voice in posts (narration cues, language, waveform), never with video; voice-message checks and article context; statuses by reference (`share_to_status`) |
+| `ea3efef` | One playback slot; voice player; reusable recorder; draft files kept across a browser refresh |
+| `283a4cf` | Smart + menu; composable publication; feed voice card and narration bar |
+| `93ad91c` | Chat voice with preview; article context in conversations |
+| `f2cac3f` | Voice statuses; « Partager en statut »; « Présenter cet article » |
+| `26fdc2f` | Web share pages play voice publications |
+
+Defects found on the way:
+- Pre-existing:
+  - A web draft restored after a refresh held dead `blob:` URLs.
+  - A restored video would have uploaded `{}` as its poster.
+  - Chat voice notes were labelled `audio/webm` even when Safari recorded MP4.
+  - Chat voice notes played over feed videos.
+- In W1.2's own first version:
+  - On the web, `PixelRatio.getFontScale()` (the device pixel ratio) and react-native-web's
+    always-true screen-reader answer forced the sheet menu on every phone.
+  - A `bottom: undefined` override stretched the article chip on the web.
+
+Test environment:
+- Playwright's headless shell has no `getUserMedia`; `smart-create` runs on the full Chromium
+  build with a fake microphone.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 24 unit tests (W1.1); 23 on `3c02230` (P1) |
-| `pnpm test:integration` (with `.env.test` functions) | 280/280 (W1.1, adds `17-media-videos`); 259/259 on `3c02230`, also on a database with no DÉMO data |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 25 unit tests (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
 | `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
 | `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |

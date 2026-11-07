@@ -129,7 +129,8 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
     await expect(b.getByText(ARTICLE).last()).toBeVisible();
     await b.goBack();
     await b.getByRole('button', { name: `Écrire au vendeur à propos de ${ARTICLE}` }).last().click();
-    await expect(b).toHaveURL(/\/chat\/[0-9a-f-]{36}$/, { timeout: 30_000 });
+    // W1.2: a conversation opened from an article carries it as context (?about=<article>).
+    await expect(b).toHaveURL(/\/chat\/[0-9a-f-]{36}(\?about=[0-9a-f-]{36})?$/, { timeout: 30_000 });
     await expect(b.getByText(ARTICLE).last()).toBeVisible();
     await shot(b, DIR, 'B-conversation-from-video');
   });
