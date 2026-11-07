@@ -149,6 +149,10 @@ describe('toFrenchError — boutique identity checks', () => {
     expect(toFrenchError({ code: 'same_password', message: 'New password should be different from the old password.' })).toBe(
       'Choisissez un mot de passe différent de l’ancien.',
     );
+    // « Donner mon avis » (W1): an empty or too long message.
+    expect(toFrenchError({ code: '23514', message: 'new row for relation "feedback" violates check constraint "feedback_message_length"' })).toBe(
+      'Écrivez entre 3 et 1 000 caractères.',
+    );
   });
 });
 

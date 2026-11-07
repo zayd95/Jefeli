@@ -7,6 +7,7 @@ import {
   FileText,
   Handshake,
   LogOut,
+  MessageSquareText,
   QrCode,
   Scale,
   ShieldCheck,
@@ -67,6 +68,7 @@ export default function Settings() {
           <Row icon={Ban} label="Comptes bloqués" onPress={() => router.push('/settings/blocked')} />
           <Row icon={ShieldCheck} label="Modération et contestations" onPress={() => router.push('/settings/moderation')} />
           <Row icon={UserCog} label="Mes données et suppression du compte" onPress={() => router.push('/settings/account')} />
+          <Row icon={MessageSquareText} label="Donner mon avis" onPress={() => router.push('/settings/feedback')} />
         </Section>
         <Section title="INFORMATIONS">
           <Row icon={FileText} label="Conditions d’utilisation" onPress={() => Linking.openURL(`${env.webBaseUrl}/legal/cgu`)} />
