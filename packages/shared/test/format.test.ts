@@ -74,6 +74,11 @@ describe('errors', () => {
     expect(toFrenchError({ message: 'Invalid login credentials' })).toMatch(/incorrect/);
     expect(toFrenchError({ message: 'something odd' })).toMatch(/erreur/);
   });
+  it('maps the video limits enforced by the database (W1.1)', () => {
+    expect(toFrenchError({ message: 'video_too_long' })).toBe('Vidéo trop longue : 3 minutes maximum.');
+    expect(toFrenchError({ message: 'video_duration_required' })).toMatch(/Durée de la vidéo illisible/);
+    expect(toFrenchError({ message: 'invalid_media' })).not.toMatch(/erreur inattendue/i);
+  });
 });
 
 describe('offers', () => {

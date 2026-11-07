@@ -952,6 +952,8 @@ describe('private.* functions executable by anon/authenticated', () => {
       'is_member(p_conversation_id uuid)',
       'is_staff()',
       'normalize_text(t text)',
+      // Storage insert policy « upload to own folder » (per-member quota, W1.1).
+      'upload_quota_ok()',
     ]);
   });
 });

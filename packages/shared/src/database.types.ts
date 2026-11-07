@@ -1313,6 +1313,11 @@ isOneToOne: false
 "leave_review":
 { Args: { "p_agreement_id": string,"p_body": string,"p_rating": number }; Returns: string
                            },
+"list_orphaned_media":
+{ Args: { "p_limit"?: number,"p_min_age"?: string }; Returns: {
+              "bucket_id": string,"name": string
+            }[]
+                           },
 "live_apply_provider_state":
 { Args: { "p_provider_call_id": string,"p_status": string,"p_viewer_count"?: number }; Returns: undefined
                            },

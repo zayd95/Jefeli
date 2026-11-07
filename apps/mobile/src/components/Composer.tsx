@@ -67,12 +67,15 @@ export function MediaPickerStrip({
               <Image source={{ uri: m.uri }} style={StyleSheet.absoluteFill} contentFit="cover" />
             ) : (
               <View style={[StyleSheet.absoluteFill, styles.video]}>
-                <Play size={22} color={colors.white} fill={colors.white} />
-                {m.durationMs ? (
-                  <Text variant="micro" color={colors.white} weight="700">
-                    {Math.round(m.durationMs / 1000)} s
-                  </Text>
-                ) : null}
+                {m.posterUri ? <Image source={{ uri: m.posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel="Couverture de la vidéo" /> : null}
+                <View style={m.posterUri ? styles.videoBadge : styles.videoBadgePlain}>
+                  <Play size={18} color={colors.white} fill={colors.white} />
+                  {m.durationMs ? (
+                    <Text variant="micro" color={colors.white} weight="700">
+                      {Math.round(m.durationMs / 1000)} s
+                    </Text>
+                  ) : null}
+                </View>
               </View>
             )}
             {i === 0 ? (
@@ -220,7 +223,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   thumb: { width: 84, height: 84, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.surfaceMuted },
-  video: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  video: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  videoBadgePlain: { alignItems: 'center', gap: 2 },
+  // Over the captured cover frame: the same ink scrim as « Couverture » below.
+  videoBadge: { alignItems: 'center', gap: 2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.md, backgroundColor: 'rgba(16,37,44,0.65)' },
   cover: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,37,44,0.65)', paddingVertical: 2, alignItems: 'center' },
   remove: { position: 'absolute', top: 5, right: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(16,37,44,0.75)', alignItems: 'center', justifyContent: 'center' },
   overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.xl },
