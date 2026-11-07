@@ -9,6 +9,12 @@
   approved Lovable visual port in native Expo code. Verified on code commit `0b1f547` (see
   « Lovable native parity pass » below). **Not merged; waits for the owner's screenshot and
   iPhone review.**
+- Branch `feature/w1-web-beta`, draft PR #3 → PR #2's branch: web-first beta on Vercel previews
+  (`docs/W1_WEB_BETA.md`). Branch `feature/w1.1-media-first`, draft PR #4 → PR #3's branch:
+  Live hidden, 3-minute videos enforced by the database, feed and status playback
+  (`docs/W1_1_MEDIA.md`). **Neither is merged, applied to jefeli-staging or deployed publicly.**
+- **W1.1 verification (7 Nov), local stack:** `pnpm check` pass (unit 24/24), integration 280/280,
+  E2E 39 passed + 1 gated skip. See « W1.1 media-first commerce » below.
 - **P1 verification (7 Nov) on `3c02230`:** `pnpm check` pass, integration 259/259, E2E 34 passed + 1 gated skip; on an empty database integration 259/259 and E2E journeys 31/31. See « P1 private-pilot readiness » below.
 - Earlier verification: code commits `0c71062` (post-playtest refinement) and `507f7ff` (visual pass), see the refinement section. Earlier rows were verified on `2c996e9` and later feed commits. Re-run the suites on the final SHA before relying on this table.
 - Environment: Ubuntu 24.04 cloud container, local Supabase CLI 2.122 stack (Postgres 17,
@@ -155,6 +161,24 @@ local backend only; no device.
 | P1-07 | Blocking after a conversation/agreement, deleted/hidden/private content, forged tokens, oversized/invalid media | **PASS** | integration `15-adversarial` |
 | P1-08 | Installable build path | **BLOCKED_EXTERNAL** | Documented and checked against the EAS CLI 27.5.0 source (APK by default for `preview`, EAS environment variables required because `.env` is not uploaded). Needs an Expo account; iPhone needs the Apple Developer Program |
 | P1-09 | Operations, safety, metrics | **PASS** (documents, queries run) | `docs/PILOT_OPERATIONS.md`, `docs/PILOT_METRICS.md` (12 read-only queries run by `scripts/check-pilot-metrics.sh`), backup/restore drill on the local stack |
+
+### W1.1 media-first commerce (branch `feature/w1.1-media-first`, draft PR #4)
+
+Details, limits and the video-provider decision: `docs/W1_1_MEDIA.md`. Browser (Chromium) and
+local backend only; no device, no hosted run.
+
+| ID | Requirement | Status | Evidence |
+|---|---|---|---|
+| MED-01 | Live absent from the visible product, data kept | **PASS** | E2E screen tour (no Live tile, `/live/host` → Accueil) on 3 sizes; no migration touches live data |
+| MED-02 | 180 s inclusive in posts, articles, statuses, enforced server-side | **PASS** | integration `17-media-videos` (180 000 ms accepted, 180 001 / 180 500 / 200 000 refused, duration required); E2E 3 min 01 s refused at selection, exactly 3 min published |
+| MED-03 | Declared kind = stored file; ownership | **PASS** | integration: image declared as video, video as image, video poster → `invalid_media`; someone else's file → `media_not_found` |
+| MED-04 | Upload quota | **PASS** | integration: 300 files / 24 h and 2 GB stored both block a new upload; a normal member uploads |
+| MED-05 | Orphaned and expired media removed safely | **PASS** (local) · **NOT_TESTED** scheduled | integration: abandoned file listed after 48 h, never a file used by a post, article, live status or a shared file; `cleanup-media` refuses without the service key and deletes; expired status file unreadable by a follower |
+| MED-06 | Feed: one video at a time, muted, pauses off-screen / away / background | **PASS** (browser) · **NOT_TESTED** on a device | E2E `media` MED-03: one playing, muted, full card width, tap pause/resume, paused after leaving Accueil |
+| MED-07 | Status video plays to its end, not cut by a timer | **PASS** (browser) | E2E `media` MED-05: still on the status after 8 s of a 12 s video, closes at its end |
+| MED-08 | Video → article → conversation | **PASS** (browser) | E2E `media` MED-04 |
+| MED-09 | Any 3-minute phone video can be published and played everywhere | **BLOCKED_EXTERNAL** | Needs transcoding (Cloudflare Stream, owner approval and budget): raw 3-min phone videos from Android and the web usually exceed the 50 MB Free-plan file limit; iPhone HEVC may not play on Android/desktop |
+| MED-10 | Hosted acceptance journey (staging + Vercel preview, two real accounts) | **BLOCKED_EXTERNAL** | Migration not applied to jefeli-staging (read-only token); preview hosts unreachable from this session; e-mail sender (`docs/W1_WEB_BETA.md` §5) |
 
 ### Other workstreams
 

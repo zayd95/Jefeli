@@ -1,5 +1,25 @@
 # Next actions
 
+## Owner (now): W1.1 media-first commerce — draft PR #4
+
+Read `docs/W1_1_MEDIA.md` §5 (one page) and decide:
+1. **Video provider.** Approve Cloudflare Stream with a monthly cap (suggested $200 for the beta;
+   estimate ≈ $90–480/month depending on viewing), or keep Supabase Storage for the beta and
+   accept that many Android and web 3-minute videos will be refused as « trop lourde ». Nothing
+   paid is activated until you say so.
+2. **jefeli-staging.** Give a token with `database_migrations_write` (or apply them yourself in
+   the SQL editor) for the four migrations in `docs/W1_WEB_BETA.md` §3, then deploy
+   `delete-account` and `cleanup-media`. Take a backup first (§4 of that file).
+3. **Legal drafts** still mention lives (`cgu`, `confidentialite`, `regles`): remove or keep, with
+   your counsel.
+4. **Phones.** On the Vercel preview, from Safari on an iPhone and Chrome on Android: publish a
+   1-minute and a 3-minute video, watch it from a second account, open a status video. Note
+   any « trop lourde » or « Lecture impossible ».
+
+Developer, after decision 1: build the Stream path designed in `docs/W1_1_MEDIA.md` §5
+(upload-URL function, `media_assets`, signed webhook, ready-only publishing), then run the hosted
+acceptance journey with two real accounts.
+
 ## Owner (now): P1 private-pilot decisions
 
 Read `docs/GO_NO_GO.md` (one page), then `docs/P1_READINESS_REPORT.md` if you want the detail.

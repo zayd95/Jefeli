@@ -380,13 +380,33 @@ that TestFlight/Play report; a boundary without a reporting service would hide i
 support link (owner's channel is not chosen), `eas.json` (its defaults were checked in the EAS CLI
 source and already fit).
 
+### W1.1 — media-first commerce (branch `feature/w1.1-media-first`, 7 Nov)
+
+Report and provider decision: `docs/W1_1_MEDIA.md`.
+- `aa2a40e` Live removed from the visible product (screens redirect while the flag is off; no
+  data touched).
+- `dda7b4b` Playback driven by the video: one muted video at a time in Accueil, paused off-screen,
+  away and in the background, no autoplay with Save-Data/2G/reduced motion; status progress and
+  advance follow the video instead of a 5.5 s timer.
+- `446f304` Migration `20261109000100_media_videos.sql`: 180 s everywhere, kind/MIME match,
+  upload quota (300 / 24 h, 2 GB), `list_orphaned_media` + `cleanup-media` Edge Function; web
+  duration probe and cover capture.
+
+Defects found while writing the browser test, then fixed: a video post's play button sat in a
+disabled button, announced as dimmed (the test failed on it); on the web a `<video>` was drawn at
+its pixel size in the top-left corner (seen in the evidence screenshots; the test now checks the
+rendered width). Found by reading the code on the way: expo-image-picker returns web durations in
+seconds, so an undecodable 10-minute file passed as 0.6 s; a clip at the 3-minute cap (180.03 s)
+would have been refused by the server. Environment note: Metro started with `CI=1` does not watch files, which
+served a stale bundle for two runs; dev servers are now started without it.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 23 unit tests (on `3c02230`, P1) |
-| `pnpm test:integration` (with `.env.test` functions) | 259/259 (on `3c02230`); also 259/259 on a database with no DÉMO data |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, screens 3 sizes, email-confirmation gated) | 34 passed, 1 skipped (on `3c02230`); journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 24 unit tests (W1.1); 23 on `3c02230` (P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 280/280 (W1.1, adds `17-media-videos`); 259/259 on `3c02230`, also on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
 | `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
 | `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
