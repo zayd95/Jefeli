@@ -14,7 +14,7 @@ import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isP
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Bookmark, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
-import { memo, useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Avatar, colors, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
@@ -26,9 +26,10 @@ import { patchPost } from '@/lib/postCache';
 import { shareLinks } from '@/lib/share';
 import type { CommentPreview, PostCardData } from '@/lib/types';
 
-import { NarrationBar, VoiceCard } from './audio/Voice';
+import { VoiceCard } from './audio/Voice';
 import { ContentMenu } from './ContentMenu';
-import { MediaCarousel, Thumb, useIsActivePost } from './Media';
+import { Thumb, useIsActivePost } from './Media';
+import { PostMedia } from './PostMedia';
 import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { ShareToStatusSheet } from './ShareToStatus';
@@ -48,20 +49,6 @@ function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Ey
   if (visual.length > 0) return { label: 'Moment', dot: dark.textSecondary };
   if (voice) return { label: 'Publication vocale', dot: dark.mint };
   return { label: 'Publication', dot: dark.textSecondary };
-}
-
-type Cue = { t: number; i: number };
-/** « Visite guidée » cues from the database (validated there), sorted by time. */
-function parseCues(raw: unknown): Cue[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter((c): c is Cue => typeof c === 'object' && c !== null && typeof (c as Cue).t === 'number' && typeof (c as Cue).i === 'number')
-    .sort((a, b) => a.t - b.t);
-}
-function photoAt(cues: Cue[], ms: number): number {
-  let i = cues[0]?.i ?? 0;
-  for (const c of cues) if (c.t <= ms) i = c.i;
-  return i;
 }
 
 function PostCardInner({
@@ -87,10 +74,6 @@ function PostCardInner({
   const activeOnScreen = useIsActivePost(post.id);
   const voice = post.media.find((m) => m.kind === 'audio') ?? null;
   const voiceUri = useMediaUrl(post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media', voice?.storage_path);
-  const cues = useMemo(() => parseCues(voice?.cues), [voice?.cues]);
-  // The gallery follows the narration until the member swipes it themselves.
-  const [following, setFollowing] = useState(true);
-  const [cuePhoto, setCuePhoto] = useState<number | undefined>(undefined);
   const author = post.author;
   if (!author) return null;
 
@@ -104,13 +87,6 @@ function PostCardInner({
   const previews = post.comments_preview ?? [];
   const visual = post.media.filter((m) => m.kind !== 'audio');
   const hasMedia = visual.length > 0;
-  const onNarration = (ms: number, playing: boolean) => {
-    if (cues.length < 2) return;
-    if (playing && ms < 300 && !following) setFollowing(true);
-    if (!playing && ms === 0) return;
-    const i = photoAt(cues, ms);
-    if (i !== cuePhoto) setCuePhoto(i);
-  };
   const long = post.body.length > (hasMedia ? 180 : 260);
   const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
   const mediaWidth = Math.min(screenWidth, 640);
@@ -292,48 +268,15 @@ function PostCardInner({
       ) : (
         <>
           {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
-          <View>
-            {post.media[0]?.kind === 'video' ? (
-              // A video handles its own taps (play, pause, sound): no disabled wrapper around it, which
-              // screen readers would announce as « dimmed » for the play button too.
-              <MediaCarousel media={visual} bucket={bucket} width={mediaWidth} tone="dark" active={activeOnScreen} />
-            ) : (
-              <Pressable onPress={() => openPost()} accessibilityLabel="Ouvrir la publication">
-                <MediaCarousel
-                  media={visual}
-                  bucket={bucket}
-                  width={mediaWidth}
-                  tone="dark"
-                  active={activeOnScreen}
-                  index={voice && following ? cuePhoto : undefined}
-                  onUserSwipe={() => setFollowing(false)}
-                />
-              </Pressable>
-            )}
-            {voice ? <NarrationBar uri={voiceUri} durationMs={voice.duration_ms} waveform={voice.waveform} language={voice.language} active={activeOnScreen} onPosition={onNarration} /> : null}
-            {tagged[0] ? (
-              <Pressable
-                onPress={() => router.push(`/p/${tagged[0]!.id}`)}
-                style={({ pressed }) => [styles.productChip, voice ? styles.productChipTop : styles.productChipBottom, pressed && { transform: [{ scale: 0.97 }] }]}
-                accessibilityRole="button"
-                accessibilityLabel={`Voir l’article ${tagged[0].title}, ${formatListingPrice(tagged[0])}`}
-              >
-                <Thumb media={[...tagged[0].media].sort((a, b) => a.position - b.position)[0]} style={styles.productChipThumb} />
-                <View style={{ flexShrink: 1, minWidth: 0 }}>
-                  <Text variant="caption" weight="600" tone="fog" numberOfLines={1} style={{ fontSize: 13 }}>
-                    {tagged[0].title}
-                  </Text>
-                  {tagged[0].status === 'sold' || tagged[0].status === 'reserved' ? (
-                    <Text variant="caption" weight="700" tone="gold">
-                      {tagged[0].status === 'sold' ? 'Vendu' : 'Réservé'}
-                    </Text>
-                  ) : (
-                    <PriceLabel product={tagged[0]} size="card" compact tone="dark" style={{ fontSize: 13, lineHeight: 17 }} />
-                  )}
-                </View>
-              </Pressable>
-            ) : null}
-          </View>
+          <PostMedia
+            visual={visual}
+            voice={voice ? { uri: voiceUri, durationMs: voice.duration_ms, waveform: voice.waveform, language: voice.language, cues: voice.cues } : null}
+            product={tagged[0] ?? null}
+            bucket={bucket}
+            width={mediaWidth}
+            active={activeOnScreen}
+            onOpen={() => openPost()}
+          />
           {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
         </>
       )}
@@ -490,24 +433,6 @@ const styles = StyleSheet.create({
   ctaMint: { backgroundColor: dark.mint },
   ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
   ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  productChip: {
-    position: 'absolute',
-    left: spacing.lg,
-    maxWidth: '80%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 6,
-    paddingRight: 12,
-    borderRadius: 16,
-    backgroundColor: dark.glass,
-    borderWidth: 1,
-    borderColor: dark.glassBorder,
-  },
-  productChipThumb: { width: 44, height: 44, borderRadius: 12 },
-  productChipBottom: { bottom: spacing.lg },
-  // With a narration bar at the bottom, the article chip moves to the top-left corner.
-  productChipTop: { top: spacing.lg },
   productRow: {
     flexDirection: 'row',
     alignItems: 'center',
