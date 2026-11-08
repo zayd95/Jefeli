@@ -867,14 +867,14 @@ isOneToOne: false
                   ]
                 },"product_media": {
                   Row: {
-                    "created_at": string,"duration_ms": number | null,"height": number | null,"id": string,"kind": string,"owner_id": string,"position": number,"poster_path": string | null,"product_id": string,"storage_path": string,"width": number | null
+                    "created_at": string,"cues": Json | null,"duration_ms": number | null,"height": number | null,"id": string,"kind": string,"language": string | null,"owner_id": string,"position": number,"poster_path": string | null,"product_id": string,"storage_path": string,"waveform": (number)[] | null,"width": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind": string,"owner_id": string,"position"?: number,"poster_path"?: string | null,"product_id": string,"storage_path": string,"width"?: number | null
+                    "created_at"?: string,"cues"?: Json | null,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind": string,"language"?: string | null,"owner_id": string,"position"?: number,"poster_path"?: string | null,"product_id": string,"storage_path": string,"waveform"?: (number)[] | null,"width"?: number | null
                   }
                   Update: {
-                    "created_at"?: string,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind"?: string,"owner_id"?: string,"position"?: number,"poster_path"?: string | null,"product_id"?: string,"storage_path"?: string,"width"?: number | null
+                    "created_at"?: string,"cues"?: Json | null,"duration_ms"?: number | null,"height"?: number | null,"id"?: string,"kind"?: string,"language"?: string | null,"owner_id"?: string,"position"?: number,"poster_path"?: string | null,"product_id"?: string,"storage_path"?: string,"waveform"?: (number)[] | null,"width"?: number | null
                   }
                   Relationships: [
                     {
