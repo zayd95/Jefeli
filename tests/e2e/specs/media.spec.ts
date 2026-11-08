@@ -142,8 +142,9 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
 
   test('MED-05 · a 12-second video status plays to its end, not cut at the image timer', async () => {
     await s.goto('/publish/status');
-    await pickFile(s, () => btn(s, 'Choisir dans la galerie').click(), clip(12));
-    await s.getByRole('textbox', { name: 'Légende du statut' }).fill(`Arrivage en vidéo ${RUN}`);
+    await pickFile(s, () => btn(s, 'Photo ou vidéo de la galerie').click(), clip(12));
+    await btn(s, 'Écrire sur le statut').click();
+    await s.getByRole('textbox', { name: 'Texte du statut' }).fill(`Arrivage en vidéo ${RUN}`);
     await btn(s, 'Publier le statut').click();
     await expect(s.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });
 

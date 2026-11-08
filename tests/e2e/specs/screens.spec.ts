@@ -62,7 +62,7 @@ for (const [device, size] of Object.entries(SIZES)) {
 
     // W1.1: Live is no longer offered (not even as a disabled tile), and /live/host leads home.
     await page.goto('/publish');
-    await expect(page.getByRole('tab', { name: 'Publication' }).last()).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('textbox', { name: 'Texte de la publication' }).or(page.getByTestId('draft-choice'))).toBeVisible();
     await expect(page.getByRole('button', { name: /^Live\b/ })).toHaveCount(0);
     await capture(page, device, '10-publish-composer');
     await page.goto('/live/host');
