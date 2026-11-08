@@ -1,6 +1,20 @@
 # Next actions
 
-## Owner (now): W1.2 smart create — draft PR #5
+## Owner (now): W1.3 « créer, c’est montrer » — draft PR #6
+
+1. **Staging (blocks every preview of this stack):** read `docs/STAGING_MIGRATION_PLAN.md`; take
+   the two-minute backup (§ Before, step 1); then either give a token with
+   `database_migrations_write` through the secure form and say « apply », or paste the six files in
+   the SQL editor in order. Until then, Vercel previews of W1.1 → W1.3 stop at the schema check on
+   purpose (no more dead « Oups » homepage).
+2. On the preview, from Safari on an iPhone and Chrome on Android (W1.3 doc §6): the + cards, a
+   draft continued and one started anew, photos with a spoken explanation (and a reorder), an
+   article « Présenter en voix », the narrated publication shared as a status.
+3. Decide: native photo + voice status (schema change, W1.3 doc §2), or « Partager en statut » is
+   enough for the beta.
+4. Review order for the stack: PR #2 → #3 → #4 → #5 → #6. Nothing is merged or public.
+
+## Owner (earlier): W1.2 smart create — draft PR #5 (superseded in part by W1.3)
 
 1. On the Vercel preview (after the staging migrations), from Safari on an iPhone and Chrome on
    Android:

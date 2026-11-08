@@ -429,6 +429,34 @@ Test environment:
 - Playwright's headless shell has no `getUserMedia`; `smart-create` runs on the full Chromium
   build with a fake microphone.
 
+### W1.3 — créer, c’est montrer (branch `feature/w1.3-create`, 8 Nov)
+
+Approved design canvas with the owner's corrections; decisions and verification:
+`docs/W1_3_CREATE.md`. Staging: `docs/STAGING_MIGRATION_PLAN.md` (prepared, not applied).
+
+| Commit | What |
+|---|---|
+| `c189ef7` | Server: an article's voice in `product_media` (one audio row, never with video, cues → photos); 3 integration tests |
+| `fe502c1` | Schema contract + check before every Vercel build and in CI |
+| `bb9fb5f` | Staging plan, baseline counts, rollback scripts captured read-only from staging and dry-run locally |
+| `3266484` | `describeFailure()`; feed error screen with Réessayer, Explorer / Se reconnecter and copyable diagnostics; refresh banner; no retry when it can't help |
+| `18903b2` | Three-card + menu; explicit drafts (badge, Continuer, Nouvelle with confirmation, editor gate); W1.2 drafts adopted |
+| `8dc98df` | Adaptive Publication editor; `PostMedia` shared by the feed card and the editor; full-screen studio; reorderable gallery with cues remapped |
+| `c45f1a8` | Article shop window; « Présenter en voix »; article page and public web page play it |
+| `50e7de8` | Full-screen Statut editor; shared narrated publications play in statuses |
+
+Defects found on the way:
+- Pre-existing:
+  - Feed queries were retried three times on errors retrying can't fix (missing column, expired
+    session), delaying the error screen by several seconds.
+  - Removing a middle photo kept narration cues pointing past the end or to the wrong photo.
+  - An article draft restored after a browser refresh held dead `blob:` URLs (now kept like
+    publication drafts).
+  - The public web article page would have shown an article's voice as a broken photo.
+- In W1.3's own first version:
+  - Status photos labelled through expo-image were exposed as `alt` only; the viewer's photo now
+    has an image role and label of its own.
+
 ## Commands that were run (latest results)
 
 | Command | Result |

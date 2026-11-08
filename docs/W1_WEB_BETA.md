@@ -63,6 +63,15 @@ jefeli-staging**. To apply, in order (each is idempotent and touches no rows):
    W1.1 / P1 texts are in the earlier migrations), drop `share_to_status`, the new `post_media`
    columns and constraints, `stories.post_id` and the new `stories` constraints (only after
    deleting any `post`/`product`/`audio` statuses), and remove the audio types from `public-media`.
+6. `supabase/migrations/20261111000100_article_voice.sql` (W1.3: an article's optional voice
+   presentation in `product_media`; `create_listing` / `set_listing_media` keep their signatures;
+   no rows changed). Details in `docs/W1_3_CREATE.md`.
+
+**W1.3: the whole plan — order, owner backup, baseline counts, pre-check, apply commands,
+verification and the two rollback scripts captured from staging — is in
+`docs/STAGING_MIGRATION_PLAN.md`.** Every preview build now runs `scripts/schema-contract.mjs
+check` first: previews of this stack against jefeli-staging fail at that step until the plan is
+applied, instead of going live with a broken feed.
 
 Rollback for 2 and 3: the previous definitions of `review_verification_request` and
 `export_my_data`, saved from staging before any change, are in §6; `drop table public.feedback`
@@ -102,7 +111,7 @@ Registrations stay closed in practice until each line is done; the preview is pr
 
 | # | Item | How | Status |
 |---|---|---|---|
-| 1 | Apply the 3 migrations of §3 | A token with `database_migrations_write` through the secure form (then I apply and verify), or paste each file in Dashboard › SQL editor in order | **Open** (token read-only) |
+| 1 | Apply the migrations of §3 (now six, see `docs/STAGING_MIGRATION_PLAN.md`) | A token with `database_migrations_write` through the secure form (then I apply and verify), or paste each file in Dashboard › SQL editor in order | **Open** (token read-only) |
 | 2 | Auth URLs | Dashboard › Authentication › URL Configuration: Site URL = the app address; Redirect URLs = `https://<app address>/**`, `https://<web address>/**`, keep `jefeli://**` for the native app; remove the Lovable preview URL unless still used | **Open** |
 | 3 | Password minimum 8 (the app already asks for 8) | Authentication › Providers › Email | **Open** |
 | 4 | E-mail sending | The built-in sender allows **2 e-mails per hour for the whole project**: two sign-up confirmations or password resets per hour. Configure an SMTP provider (Authentication › Emails › SMTP; several have a free tier) **or** turn « Confirm email » off for the beta (password reset still needs e-mail) | **Open — blocks any public promotion** |
