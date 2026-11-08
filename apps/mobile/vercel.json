@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm exec expo export --platform web && node scripts/web-finalize.mjs",
+  "buildCommand": "node ../../scripts/schema-contract.mjs check && pnpm exec expo export --platform web && node scripts/web-finalize.mjs",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [

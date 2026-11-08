@@ -1,0 +1,822 @@
+{
+  "generated_from": [
+    "20261102000100_foundation.sql",
+    "20261102000200_social_graph.sql",
+    "20261102000300_commerce.sql",
+    "20261102000400_content.sql",
+    "20261102000450_notifications.sql",
+    "20261102000500_messaging_offers.sql",
+    "20261102000600_live.sql",
+    "20261102000700_safety.sql",
+    "20261102000800_storage_feed_search.sql",
+    "20261102000900_security_fixes.sql",
+    "20261103000100_feed_engagement.sql",
+    "20261104000100_feed_votes_personal.sql",
+    "20261105000100_refinement.sql",
+    "20261105000200_merchant_identity_prepare.sql",
+    "20261106000100_optional_boutique_identity.sql",
+    "20261106000200_boutique_identity_followup.sql",
+    "20261106000300_boutique_profile_update_grants.sql",
+    "20261108000100_feedback.sql",
+    "20261109000100_media_videos.sql",
+    "20261110000100_connected_media.sql",
+    "20261111000100_article_voice.sql"
+  ],
+  "tables": {
+    "account_settings": [
+      "user_id",
+      "default_status_audience",
+      "allow_messages_from",
+      "notify_push",
+      "notify_messages",
+      "notify_offers",
+      "notify_social",
+      "notify_live",
+      "contacts_discoverable",
+      "locale",
+      "created_at",
+      "updated_at"
+    ],
+    "agreements": [
+      "id",
+      "offer_id",
+      "conversation_id",
+      "kind",
+      "buyer_id",
+      "seller_id",
+      "product_id",
+      "offered_product_id",
+      "amount_xof",
+      "cash_payer",
+      "terms",
+      "status",
+      "buyer_completed_at",
+      "seller_completed_at",
+      "closed_by",
+      "close_reason",
+      "created_at",
+      "updated_at"
+    ],
+    "appeals": [
+      "id",
+      "user_id",
+      "moderation_action_id",
+      "body",
+      "status",
+      "created_at",
+      "resolved_at",
+      "resolved_by",
+      "resolution_note"
+    ],
+    "blocks": [
+      "blocker_id",
+      "blocked_id",
+      "created_at"
+    ],
+    "boutiques": [
+      "owner_id",
+      "description",
+      "pickup_notes",
+      "delivery_notes",
+      "payment_notes",
+      "created_at",
+      "updated_at"
+    ],
+    "categories": [
+      "slug",
+      "name",
+      "icon",
+      "position",
+      "is_active"
+    ],
+    "collections": [
+      "id",
+      "owner_id",
+      "name",
+      "position",
+      "created_at"
+    ],
+    "comments": [
+      "id",
+      "post_id",
+      "author_id",
+      "parent_id",
+      "body",
+      "moderation_status",
+      "created_at",
+      "updated_at",
+      "deleted_at"
+    ],
+    "conversation_members": [
+      "conversation_id",
+      "user_id",
+      "joined_at",
+      "last_read_at",
+      "muted",
+      "hidden_at"
+    ],
+    "conversations": [
+      "id",
+      "direct_key",
+      "created_by",
+      "created_at",
+      "last_message_at",
+      "last_message_preview",
+      "last_message_sender_id"
+    ],
+    "feature_flags": [
+      "key",
+      "enabled",
+      "description",
+      "updated_at",
+      "updated_by"
+    ],
+    "feedback": [
+      "id",
+      "user_id",
+      "kind",
+      "message",
+      "platform",
+      "app_version",
+      "status",
+      "created_at"
+    ],
+    "follows": [
+      "follower_id",
+      "followee_id",
+      "status",
+      "created_at",
+      "accepted_at"
+    ],
+    "friend_requests": [
+      "id",
+      "sender_id",
+      "receiver_id",
+      "status",
+      "created_at",
+      "responded_at"
+    ],
+    "friendships": [
+      "user_a",
+      "user_b",
+      "created_at"
+    ],
+    "highlight_items": [
+      "highlight_id",
+      "story_id",
+      "position",
+      "added_at"
+    ],
+    "highlights": [
+      "id",
+      "owner_id",
+      "title",
+      "position",
+      "created_at"
+    ],
+    "live_comments": [
+      "id",
+      "live_session_id",
+      "author_id",
+      "body",
+      "moderation_status",
+      "created_at"
+    ],
+    "live_mutes": [
+      "live_session_id",
+      "user_id",
+      "created_at"
+    ],
+    "live_pins": [
+      "id",
+      "live_session_id",
+      "product_id",
+      "pinned_at",
+      "unpinned_at"
+    ],
+    "live_sessions": [
+      "id",
+      "host_id",
+      "title",
+      "status",
+      "provider",
+      "provider_call_type",
+      "provider_call_id",
+      "viewer_count",
+      "peak_viewer_count",
+      "moderation_status",
+      "started_at",
+      "ended_at",
+      "created_at",
+      "updated_at"
+    ],
+    "messages": [
+      "id",
+      "conversation_id",
+      "sender_id",
+      "kind",
+      "body",
+      "attachment_path",
+      "attachment_meta",
+      "product_id",
+      "offer_id",
+      "story_id",
+      "created_at",
+      "deleted_at"
+    ],
+    "moderation_actions": [
+      "id",
+      "moderator_id",
+      "action",
+      "target_type",
+      "target_id",
+      "target_owner_id",
+      "report_id",
+      "reason",
+      "created_at"
+    ],
+    "mutes": [
+      "muter_id",
+      "muted_id",
+      "created_at"
+    ],
+    "notifications": [
+      "id",
+      "recipient_id",
+      "actor_id",
+      "type",
+      "entity_type",
+      "entity_id",
+      "data",
+      "read_at",
+      "pushed_at",
+      "created_at"
+    ],
+    "offers": [
+      "id",
+      "conversation_id",
+      "kind",
+      "product_id",
+      "offered_product_id",
+      "buyer_id",
+      "seller_id",
+      "proposer_id",
+      "recipient_id",
+      "amount_xof",
+      "cash_payer",
+      "message",
+      "status",
+      "parent_offer_id",
+      "snapshot",
+      "created_at",
+      "responded_at",
+      "expires_at"
+    ],
+    "post_media": [
+      "id",
+      "post_id",
+      "owner_id",
+      "bucket",
+      "kind",
+      "storage_path",
+      "poster_path",
+      "width",
+      "height",
+      "duration_ms",
+      "position",
+      "created_at",
+      "language",
+      "waveform",
+      "cues"
+    ],
+    "post_products": [
+      "post_id",
+      "product_id"
+    ],
+    "post_saves": [
+      "user_id",
+      "post_id",
+      "created_at"
+    ],
+    "post_votes": [
+      "post_id",
+      "user_id",
+      "value",
+      "created_at",
+      "updated_at"
+    ],
+    "posts": [
+      "id",
+      "author_id",
+      "body",
+      "kind",
+      "visibility",
+      "city",
+      "moderation_status",
+      "comment_count",
+      "save_count",
+      "created_at",
+      "updated_at",
+      "edited_at",
+      "deleted_at",
+      "intent",
+      "upvote_count",
+      "pinned_at"
+    ],
+    "product_media": [
+      "id",
+      "product_id",
+      "owner_id",
+      "kind",
+      "storage_path",
+      "poster_path",
+      "width",
+      "height",
+      "duration_ms",
+      "position",
+      "created_at",
+      "language",
+      "waveform",
+      "cues"
+    ],
+    "product_saves": [
+      "user_id",
+      "product_id",
+      "created_at"
+    ],
+    "products": [
+      "id",
+      "seller_id",
+      "title",
+      "description",
+      "price_xof",
+      "category_slug",
+      "condition",
+      "listing_mode",
+      "quantity",
+      "status",
+      "city",
+      "neighborhood",
+      "delivery_options",
+      "delivery_notes",
+      "collection_id",
+      "moderation_status",
+      "save_count",
+      "search_text",
+      "created_at",
+      "updated_at",
+      "sold_at",
+      "price_mode",
+      "pinned_at"
+    ],
+    "profiles": [
+      "id",
+      "handle",
+      "display_name",
+      "bio",
+      "avatar_path",
+      "cover_path",
+      "city",
+      "neighborhood",
+      "interests",
+      "is_private",
+      "is_merchant",
+      "verification_level",
+      "status",
+      "is_demo",
+      "followers_count",
+      "following_count",
+      "friends_count",
+      "posts_count",
+      "products_count",
+      "rating_sum",
+      "rating_count",
+      "onboarded_at",
+      "adult_confirmed_at",
+      "created_at",
+      "updated_at",
+      "boutique_name",
+      "boutique_category_slug"
+    ],
+    "prohibited_terms": [
+      "term",
+      "reason",
+      "created_at"
+    ],
+    "push_tokens": [
+      "token",
+      "user_id",
+      "platform",
+      "created_at",
+      "updated_at"
+    ],
+    "reports": [
+      "id",
+      "reporter_id",
+      "target_type",
+      "target_id",
+      "target_owner_id",
+      "reason",
+      "details",
+      "evidence",
+      "status",
+      "created_at",
+      "updated_at",
+      "resolved_at",
+      "resolved_by",
+      "resolution_note"
+    ],
+    "reserved_handles": [
+      "handle"
+    ],
+    "reviews": [
+      "id",
+      "agreement_id",
+      "reviewer_id",
+      "reviewee_id",
+      "rating",
+      "body",
+      "moderation_status",
+      "created_at"
+    ],
+    "staff_roles": [
+      "user_id",
+      "role",
+      "granted_by",
+      "created_at"
+    ],
+    "stories": [
+      "id",
+      "author_id",
+      "media_kind",
+      "storage_path",
+      "poster_path",
+      "width",
+      "height",
+      "duration_ms",
+      "caption",
+      "audience",
+      "product_id",
+      "moderation_status",
+      "created_at",
+      "expires_at",
+      "deleted_at",
+      "post_id"
+    ],
+    "story_likes": [
+      "story_id",
+      "user_id",
+      "created_at"
+    ],
+    "story_views": [
+      "story_id",
+      "viewer_id",
+      "viewed_at"
+    ],
+    "verification_requests": [
+      "id",
+      "user_id",
+      "business_name",
+      "business_type",
+      "details",
+      "status",
+      "reviewed_by",
+      "reviewed_at",
+      "review_note",
+      "created_at"
+    ]
+  },
+  "functions": {
+    "active_cities": [
+      [
+        "p_limit"
+      ]
+    ],
+    "admin_audit_log": [
+      [
+        "p_limit"
+      ]
+    ],
+    "admin_set_feature_flag": [
+      [
+        "p_key",
+        "p_enabled"
+      ]
+    ],
+    "browse_products": [
+      [
+        "p_mode",
+        "p_query",
+        "p_category",
+        "p_city",
+        "p_condition",
+        "p_limit",
+        "p_offset"
+      ]
+    ],
+    "cancel_friend_request": [
+      [
+        "p_request_id"
+      ]
+    ],
+    "close_agreement": [
+      [
+        "p_agreement_id",
+        "p_outcome",
+        "p_reason"
+      ]
+    ],
+    "confirm_agreement_completed": [
+      [
+        "p_agreement_id"
+      ]
+    ],
+    "counter_offer": [
+      [
+        "p_offer_id",
+        "p_amount_xof",
+        "p_offered_product_id",
+        "p_cash_payer",
+        "p_message"
+      ]
+    ],
+    "create_listing": [
+      [
+        "p_title",
+        "p_description",
+        "p_price_xof",
+        "p_category_slug",
+        "p_condition",
+        "p_listing_mode",
+        "p_quantity",
+        "p_city",
+        "p_neighborhood",
+        "p_delivery_options",
+        "p_delivery_notes",
+        "p_media",
+        "p_collection_id",
+        "p_price_mode"
+      ]
+    ],
+    "create_post": [
+      [
+        "p_body",
+        "p_visibility",
+        "p_media",
+        "p_product_ids",
+        "p_intent"
+      ]
+    ],
+    "create_story": [
+      [
+        "p_media_kind",
+        "p_path",
+        "p_poster_path",
+        "p_width",
+        "p_height",
+        "p_duration_ms",
+        "p_caption",
+        "p_audience",
+        "p_product_id"
+      ]
+    ],
+    "delete_comment": [
+      [
+        "p_comment_id"
+      ]
+    ],
+    "delete_post": [
+      [
+        "p_post_id"
+      ]
+    ],
+    "delete_story": [
+      [
+        "p_story_id"
+      ]
+    ],
+    "expire_stale_offers": [
+      []
+    ],
+    "export_my_data": [
+      []
+    ],
+    "get_comment_previews": [
+      [
+        "p_post_ids",
+        "p_per_post"
+      ]
+    ],
+    "get_feed": [
+      [
+        "p_tab",
+        "p_limit",
+        "p_offset",
+        "p_before"
+      ]
+    ],
+    "get_or_create_conversation": [
+      [
+        "p_other"
+      ]
+    ],
+    "get_story_rail": [
+      []
+    ],
+    "hide_live_comment": [
+      [
+        "p_comment_id"
+      ]
+    ],
+    "leave_review": [
+      [
+        "p_agreement_id",
+        "p_rating",
+        "p_body"
+      ]
+    ],
+    "list_orphaned_media": [
+      [
+        "p_min_age",
+        "p_limit"
+      ]
+    ],
+    "live_apply_provider_state": [
+      [
+        "p_provider_call_id",
+        "p_status",
+        "p_viewer_count"
+      ]
+    ],
+    "make_offer": [
+      [
+        "p_product_id",
+        "p_kind",
+        "p_amount_xof",
+        "p_offered_product_id",
+        "p_cash_payer",
+        "p_message"
+      ]
+    ],
+    "mark_all_notifications_read": [
+      []
+    ],
+    "message_about_product": [
+      [
+        "p_product_id",
+        "p_body"
+      ]
+    ],
+    "moderate": [
+      [
+        "p_action",
+        "p_target_type",
+        "p_target_id",
+        "p_report_id",
+        "p_reason"
+      ]
+    ],
+    "mute_in_live": [
+      [
+        "p_session_id",
+        "p_user_id",
+        "p_mute"
+      ]
+    ],
+    "my_conversations": [
+      []
+    ],
+    "my_staff_role": [
+      []
+    ],
+    "pin_live_product": [
+      [
+        "p_session_id",
+        "p_product_id"
+      ]
+    ],
+    "purge_expired_stories": [
+      []
+    ],
+    "register_push_token": [
+      [
+        "p_token",
+        "p_platform"
+      ]
+    ],
+    "relationship_with": [
+      [
+        "p_target"
+      ]
+    ],
+    "remove_friend": [
+      [
+        "p_other"
+      ]
+    ],
+    "reply_to_story": [
+      [
+        "p_story_id",
+        "p_body"
+      ]
+    ],
+    "report_content": [
+      [
+        "p_target_type",
+        "p_target_id",
+        "p_reason",
+        "p_details"
+      ]
+    ],
+    "resolve_appeal": [
+      [
+        "p_appeal_id",
+        "p_reverse",
+        "p_note"
+      ]
+    ],
+    "respond_friend_request": [
+      [
+        "p_request_id",
+        "p_accept"
+      ]
+    ],
+    "respond_offer": [
+      [
+        "p_offer_id",
+        "p_accept"
+      ]
+    ],
+    "review_verification_request": [
+      [
+        "p_request_id",
+        "p_approve",
+        "p_note"
+      ]
+    ],
+    "search_profiles": [
+      [
+        "p_query",
+        "p_city",
+        "p_limit"
+      ]
+    ],
+    "send_friend_request": [
+      [
+        "p_target"
+      ]
+    ],
+    "set_listing_media": [
+      [
+        "p_product_id",
+        "p_media"
+      ]
+    ],
+    "set_pinned": [
+      [
+        "p_kind",
+        "p_id",
+        "p_pinned"
+      ]
+    ],
+    "set_report_status": [
+      [
+        "p_report_id",
+        "p_status"
+      ]
+    ],
+    "share_to_status": [
+      [
+        "p_post_id",
+        "p_product_id",
+        "p_caption",
+        "p_audience"
+      ]
+    ],
+    "submit_appeal": [
+      [
+        "p_moderation_action_id",
+        "p_body"
+      ]
+    ],
+    "unpin_live_product": [
+      [
+        "p_session_id"
+      ]
+    ],
+    "unread_messages_count": [
+      []
+    ],
+    "vote_post": [
+      [
+        "p_post_id",
+        "p_value"
+      ]
+    ],
+    "withdraw_offer": [
+      [
+        "p_offer_id"
+      ]
+    ]
+  }
+}

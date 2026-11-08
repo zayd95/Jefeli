@@ -55,6 +55,12 @@ jobs:
             curl -s -X POST http://127.0.0.1:54321/functions/v1/live -d '{"action":"status"}' | grep -q provider && break
             sleep 2
           done
+      - name: Schema contract matches the migrations, and the local database satisfies it
+        run: |
+          node scripts/schema-contract.mjs generate --verify
+          export SCHEMA_CHECK_URL=http://127.0.0.1:54321
+          export SCHEMA_CHECK_KEY="$(supabase status -o env | grep '^PUBLISHABLE_KEY=' | cut -d'"' -f2)"
+          node scripts/schema-contract.mjs check
       - run: pnpm test:integration
       - if: failure()
         run: cat functions.log || true
