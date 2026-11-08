@@ -8,10 +8,9 @@
  * Feed queries, pagination, ranking reasons and the live list are the existing native ones.
  * Product grids moved to Explorer: Home stays social-first.
  */
-import { toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { router, useFocusEffect } from 'expo-router';
-import { Bell, Compass, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
+import { Bell, Compass, LogIn, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View, type ListViewToken } from 'react-native';
 
@@ -19,11 +18,12 @@ import { ActivePostContext, pauseAllVideos } from '@/components/Media';
 import { PostCard } from '@/components/PostCard';
 import { ProfileName } from '@/components/ProfileName';
 import { StoryRail } from '@/components/StoryRail';
-import { Avatar, Button, colors, dark, EmptyState, ErrorState, IconButton, LiveBadge, Screen, Skeleton, spacing, Text, Wordmark } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, ErrorState, IconButton, InlineRetry, LiveBadge, Screen, Skeleton, spacing, Text, Wordmark } from '@/design';
 import { fetchLiveNow, type LiveSessionRow } from '@/lib/api/live';
 import { fetchUnreadNotificationCount } from '@/lib/api/notifications';
 import { fetchFeed } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
+import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
@@ -31,12 +31,13 @@ import { useDarkStatusBar } from '@/lib/statusBar';
 import type { PostCardData } from '@/lib/types';
 
 type HomeTab = 'for_you' | 'following' | 'nearby' | 'live';
+const TAB_LABEL: Record<HomeTab, string> = { for_you: 'Pour toi', following: 'Abonnements', nearby: 'À proximité', live: 'En direct' };
 
 const VIEWABILITY = { itemVisiblePercentThreshold: 60, minimumViewTime: 250 };
 
 export default function Home() {
   useDarkStatusBar();
-  const { userId, profile } = useAuth();
+  const { userId, profile, signOut } = useAuth();
   const dockSpace = useDockSpace();
   const liveEnabled = useFlag('live_streaming');
   const [tab, setTab] = useState<HomeTab>('for_you');
@@ -82,6 +83,13 @@ export default function Home() {
   const onRefresh = useCallback(() => {
     active.refetch();
   }, [active]);
+  // W1.3: a failed request never leaves a dead homepage — a precise message, a retry, a way
+  // around (Explorer) and diagnostics support can use. Refresh failures over visible posts only
+  // show a quiet banner; the posts stay.
+  const where = `Accueil · ${TAB_LABEL[tab]}`;
+  const failed = useDiagnosed(active.isError && !active.data ? active.error : null, where);
+  const refreshFailed = isPostTab && posts.isRefetchError && postItems.length > 0;
+  const nextFailed = isPostTab && posts.isFetchNextPageError;
 
   const chips: { key: string; label: string; icon: LucideIcon; selected?: boolean; onPress: () => void }[] = [
     {
@@ -135,6 +143,7 @@ export default function Home() {
 
   const listHeader = (
     <View>
+      {refreshFailed ? <InlineRetry tone="dark" message="Actualisation impossible. Le fil affiché n’est peut-être pas à jour." onRetry={onRefresh} retrying={posts.isRefetching} /> : null}
       <StoryRail />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         {chips.map(({ key, label, icon: Icon, selected, onPress }) => (
@@ -173,7 +182,23 @@ export default function Home() {
       );
     }
     if (active.isPending) return <FeedSkeleton />;
-    if (active.isError) return <ErrorState tone="dark" message={toFrenchError(active.error)} onRetry={onRefresh} />;
+    if (failed) {
+      return (
+        <ErrorState
+          tone="dark"
+          title={failed.failure.title}
+          message={failed.failure.message}
+          onRetry={onRefresh}
+          retrying={active.isFetching}
+          alternative={
+            failed.failure.kind === 'session'
+              ? { label: 'Se reconnecter', icon: LogIn, onPress: () => void signOut() }
+              : { label: 'Explorer', icon: Compass, onPress: () => router.push('/explore') }
+          }
+          details={failed.details}
+        />
+      );
+    }
     const map: Record<HomeTab, { icon: LucideIcon; title: string; body: string; action?: [string, () => void] }> = {
       for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push('/publish/post')] },
       following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
@@ -189,7 +214,8 @@ export default function Home() {
     if (posts.isFetchingNextPage) return <FeedSkeleton />;
     return (
       <View style={{ paddingBottom: dockSpace }}>
-        {postItems.length > 0 && !posts.hasNextPage ? (
+        {nextFailed ? <InlineRetry tone="dark" message="Impossible de charger la suite du fil." onRetry={() => posts.fetchNextPage()} /> : null}
+        {postItems.length > 0 && !posts.hasNextPage && !nextFailed ? (
           <View style={styles.caughtUp}>
             <Text serif variant="title" tone="fog" align="center" style={{ fontSize: 20 }}>
               Vous êtes à jour

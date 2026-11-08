@@ -2,7 +2,8 @@
  * P1 resilience through the real UI, with two fresh accounts (no DÉMO dependency): what a pilot
  * member's phone actually goes through — a flaky network during an upload and while sending a
  * message, a double tap on an offer, the app being killed mid-publication, coming back after the
- * access token expired, and an old shared link to an article that no longer exists.
+ * access token expired, an old shared link to an article that no longer exists, and (W1.3) a feed
+ * request the server cannot answer — offline, or a database behind the app (the staging « Oups »).
  * Browser renders of the React Native app (Expo web build), not a device.
  */
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
@@ -138,5 +139,51 @@ test.describe.serial('P1 resilience: network, double taps, restarts, expired ses
     const web = await b.request.get(`${WEB_URL}/p/${id}`);
     expect(web.status()).toBe(404);
     await shot(b, DIR, 'B-deleted-article-link');
+  });
+
+  test('a feed the server cannot answer leaves a way forward, not a dead homepage (W1.3)', async () => {
+    const feed = '**/rest/v1/rpc/get_feed*';
+    let mode: 'offline' | 'outdated' | 'ok' = 'offline';
+    let calls = 0;
+    await b.route(feed, async (route) => {
+      if (mode === 'ok') return route.continue();
+      calls += 1;
+      if (mode === 'offline') return route.abort('internetdisconnected');
+      // What PostgREST answered on staging when the app asked for columns it didn't have yet.
+      return route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ code: '42703', message: 'column post_media.language does not exist', details: null, hint: null }),
+      });
+    });
+    const state = b.getByTestId('error-state');
+
+    // Offline: retried automatically (3 attempts), then a clear message and a way around.
+    await b.goto('/');
+    await expect(state.getByText('Connexion impossible', { exact: true })).toBeVisible({ timeout: 30_000 });
+    expect(calls).toBe(3);
+    await expect(state.getByRole('button', { name: 'Explorer' })).toBeVisible();
+
+    // A database behind the app: not retried (it can't help), says so, and gives support the cause.
+    mode = 'outdated';
+    calls = 0;
+    await state.getByRole('button', { name: 'Réessayer' }).click();
+    await expect(state.getByText('Mise à jour en cours', { exact: true })).toBeVisible({ timeout: 20_000 });
+    await b.waitForTimeout(2500);
+    expect(calls).toBe(1);
+    await state.getByRole('button', { name: 'Détails pour l’assistance' }).click();
+    await expect(state.getByText(/Code : 42703/)).toBeVisible();
+    await expect(state.getByText(/Écran : Accueil · Pour toi/)).toBeVisible();
+    await expect(state.getByText(/column post_media\.language does not exist/)).toBeVisible();
+    await expect(state.getByRole('button', { name: 'Copier les détails' })).toBeVisible();
+    await expect(b.getByRole('button', { name: 'Rechercher' })).toBeVisible(); // header and navigation stay usable
+    await shot(b, DIR, 'B-feed-outdated-database');
+
+    // Once the database is up to date, « Réessayer » brings the feed back without a reload.
+    mode = 'ok';
+    await state.getByRole('button', { name: 'Réessayer' }).click();
+    await expect(state).toHaveCount(0, { timeout: 20_000 });
+    await b.unroute(feed);
+    await shot(b, DIR, 'B-feed-recovered');
   });
 });

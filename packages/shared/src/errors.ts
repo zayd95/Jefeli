@@ -110,3 +110,45 @@ export function toFrenchError(err: unknown, fallback = 'Une erreur est survenue.
   if (/check constraint|violates/i.test(msg)) return 'Certaines informations sont invalides. Vérifiez le formulaire.';
   return fallback;
 }
+
+export type FailureKind = 'network' | 'service' | 'outdated' | 'session' | 'other';
+
+export interface Failure {
+  kind: FailureKind;
+  title: string;
+  message: string;
+  /** Short, copyable reference for support (« 42703 », « réseau »…). */
+  code: string;
+  /** Worth retrying automatically (network, server hiccup); not a schema mismatch or a bad request. */
+  retryable: boolean;
+}
+
+/**
+ * What went wrong with a request, in words a member can act on (W1.3). A database that is behind
+ * the app (missing column/function/table) is reported as an update in progress — never hidden —
+ * and is not retried in a loop; the code stays visible for support.
+ */
+export function describeFailure(err: unknown): Failure {
+  const raw = errorMessageRaw(err);
+  const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code ?? '') : '';
+  const status = typeof err === 'object' && err !== null && 'status' in err ? Number((err as { status: unknown }).status) : NaN;
+  if (/failed to fetch|network ?request failed|networkerror|load failed|err_internet|timeout|aborted/i.test(raw)) {
+    return { kind: 'network', title: 'Connexion impossible', message: 'Vérifiez votre connexion internet, puis réessayez.', code: 'réseau', retryable: true };
+  }
+  if (['42703', '42P01', '42883', 'PGRST200', 'PGRST202', 'PGRST204', 'PGRST205'].includes(code)) {
+    return {
+      kind: 'outdated',
+      title: 'Mise à jour en cours',
+      message: 'Jëfëli est en cours de mise à jour. Réessayez dans quelques minutes ; vos données ne sont pas perdues.',
+      code,
+      retryable: false,
+    };
+  }
+  if (/jwt expired|invalid jwt|not_authenticated|refresh token/i.test(raw) || code === 'PGRST301' || code === 'PGRST303') {
+    return { kind: 'session', title: 'Session expirée', message: 'Reconnectez-vous pour continuer.', code: code || 'session', retryable: false };
+  }
+  if ((Number.isFinite(status) && status >= 500) || code === 'PGRST002' || code === '57014' || code === '53300') {
+    return { kind: 'service', title: 'Service indisponible', message: 'Le service ne répond pas pour le moment. Réessayez dans un instant.', code: code || String(status), retryable: true };
+  }
+  return { kind: 'other', title: 'Oups', message: toFrenchError(err), code: code || errorKey(err) || 'inconnu', retryable: true };
+}
