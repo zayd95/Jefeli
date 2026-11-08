@@ -461,10 +461,11 @@ Defects found on the way:
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 25 unit tests (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
-| `pnpm test:integration` (with `.env.test` functions) | 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
-| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 28 unit tests (W1.3); 25 (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 297/297 (W1.3, article voice); 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 53 passed, 1 skipped (W1.3, adds `create` 9, `smart-create` now 4; four specs re-run after mid-run edits); 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `npx expo export --platform ios --platform android` | pass: iOS 11 MB, Android 12 MB Hermes bundles (W1.3); ≈ 11 MB each on `3c02230` |
+| `node scripts/schema-contract.mjs generate --verify` / `check` (local) | up to date; ✓ 45 tables, 53 functions (W1.3) |
 | `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
