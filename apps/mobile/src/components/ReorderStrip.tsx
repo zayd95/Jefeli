@@ -30,6 +30,7 @@ export function ReorderStrip({
   onRemove,
   onAdd,
   max = 10,
+  tone = 'dark',
 }: {
   items: StripItem[];
   selected: number | null;
@@ -38,8 +39,11 @@ export function ReorderStrip({
   onRemove: (i: number) => void;
   onAdd: () => void;
   max?: number;
+  tone?: 'light' | 'dark';
 }) {
   const [width, setWidth] = useState(0);
+  const light = tone === 'light';
+  const fg = light ? colors.ink : dark.text;
   const perRow = Math.max(1, Math.floor((width + GAP) / (SIZE + GAP)));
   return (
     <View style={{ gap: spacing.sm }}>
@@ -52,25 +56,26 @@ export function ReorderStrip({
             count={items.length}
             perRow={perRow}
             selected={selected === i}
+            light={light}
             onSelect={() => onSelect(selected === i ? null : i)}
             onMove={onMove}
             onRemove={() => onRemove(i)}
           />
         ))}
         {items.length < max ? (
-          <Pressable onPress={onAdd} style={({ pressed }) => [styles.add, pressed && { backgroundColor: dark.subtle }]} accessibilityRole="button" accessibilityLabel="Ajouter des photos">
-            <Plus size={22} color={dark.text} />
+          <Pressable onPress={onAdd} style={({ pressed }) => [styles.add, light && { borderColor: colors.borderStrong }, pressed && { backgroundColor: light ? colors.surfaceSubtle : dark.subtle }]} accessibilityRole="button" accessibilityLabel="Ajouter des photos">
+            <Plus size={22} color={fg} />
           </Pressable>
         ) : null}
       </View>
       {selected !== null && items[selected] ? (
-        <View style={styles.selectedBar} accessibilityLiveRegion="polite">
-          <Text variant="caption" weight="700" tone="fog" style={{ flex: 1 }}>
+        <View style={[styles.selectedBar, light && { backgroundColor: colors.surfaceSubtle }]} accessibilityLiveRegion="polite">
+          <Text variant="caption" weight="700" tone={light ? 'default' : 'fog'} style={{ flex: 1 }}>
             {selected === 0 ? 'Couverture · glissez ou déplacez' : `Photo ${selected + 1} · glissez ou déplacez`}
           </Text>
-          <IconButton icon={ArrowLeft} label="Déplacer à gauche" color={dark.text} disabled={selected === 0} onPress={() => (onMove(selected, selected - 1), onSelect(selected - 1))} />
-          <IconButton icon={ArrowRight} label="Déplacer à droite" color={dark.text} disabled={selected === items.length - 1} onPress={() => (onMove(selected, selected + 1), onSelect(selected + 1))} />
-          <IconButton icon={Trash2} label="Retirer" color={dark.text} onPress={() => (onRemove(selected), onSelect(null))} />
+          <IconButton icon={ArrowLeft} label="Déplacer à gauche" color={fg} disabled={selected === 0} onPress={() => (onMove(selected, selected - 1), onSelect(selected - 1))} />
+          <IconButton icon={ArrowRight} label="Déplacer à droite" color={fg} disabled={selected === items.length - 1} onPress={() => (onMove(selected, selected + 1), onSelect(selected + 1))} />
+          <IconButton icon={Trash2} label="Retirer" color={fg} onPress={() => (onRemove(selected), onSelect(null))} />
         </View>
       ) : null}
     </View>
@@ -83,10 +88,12 @@ function DraggableThumb({
   count,
   perRow,
   selected,
+  light,
   onSelect,
   onMove,
   onRemove,
 }: {
+  light?: boolean;
   item: StripItem;
   index: number;
   count: number;
@@ -131,7 +138,7 @@ function DraggableThumb({
     >
       <Pressable
         onPress={onSelect}
-        style={[styles.thumb, selected && styles.thumbOn]}
+        style={[styles.thumb, light && { backgroundColor: colors.surfaceMuted }, selected && (light ? { borderColor: colors.ink } : styles.thumbOn)]}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityHint="Faites glisser pour changer l’ordre, ou touchez pour déplacer avec des boutons"
@@ -155,7 +162,7 @@ function DraggableThumb({
         ) : null}
         {index === 0 ? <View style={styles.coverMark} /> : null}
       </Pressable>
-      <Text variant="micro" weight="700" tone="mint" style={{ fontSize: 10, height: 14 }} accessibilityElementsHidden importantForAccessibility="no">
+      <Text variant="micro" weight="700" color={light ? colors.accentDeep : dark.mint} style={{ fontSize: 10, height: 14 }} accessibilityElementsHidden importantForAccessibility="no">
         {item.cue ?? ''}
       </Text>
     </View>

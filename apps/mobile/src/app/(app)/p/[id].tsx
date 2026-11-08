@@ -16,7 +16,7 @@ import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentMenu } from '@/components/ContentMenu';
-import { MediaCarousel } from '@/components/Media';
+import { PostMedia } from '@/components/PostMedia';
 import { PriceLabel } from '@/components/PriceLabel';
 import { ShareToStatusSheet } from '@/components/ShareToStatus';
 import { ProfileName } from '@/components/ProfileName';
@@ -25,6 +25,7 @@ import { messageAboutProduct } from '@/lib/api/messages';
 import { setPinned } from '@/lib/api/posts';
 import { deleteListing, fetchCategories, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { useMediaUrl } from '@/lib/media';
 import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
 import { goBack } from '@/lib/nav';
@@ -83,6 +84,9 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade';
   const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale';
   const mediaW = Math.min(width, 640);
+  // W1.3: « Présenter en voix », stored with the article.
+  const voice = product.media.find((m) => m.kind === 'audio') ?? null;
+  const voiceUri = useMediaUrl('public-media', voice?.storage_path);
   const wecci = product.listing_mode !== 'sale';
 
   async function toggleSave() {
@@ -134,7 +138,14 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         {/* Image-led, full-bleed (Lovable aspect-square) with glass controls over the photo. */}
         <View style={{ alignItems: 'center', backgroundColor: colors.night }}>
           <View>
-            <MediaCarousel media={product.media} bucket="public-media" width={mediaW} height={mediaW} />
+            {/* W1.3: the seller's voice plays over the photos, following the « visite guidée ». */}
+            <PostMedia
+              visual={product.media.filter((m) => m.kind !== 'audio')}
+              voice={voice ? { uri: voiceUri, durationMs: voice.duration_ms, waveform: voice.waveform, language: voice.language, cues: voice.cues } : null}
+              bucket="public-media"
+              width={mediaW}
+              height={mediaW}
+            />
             {unavailable ? (
               <View style={styles.statusBanner}>
                 <Text variant="callout" weight="800" color={colors.white}>

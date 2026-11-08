@@ -44,12 +44,13 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await ctxB?.close();
   });
 
-  test('a « Prix affiché » article cannot be published without a price (one-scroll form)', async () => {
+  test('a « Prix affiché » article cannot be published without a price (the window says what is missing)', async () => {
     await s.goto('/publish/listing');
-    await field(s, 'Titre').fill('Article sans prix');
-    await btn(s, 'Publier l’article').click();
-    await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « Prix sur demande »/))).toBeVisible();
-    // Still on the one-scroll form: nothing was published without a price.
+    await field(s, 'Nom de l’article').fill('Article sans prix');
+    await btn(s, 'Mettre en vente').click();
+    await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « Sur demande » ou « À discuter »/))).toBeVisible();
+    await expect(visible(s.getByText(/^À compléter : une photo, le prix, la catégorie$/))).toBeVisible();
+    // Still on the editor: nothing was published without a price.
     await expect(s).toHaveURL(/\/publish\/listing$/);
     await shot(s, DIR, 'S-price-required-for-fixed');
   });

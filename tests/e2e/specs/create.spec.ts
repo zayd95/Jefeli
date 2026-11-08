@@ -1,6 +1,6 @@
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
-import { btn, DEVICES, FIXTURE, newDevice, publishListing, runId, shot, signUp } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, pickFile, publishListing, runId, shot, signUp, WEB_URL } from './helpers';
 
 /**
  * W1.3 « créer, c’est montrer »: the three-card + menu, explicit drafts, the adaptive Publication
@@ -198,5 +198,60 @@ test.describe.serial('W1.3 creation to feed', () => {
     await btn(b, 'Envoyer un message').click();
     await expect(b).toHaveURL(/\/chat\/[0-9a-f-]{36}\?about=/, { timeout: 30_000 });
     await expect(b.getByText(`À propos de ${ARTICLE}`).last()).toBeVisible();
+  });
+
+  test('CR-06 · Article: a shop window, presented in the seller’s voice; buyers hear it on the app and the web', async () => {
+    const TITLE = `Sac tressé ${RUN}`;
+    await s.goto('/');
+    await openMenu(s);
+    await s.getByTestId('create-listing').click();
+    await expect(s).toHaveURL(/\/publish\/listing/);
+    await shot(s, DIR, 'S-article-empty-window');
+    const chooser = s.waitForEvent('filechooser');
+    await btn(s, 'Ajouter des photos ou une vidéo').click();
+    await (await chooser).setFiles([FIXTURE('bag.jpg'), FIXTURE('shoe.jpg')]);
+    await expect(last(s.getByText('APERÇU ACHETEUR'))).toBeVisible();
+    await field(s, 'Nom de l’article').fill(TITLE);
+    await field(s, 'Prix en francs CFA').fill('15000');
+    await s.getByRole('radio', { name: 'Les deux', exact: true }).click();
+    // Required details still empty: « Mettre en vente » says so and flags the pill, nothing is sent.
+    await btn(s, 'Mettre en vente').click();
+    await expect(last(s.getByText('À compléter : la catégorie'))).toBeVisible();
+    await expect(s).toHaveURL(/\/publish\/listing/);
+
+    await btn(s, 'Présenter l’article en voix').click();
+    await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
+    await s.waitForTimeout(2000);
+    await s.getByRole('button', { name: 'Montrer la photo 2' }).click();
+    await s.waitForTimeout(2000);
+    await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
+    await expect(s.getByText(/^Votre présentation · 0:0[3-5] · visite guidée$/)).toBeVisible();
+    await s.getByRole('button', { name: /^Catégorie : requis/ }).click();
+    await btn(s, 'Sacs & accessoires').click();
+    await btn(s, 'Comme neuf').click();
+    await btn(s, 'Terminé').click();
+    await shot(s, DIR, 'S-article-window-with-voice');
+    await btn(s, 'Mettre en vente').click();
+    await expect(s).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 90_000 });
+    const productPath = new URL(s.url()).pathname;
+
+    // The buyer hears the seller over the photos, which follow the voice, then writes.
+    await b.goto(productPath);
+    const listen = last(b.getByRole('button', { name: /^Écouter l’explication/ }));
+    await expect(listen).toBeVisible({ timeout: 30_000 });
+    await listen.click();
+    await expect(last(b.getByLabel('Photo 2 sur 2'))).toBeVisible({ timeout: 6_000 });
+    await shot(b, DIR, 'B-article-voice-following');
+    // The same voice travels with the feed share of the article.
+    await b.goto(`/u/${S.handle}`);
+    await b.getByRole('button', { name: new RegExp(`^Publication\\. ${TITLE}`) }).first().click();
+    await expect(last(b.getByRole('button', { name: /^Écouter l’explication/ }))).toBeVisible({ timeout: 30_000 });
+    await expect(last(b.getByRole('button', { name: new RegExp(`^Voir l’article ${TITLE}`) }))).toBeVisible();
+    // And the public web page plays it (never as a broken photo).
+    const page = await b.context().newPage();
+    await page.goto(`${WEB_URL}${productPath}`);
+    await expect(page.getByLabel('Écouter la présentation du vendeur')).toBeVisible();
+    await expect(page.locator('img[src*=".webm"], img[src*=".m4a"], img[src*=".mp4"]')).toHaveCount(0);
+    await page.close();
   });
 });

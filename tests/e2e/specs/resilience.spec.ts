@@ -92,19 +92,26 @@ test.describe.serial('P1 resilience: network, double taps, restarts, expired ses
     await shot(b, DIR, 'B-message-sent-on-retry');
   });
 
-  test('an unfinished article survives the app being closed (local draft)', async () => {
+  test('an unfinished article survives the app being closed, and is only deleted on request (local draft)', async () => {
     const draftTitle = `Brouillon ${RUN}`;
     await s.goto('/publish/listing');
-    await field(s, 'Titre').fill(draftTitle);
+    await field(s, 'Nom de l’article').fill(draftTitle);
+    await s.getByRole('button', { name: /^Description : facultatif/ }).click();
     await field(s, 'Description (facultatif)').fill('Cuir véritable, cousu main.');
+    await btn(s, 'Terminé').click();
     await s.waitForTimeout(900); // the draft is saved 400 ms after the last keystroke
     await s.reload();
-    await expect(visible(s.getByText(/Brouillon restauré/))).toBeVisible({ timeout: 20_000 });
-    await expect(visible(s.getByRole('textbox', { name: 'Titre' }))).toHaveValue(draftTitle);
-    await expect(visible(s.getByRole('textbox', { name: 'Description (facultatif)' }))).toHaveValue('Cuir véritable, cousu main.');
-    await visible(s.getByText('Recommencer', { exact: true })).click();
-    await expect(visible(s.getByRole('textbox', { name: 'Titre' }))).toHaveValue('');
-    await shot(s, DIR, 'S-draft-restored-then-cleared');
+    // W1.3: the draft is never restored or replaced silently: the editor asks first.
+    await expect(visible(s.getByTestId('draft-choice'))).toBeVisible({ timeout: 20_000 });
+    await expect(visible(s.getByText(new RegExp(`Brouillon : « ${draftTitle} »`)))).toBeVisible();
+    await btn(s, 'Continuer le brouillon').click();
+    await expect(visible(s.getByRole('textbox', { name: 'Nom de l’article' }))).toHaveValue(draftTitle);
+    await expect(visible(s.getByRole('button', { name: /^Description : Cuir véritable/ }))).toBeVisible();
+    await s.reload();
+    await btn(s, 'Nouvel article').click();
+    await btn(s, 'Supprimer et commencer').click();
+    await expect(visible(s.getByRole('textbox', { name: 'Nom de l’article' }))).toHaveValue('');
+    await shot(s, DIR, 'S-draft-continued-then-deleted-on-request');
   });
 
   test('a returning member whose access token expired is signed back in silently', async () => {
