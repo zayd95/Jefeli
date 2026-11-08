@@ -225,7 +225,8 @@ test.describe.serial('W1.3 creation to feed', () => {
     await s.getByRole('button', { name: 'Montrer la photo 2' }).click();
     await s.waitForTimeout(2000);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Votre présentation · 0:0[3-5] · visite guidée$/)).toBeVisible();
+    // The language chosen last time (Wolof) is remembered.
+    await expect(s.getByText(/^Votre présentation · Wolof · 0:0[3-5] · visite guidée$/)).toBeVisible();
     await s.getByRole('button', { name: /^Catégorie : requis/ }).click();
     await btn(s, 'Sacs & accessoires').click();
     await btn(s, 'Comme neuf').click();
@@ -253,5 +254,60 @@ test.describe.serial('W1.3 creation to feed', () => {
     await expect(page.getByLabel('Écouter la présentation du vendeur')).toBeVisible();
     await expect(page.locator('img[src*=".webm"], img[src*=".m4a"], img[src*=".mp4"]')).toHaveCount(0);
     await page.close();
+  });
+
+  test('CR-07 · a narrated publication shared as a 24-hour status plays its voice, photos following, without copying a file', async () => {
+    await s.goto(postUrl);
+    await s.getByRole('button', { name: 'Plus d’options' }).first().click();
+    await s.getByRole('button', { name: 'Partager en statut' }).click();
+    await s.getByRole('textbox', { name: 'Légende du statut' }).fill('Écoutez la nouvelle collection');
+    await btn(s, 'Partager en statut').last().click();
+    await expect(s.getByText('Statut publié pour 24 heures').last()).toBeVisible();
+
+    await b.goto('/');
+    await btn(b, `Voir le statut de ${S.name}`).click();
+    await expect(b.getByText('Écoutez la nouvelle collection').last()).toBeVisible();
+    // The status plays the publication's narration and its photos follow it.
+    await expect(b.getByRole('button', { name: 'Mettre le statut en pause' })).toBeVisible({ timeout: 15_000 });
+    const photo = b.getByTestId('status-photo');
+    await expect(photo).toHaveAccessibleName('Photo 1 sur 3');
+    await expect(photo).toHaveAccessibleName('Photo 2 sur 3', { timeout: 8_000 });
+    await shot(b, DIR, 'B-status-narration-photo-2');
+    await b.getByRole('button', { name: 'Fermer', exact: true }).click();
+  });
+
+  test('CR-08 · Statut editor: a photo full screen, words and an article on it, audience at the top, published', async () => {
+    await s.goto('/');
+    await openMenu(s);
+    await s.getByTestId('create-status').click();
+    await expect(s.getByText('Qu’est-ce qui se passe chez vous aujourd’hui ?')).toBeVisible();
+    await shot(s, DIR, 'S-status-choose');
+    await pickFile(s, () => btn(s, 'Photo ou vidéo de la galerie').click(), FIXTURE('shoe.jpg'));
+    await expect(s.getByRole('img', { name: 'Votre photo' })).toBeVisible();
+    await s.getByRole('button', { name: /^Visible par/ }).click();
+    await s.getByRole('radio', { name: 'Tout le monde' }).click();
+    await s.getByRole('button', { name: 'Écrire sur le statut' }).click();
+    await s.getByRole('textbox', { name: 'Texte du statut' }).fill(`Arrivage du jour ${RUN}`);
+    await s.getByRole('button', { name: 'Lier un article' }).click();
+    await s.getByRole('checkbox', { name: ARTICLE }).click();
+    await expect(s.getByLabel(new RegExp(`^Article lié : ${ARTICLE}`))).toBeVisible();
+    await shot(s, DIR, 'S-status-photo-full-screen');
+    await btn(s, 'Publier le statut').click();
+    await expect(s.getByText('Statut publié pour 24 h').last()).toBeVisible({ timeout: 30_000 });
+  });
+
+  test('CR-09 · Statut editor: a voice status with its own visual, listened to before publishing', async () => {
+    await openMenu(s);
+    await s.getByTestId('create-status').click();
+    await btn(s, 'Ma voix').click();
+    await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
+    await s.waitForTimeout(2500);
+    await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
+    await expect(s.getByText(/^Message vocal · 0:0[2-3]$/)).toBeVisible();
+    await s.getByRole('button', { name: 'Écouter l’enregistrement' }).click();
+    await expect(last(s.getByRole('button', { name: 'Mettre en pause' }))).toBeVisible();
+    await shot(s, DIR, 'S-status-voice');
+    await btn(s, 'Publier le statut').click();
+    await expect(s.getByText('Statut publié pour 24 h').last()).toBeVisible({ timeout: 30_000 });
   });
 });

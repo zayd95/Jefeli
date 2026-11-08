@@ -24,6 +24,7 @@ import { fill, videoFill } from '@/design/fill';
 
 import { voiceSummary } from './audio/Voice';
 import { Thumb } from './Media';
+import { parseCues, photoAt } from './PostMedia';
 import { goBack } from '@/lib/nav';
 
 const IMAGE_MS = 5500;
@@ -63,8 +64,14 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   // it has played to the end, so buffering on a slow connection never skips it; up to 3 minutes.
   const [videoFailed, setVideoFailed] = useState<string | null>(null);
   const [audioPaused, setAudioPaused] = useState(false);
+  // W1.2: a status that points to a publication (no file of its own).
+  const sharedPost = useQuery({ queryKey: ['post', story?.post_id], queryFn: () => fetchPost(userId ?? null, story?.post_id as string), enabled: !!story?.post_id });
+  const sharedVoice = sharedPost.data?.media.find((m) => m.kind === 'audio') ?? null;
+  // W1.3: a shared publication with a voice plays it, like a voice status, photos following the
+  // « visite guidée ». Same files as the publication: nothing is copied.
+  const narrated = story?.media_kind === 'post' && !!sharedVoice;
   // Video and voice statuses drive their own progress; photos and shared posts/articles use the timer.
-  const timed = (story?.media_kind !== 'video' && story?.media_kind !== 'audio') || videoFailed === story?.id;
+  const timed = (story?.media_kind !== 'video' && story?.media_kind !== 'audio' && !narrated) || videoFailed === story?.id;
   const duration = IMAGE_MS;
 
   useEffect(() => {
@@ -94,12 +101,12 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   const mediaUri = useMediaUrl('private-media', story?.storage_path);
   const posterUri = useMediaUrl('private-media', story?.poster_path);
   const product = useQuery({ queryKey: ['product', story?.product_id], queryFn: () => fetchProduct(story?.product_id as string), enabled: !!story?.product_id });
-  // W1.2: a status that points to a publication (no file of its own).
-  const sharedPost = useQuery({ queryKey: ['post', story?.post_id], queryFn: () => fetchPost(userId ?? null, story?.post_id as string), enabled: !!story?.post_id });
   const sharedVisual = sharedPost.data?.media.find((m) => m.kind !== 'audio') ?? null;
-  const sharedVoice = sharedPost.data?.media.find((m) => m.kind === 'audio') ?? null;
+  const sharedPhotos = (sharedPost.data?.media ?? []).filter((m) => m.kind === 'image');
+  const sharedCues = parseCues(sharedVoice?.cues);
   const sharedBucket = sharedPost.data?.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media';
   const sharedUri = useMediaUrl(sharedBucket, sharedVisual ? (sharedVisual.kind === 'video' ? sharedVisual.poster_path : sharedVisual.storage_path) : null);
+  const sharedVoiceUri = useMediaUrl(sharedBucket, sharedVoice?.storage_path);
   const productPhoto = product.data?.media.find((m) => m.kind === 'image') ?? null;
   const productUri = useMediaUrl('public-media', story?.media_kind === 'product' ? productPhoto?.storage_path : null);
   const viewerList = useQuery({ queryKey: ['story-viewers', story?.id], queryFn: () => fetchStoryViewers(story?.id as string), enabled: viewers && isOwner });
@@ -158,6 +165,27 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               onEnd={next}
             />
           ) : null
+        ) : narrated ? (
+          sharedVoiceUri ? (
+            <StoryAudio
+              key={story.id}
+              uri={sharedVoiceUri}
+              durationMs={sharedVoice!.duration_ms}
+              author={author}
+              label={voiceSummary(sharedVoice!.language, sharedVoice!.duration_ms) || 'Publication vocale'}
+              paused={audioPaused || paused || typing || menu || viewers || highlightSheet}
+              onProgress={setProgress}
+              onEnd={next}
+              backdrop={
+                sharedPhotos.length > 0
+                  ? (ms) => {
+                      const i = Math.min(sharedPhotos.length - 1, sharedCues.length > 1 ? photoAt(sharedCues, ms) : 0);
+                      return <SharedPhoto media={sharedPhotos[i]!} bucket={sharedBucket} label={`Photo ${i + 1} sur ${sharedPhotos.length}`} />;
+                    }
+                  : undefined
+              }
+            />
+          ) : null
         ) : story.media_kind === 'post' ? (
           sharedUri ? (
             <Image source={{ uri: sharedUri }} style={StyleSheet.absoluteFill} contentFit="cover" />
@@ -207,7 +235,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
           {story.media_kind === 'video' ? (
             <IconButton icon={muted ? VolumeX : Volume2} label={muted ? 'Activer le son' : 'Couper le son'} color={colors.white} onPress={() => setMuted((m) => !m)} />
           ) : null}
-          {story.media_kind === 'audio' ? (
+          {story.media_kind === 'audio' || narrated ? (
             <IconButton icon={audioPaused ? Play : Pause} label={audioPaused ? 'Écouter le statut' : 'Mettre le statut en pause'} color={colors.white} onPress={() => setAudioPaused((p) => !p)} />
           ) : null}
           <IconButton icon={MoreHorizontal} label="Options" color={colors.white} onPress={() => setMenu(true)} />
@@ -409,6 +437,8 @@ function StoryAudio({
   paused,
   onProgress,
   onEnd,
+  label,
+  backdrop,
 }: {
   uri: string;
   durationMs: number | null;
@@ -416,6 +446,9 @@ function StoryAudio({
   paused: boolean;
   onProgress: (p: number) => void;
   onEnd: () => void;
+  label?: string;
+  /** W1.3: what to show while the voice plays (a shared publication's photos), by position. */
+  backdrop?: (ms: number) => React.ReactNode;
 }) {
   const key = useId();
   const player = useAudioPlayer({ uri }, { updateInterval: 100 });
@@ -439,10 +472,28 @@ function StoryAudio({
   useEffect(() => () => {
     if (getPlaying() === key) setPlaying(null);
   }, [key]);
+  if (backdrop) {
+    return (
+      <View style={StyleSheet.absoluteFill}>
+        {backdrop((status.currentTime ?? 0) * 1000)}
+        {!status.isLoaded ? <ActivityIndicator color={colors.white} style={styles.narrationLoading} /> : null}
+      </View>
+    );
+  }
   return (
-    <VoiceBackdrop author={author} label={total ? `Message vocal · ${Math.max(1, Math.round(total / 1000))} s` : 'Message vocal'}>
+    <VoiceBackdrop author={author} label={label ?? (total ? `Message vocal · ${Math.max(1, Math.round(total / 1000))} s` : 'Message vocal')}>
       {!status.isLoaded ? <ActivityIndicator color={colors.white} style={{ marginTop: spacing.lg }} /> : null}
     </VoiceBackdrop>
+  );
+}
+
+/** One photo of a shared publication, full screen. */
+function SharedPhoto({ media, bucket, label }: { media: { storage_path: string }; bucket: 'public-media' | 'private-media'; label: string }) {
+  const uri = useMediaUrl(bucket, media.storage_path);
+  return (
+    <View style={StyleSheet.absoluteFill} accessible accessibilityRole="image" accessibilityLabel={label} testID="status-photo">
+      {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} /> : null}
+    </View>
   );
 }
 
@@ -520,6 +571,7 @@ const styles = StyleSheet.create({
   barFill: { height: 3, backgroundColor: colors.white },
   head: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.md, paddingTop: spacing.sm },
   author: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  narrationLoading: { position: 'absolute', top: '50%', alignSelf: 'center' },
   caption: { paddingHorizontal: spacing.xl, marginBottom: spacing.lg, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 6 },
   sticker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.md, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   stickerCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
