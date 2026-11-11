@@ -1,12 +1,18 @@
 # Next actions
 
+## Owner (now): web beta go/no-go — `docs/WEB_BETA_GO_NO_GO.md`
+
+1. Try the app preview with your own account:
+   https://jefeli-app-git-feature-w13-create-habibjallow95-9380.vercel.app
+2. Account e-mails on jefeli-staging: Site URL and redirect URLs to the beta address, and an e-mail
+   provider (custom SMTP), or decide another sign-up policy for a closed beta.
+3. Approve deploying `delete-account` (and the clean-up functions) to staging.
+4. On an iPhone: listen to a voice recorded in Chrome (feed, status, article, public page) and
+   record one in Safari.
+
 ## Owner (now): W1.3 « créer, c’est montrer » — draft PR #6
 
-1. **Staging (blocks every preview of this stack):** read `docs/STAGING_MIGRATION_PLAN.md`; take
-   the two-minute backup (§ Before, step 1); then either give a token with
-   `database_migrations_write` through the secure form and say « apply », or paste the six files in
-   the SQL editor in order. Until then, Vercel previews of W1.1 → W1.3 stop at the schema check on
-   purpose (no more dead « Oups » homepage).
+1. ~~Staging~~ done on 11 Nov (`docs/STAGING_MIGRATION_PLAN.md`).
 2. On the preview, from Safari on an iPhone and Chrome on Android (W1.3 doc §6): the + cards, a
    draft continued and one started anew, photos with a spoken explanation (and a reorder), an
    article « Présenter en voix », the narrated publication shared as a status.

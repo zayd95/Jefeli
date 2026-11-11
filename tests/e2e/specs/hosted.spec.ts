@@ -96,7 +96,10 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
     await page.getByRole('checkbox', { name: 'J’ai 18 ans ou plus.' }).click();
     await page.getByRole('checkbox', { name: /J’accepte les conditions/ }).click();
     await btn(page, 'Créer mon compte').click();
-    await expect(page.getByText('Adresse e-mail invalide. Vérifiez-la.')).toBeVisible();
+    // Supabase refuses the address, or rate-limits repeated sign-ups from one network: either way
+    // the member reads what happened, never the generic « Une erreur est survenue ».
+    await expect(page.getByText(/^(Adresse e-mail invalide\. Vérifiez-la\.|Trop de tentatives\. Réessayez dans quelques minutes\.)$/)).toBeVisible();
+    await expect(page.getByText('Une erreur est survenue. Réessayez.')).toHaveCount(0);
     await shot(page, DIR, 'V-signup-invalid-address');
     await ctx.close();
   });

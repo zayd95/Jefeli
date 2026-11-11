@@ -22,6 +22,11 @@
   check before every preview build (`docs/W1_3_CREATE.md`). **Not merged, not applied to
   staging, not deployed publicly.** Its Vercel previews stop at the schema check until the
   staging plan is applied (intended).
+- **Web beta go/no-go (11 Nov): NO-GO for outside testers, GO for the owner's acceptance on the
+  previews** (`docs/WEB_BETA_GO_NO_GO.md`). jefeli-staging is synchronized (6 migrations, verified
+  backup, schema identical, 33/33 security probes); both previews build; hosted journeys 8/8 +
+  public page checked; clean regression on `46a2932`: check pass, integration 297/297, E2E 53 passed.
+  Blockers: account e-mail configuration, `delete-account` not deployed, Safari voice untested.
 - **W1.3 verification (8 Nov), local stack, code `50e7de8` + specs `f92237b`:** `pnpm check` pass
   (unit 28/28), integration 297/297, E2E 53 passed + 1 gated skip (full suite, then the four
   specs updated during the run re-run green), schema contract current and satisfied locally;
