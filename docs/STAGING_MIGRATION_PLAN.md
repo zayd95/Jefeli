@@ -1,8 +1,21 @@
 # jefeli-staging — migration plan, backup and rollback
 
-Status on 2026-11-08: **prepared, not applied.** Applying needs the owner's go-ahead and a Supabase
-token with `database_migrations_write` (the token configured in this environment is read-only),
-or the owner pasting the files in the SQL editor.
+Status on 2026-11-11: **applied.** The owner approved on 8 Nov; applied through the Management API
+with a write token entered in the secure form (the first token was read-only and was refused).
+
+| Step | Result |
+|---|---|
+| Identity | `jefeli-staging`, ref `gbsoifwllbacwsknydkq`, eu-west-1, Postgres 17, 15 migrations (same history as the audit) |
+| Pre-check | none of the new objects existed; counts unchanged since 4 Nov |
+| Backup (8 Nov, unchanged by 11 Nov) | Logical: 15 migrations with their SQL, schema state, every row of 48 tables (incl. auth), 9/9 media files with sha256; every non-empty table reloaded under the same constraints locally; archive `staging-backup-2026-11-08.tar.gz` (sha256 `4c2939ad…c3a6`) handed to the owner, not committed (member data) |
+| Review | no material data-loss risk: migration 1 is a no-op on staging (`boutique_name` exists); bucket MIME list only gains audio types; the one article photo passes every new check |
+| Apply | 6/6 in order, each in its own call, history 15 → 21; counts identical after every step |
+| Schema | 1 117 objects (columns, relations, constraints, indexes, policies, functions, triggers, grants) identical to a local database built from the same migrations, except how the hosted database prints the trigram operator's schema |
+| Deploy check | `✓ Schema compatible: 45 tables, 53 functions` |
+| Hosted security probes (public key) | 33/33: private tables, writes, member RPCs and `private.*` refused; no anonymous upload; private bucket closed |
+
+Not done (not in the approval): the Edge Functions `delete-account` and `cleanup-media` are still
+not deployed on staging (no function is deployed there).
 
 ## Why
 
