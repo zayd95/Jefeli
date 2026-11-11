@@ -1227,6 +1227,11 @@ isOneToOne: false
 "admin_set_feature_flag":
 { Args: { "p_enabled": boolean,"p_key": string }; Returns: undefined
                            },
+"admin_sms_usage":
+{ Args: { "p_days"?: number }; Returns: {
+              "blocked": number,"blocked_by_reason": Json,"day": string,"est_cost_xof": number,"failed": number,"pending": number,"sent": number,"sent_by_prefix": Json
+            }[]
+                           },
 "browse_products":
 { Args: { "p_category"?: string,"p_city"?: string,"p_condition"?: string,"p_limit"?: number,"p_mode"?: string,"p_offset"?: number,"p_query"?: string }; Returns: {
               "category_slug": string,
@@ -1435,6 +1440,12 @@ isOneToOne: false
                            },
 "share_to_status":
 { Args: { "p_audience"?: string,"p_caption"?: string,"p_post_id"?: string,"p_product_id"?: string }; Returns: string
+                           },
+"sms_hook_begin":
+{ Args: { "p_hook_id": string,"p_ip_key"?: string,"p_phone_key": string,"p_phone_prefix": string,"p_user_id"?: string }; Returns: Json
+                           },
+"sms_hook_finish":
+{ Args: { "p_event_id": number,"p_outcome": string,"p_provider": string,"p_provider_ref"?: string,"p_reason"?: string }; Returns: undefined
                            },
 "submit_appeal":
 { Args: { "p_body": string,"p_moderation_action_id": string }; Returns: string

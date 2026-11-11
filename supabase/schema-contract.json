@@ -20,7 +20,8 @@
     "20261108000100_feedback.sql",
     "20261109000100_media_videos.sql",
     "20261110000100_connected_media.sql",
-    "20261111000100_article_voice.sql"
+    "20261111000100_article_voice.sql",
+    "20261112000100_phone_auth_sms_guard.sql"
   ],
   "tables": {
     "account_settings": [
@@ -503,6 +504,11 @@
         "p_enabled"
       ]
     ],
+    "admin_sms_usage": [
+      [
+        "p_days"
+      ]
+    ],
     "browse_products": [
       [
         "p_mode",
@@ -791,6 +797,24 @@
         "p_product_id",
         "p_caption",
         "p_audience"
+      ]
+    ],
+    "sms_hook_begin": [
+      [
+        "p_hook_id",
+        "p_phone_key",
+        "p_phone_prefix",
+        "p_ip_key",
+        "p_user_id"
+      ]
+    ],
+    "sms_hook_finish": [
+      [
+        "p_event_id",
+        "p_outcome",
+        "p_provider",
+        "p_provider_ref",
+        "p_reason"
       ]
     ],
     "submit_appeal": [

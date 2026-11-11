@@ -13,7 +13,7 @@
     "web": "pnpm --filter @jefeli/web dev",
     "preview:lan": "node scripts/preview-lan.mjs",
     "preview:expo-go": "node scripts/preview-lan.mjs --expo-go",
-    "db:start": "supabase start",
+    "db:start": "node scripts/supabase-local-env.mjs && supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts && node scripts/schema-contract.mjs generate",
