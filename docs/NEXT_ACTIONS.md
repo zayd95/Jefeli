@@ -1,6 +1,21 @@
 # Next actions
 
+## Owner (now): phone sign-up — `docs/PHONE_AUTH.md` (draft PR #7)
+
+1. Approve (or change) the SMS provider: Orange SMS API Sénégal behind our hook, about 10–20 F per
+   code at published bundle prices; Twilio about 325 F per code.
+2. Create the Orange Developer account (« SMS Sénégal »). Give me the client ID, secret and sender
+   number through the secure form, and buy the 100-SMS starter bundle (2,000 F) once you approve.
+3. Create a Cloudflare Turnstile widget (free): the site key goes to me, and you paste the secret
+   in Supabase › Authentication.
+4. Say « go » for the staging enablement in `docs/PHONE_AUTH.md` § 8. It includes deploying
+   `send-sms` and `delete-account`.
+5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
+6. Optional: ask LAfricaMobile for a quote, as the backup provider.
+
 ## Owner (now): web beta go/no-go — `docs/WEB_BETA_GO_NO_GO.md`
+
+Promotion on KaaySamp / TikTok only when e-mail **and** phone registration both work for real.
 
 1. Try the app preview with your own account:
    https://jefeli-app-git-feature-w13-create-habibjallow95-9380.vercel.app

@@ -45,7 +45,7 @@ export function orange(): SmsProvider | null {
         Accept: 'application/json',
       },
       body: 'grant_type=client_credentials',
-    }, 2000);
+    }, 1500);
     const data = (await res.json().catch(() => ({}))) as { access_token?: string; expires_in?: string | number };
     if (!res.ok || !data.access_token) throw new Error(`orange_token_${res.status}`);
     const ttl = Math.max(60, Number(data.expires_in ?? 3600) - 60) * 1000;
@@ -69,7 +69,7 @@ export function orange(): SmsProvider | null {
               outboundSMSTextMessage: { message: text },
             },
           }),
-        }, 2800);
+        }, 3000);
         const raw = await res.text();
         if (res.status === 401) orangeToken = null;
         if (!res.ok) return { ok: false, error: `orange_${res.status}:${short(raw)}` };

@@ -9,6 +9,15 @@ Scope: the W1 → W1.3 stack (draft PRs #2 → #6, all still drafts) on the Verc
 previews.** The product journeys work on the hosted stack; what blocks real testers is
 configuration (account e-mails, account deletion) and one untested browser (Safari).
 
+**Launch rule (owner, 11 Nov):** the public beta is promoted on KaaySamp and TikTok only once
+**both e-mail and phone registration work** on the hosted beta, with real messages:
+- e-mail: confirmation links delivered and working;
+- phone: SMS codes delivered to Orange, Free/Yas and Expresso numbers;
+- both checked in Safari (iPhone) and Chrome (Android).
+
+Phone sign-up is built and verified locally (W1.4, `docs/PHONE_AUTH.md`); it is not yet
+enabled on staging (blocker 4).
+
 ## Working previews (Vercel login of the owner's account opens them)
 
 - App: https://jefeli-app-git-feature-w13-create-habibjallow95-9380.vercel.app
@@ -60,6 +69,14 @@ Hosted journeys, on the preview with two DÉMO test accounts:
    on the iPhone (feed, status, article, public page); and record on the iPhone, listen in
    Chrome.
 
+4. **Phone registration (launch criterion).** Built and tested locally (W1.4, draft PR #7).
+   Needs, in order:
+   - the owner's approval of the SMS provider and costs: Orange SMS API Sénégal recommended,
+     about 10–20 F per code at published bundle prices (`docs/PHONE_AUTH.md` § 2);
+   - the Orange account and the Cloudflare Turnstile keys;
+   - staging enablement (§ 8);
+   - real tests on the three operators, Safari and Android Chrome (§ 6).
+
 ## To fix before a public launch (not blocking the owner's acceptance)
 
 - The previews' public links point to the W1 previews (« Réagir sur Jëfëli », share and canonical
@@ -75,5 +92,6 @@ Hosted journeys, on the preview with two DÉMO test accounts:
 
 1. Open the app preview, sign in with your own account, and try the journeys above (the + menu,
    a narrated publication, an article in your voice, a status).
-2. Decide 1–3 above. With 1 and 2 done and 3 checked on an iPhone, the web beta can open to
-   invited testers.
+2. Decide 1–4 above. With 1 and 2 done and 3 checked on an iPhone, the web beta can open to
+   invited testers; promotion on KaaySamp and TikTok waits for 4 as well (both registrations
+   working).

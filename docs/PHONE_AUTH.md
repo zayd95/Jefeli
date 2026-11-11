@@ -1,7 +1,12 @@
 # Jëfëli — phone sign-up and sign-in (+221)
 
-Status: **provider recommendation awaiting the owner's approval** (11 Nov 2026). Nothing has been
-bought, no paid provider is enabled, and no SMS has been sent to a real number.
+Status (11 Nov 2026): **built and verified on the local stack; waiting for the owner's
+approval of the provider before staging.** Nothing has been bought, no paid provider is
+enabled, and no SMS has been sent to a real number.
+
+Branch `feature/w1.4-phone-auth` (stacked on W1.3). Code: `supabase/functions/send-sms`,
+`supabase/migrations/20261112000100_phone_auth_sms_guard.sql`, `apps/mobile/src/components/auth`,
+`apps/mobile/src/lib/phoneOtp.ts`, `packages/shared/src/phone.ts`.
 
 ## 1. Recommendation
 
@@ -86,6 +91,7 @@ The Orange figures depend on the unverified bundle prices above.
 | Code | 6 digits, valid 5 minutes, single use. Supabase also limits verification attempts per IP. |
 | Kill switch | The `phone_auth` flag: when off, the hook refuses every send and the app shows email only. |
 | Monitoring | `private.sms_events` table (no codes, no full numbers: a keyed hash plus the operator prefix). Admin view `admin_sms_usage()` gives SMS per day, blocked sends, failures and cost estimate; the pilot metrics script includes it. |
+| Account discovery | « Se connecter » says when a number has no account, so the member can create one. The e-mail sign-up already says when an address is taken. CAPTCHA and the per-IP caps keep this from being used in bulk. |
 | Account takeover | A phone-only account is created only by a verified code ("confirm phone" on). Adding a phone to an e-mail account sends a code to the new number. A number already used by another account is refused, so profiles are never duplicated. |
 
 ## 5. App behaviour
@@ -115,3 +121,44 @@ The Orange figures depend on the unverified bundle prices above.
 
 The hook logs each send with the provider's message ID, so every delivery can be matched in the
 provider's console.
+
+## 7. What is verified, and how
+
+On the local Supabase stack, every code is generated and checked by the real auth server
+(GoTrue v2.197.0). The hook's local `sink` provider hands each SMS to the test runner, the same
+way the local mail catcher hands over e-mails. The sink refuses to run on a hosted project, so
+nothing is simulated in staging or production.
+
+| Check | Result |
+|---|---|
+| `tests/integration/src/19-phone-auth.test.ts` (15 tests) | Pass. Covers: sign-up with a real code (phone-only account, profile, no e-mail, single-use code, one SMS segment); sign-in; wrong code; expired code; 60 s resend rule; no account created from the sign-in screen; destination, kill-switch, per-number, per-IP and daily-budget refusals; forged, stale and replayed hook calls; retried hook never sends twice; no code or full number in the log; adding a number to an e-mail account (same profile); a number already used is refused; export and account deletion of a phone-only account; permissions on the hook and monitoring functions. |
+| `tests/e2e/specs/phone.spec.ts` PH-01 → PH-06 (browser) | Pass. Covers: sign-up with precise number errors; wrong code, then right code; onboarding; sign-in on a second device; real 60 s countdown and resend; request survives a reload; unknown number → create with it (360 pt); network failure; server refusal message; add a number in Réglages, then sign in with it; number already used. Screenshots: `docs/evidence/e2e/phone/`. |
+| Existing suites | See `docs/RELEASE_STATUS.md` « W1.4 »: no regression in e-mail auth, onboarding, deletion or RLS. |
+
+**Not verified yet:**
+- Orange adapter: written to the Orange SMS API's request format, never called (no account).
+  The first real send on staging is its acceptance test.
+- Turnstile: no keys, and challenges.cloudflare.com is not reachable from here.
+- Real SIMs, Safari and Android Chrome: owner tests, § 6.
+
+## 8. Staging enablement plan (after approval; same safeguards as the W1.3 migrations)
+
+1. Read-only checks, backup, then apply `20261112000100_phone_auth_sms_guard.sql`. It adds new
+   objects only and changes no existing rows.
+2. Deploy `send-sms` with these secrets (set through the Management API from the secure channel,
+   never committed):
+   - `SEND_SMS_HOOK_SECRET`, generated with the hook;
+   - `SMS_LOG_KEY`, random;
+   - `SMS_PROVIDER=orange`, `ORANGE_CLIENT_ID`, `ORANGE_CLIENT_SECRET`, `ORANGE_SENDER_ADDRESS`.
+3. Auth settings:
+   - phone provider on, phone confirmation required;
+   - Send SMS hook → `https://<project>.supabase.co/functions/v1/send-sms`;
+   - code valid 5 minutes, 6 digits, 60 s between codes;
+   - SMS rate limit 60 per hour to start.
+4. The owner pastes the Turnstile secret in Supabase; the site key goes in the Vercel preview
+   variables (`EXPO_PUBLIC_TURNSTILE_SITE_KEY`).
+5. Turn on `phone_auth`. Then the owner runs the § 6 checklist; the result goes in
+   `docs/WEB_BETA_GO_NO_GO.md`.
+
+Rollback: turn `phone_auth` off (stops sends server-side at once), disable the hook. The
+migration's objects are independent and can stay.

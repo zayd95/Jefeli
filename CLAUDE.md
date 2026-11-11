@@ -16,6 +16,9 @@ This file is the operating contract for coding agents working on Jëfëli. Read 
 - Commands: `pnpm check` (typecheck + lint + unit), `pnpm test:integration` (needs `supabase start`
   and `supabase functions serve --env-file supabase/functions/.env.test`), `pnpm test:e2e`
   (needs Expo web on :8081, `pnpm web` on :3000 and `pnpm seed`). Run them before claiming a change works.
+- Start Supabase with `pnpm db:start` (it writes the local Send SMS hook secret to the gitignored
+  `supabase/.env` first). Phone codes in tests come from the hook's local `sink` provider on
+  :54399, never from a simulated verification (docs/PHONE_AUTH.md).
 - Schema changes = new migration in `supabase/migrations/` (never edit applied ones), then
   `pnpm db:types`, then add RLS tests in `tests/integration/src/`. Every new `private.*`
   function must be `revoke execute … from public, anon, authenticated` unless an RLS policy calls it.
