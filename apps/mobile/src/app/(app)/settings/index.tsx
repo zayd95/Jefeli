@@ -12,6 +12,7 @@ import {
   Scale,
   ShieldCheck,
   SlidersHorizontal,
+  Smartphone,
   Store,
   UserCog,
   UserPlus,
@@ -54,6 +55,7 @@ export default function Settings() {
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xxxl }}>
         <Section title="COMPTE">
           <Row icon={UserCog} label="Modifier le profil" onPress={() => router.push('/edit-profile')} />
+          <Row icon={Smartphone} label="E-mail et numéro de mobile" onPress={() => router.push('/settings/phone')} />
           <Row icon={Store} label="Infos de ma boutique" onPress={() => router.push('/boutique-edit')} />
           <Row icon={BadgeCheck} label={profile?.verification_level === 'merchant_verified' ? 'Vendeur vérifié' : 'Demander la vérification vendeur'} onPress={() => router.push('/settings/verification')} />
           <Row icon={QrCode} label="Inviter et partager mon profil" onPress={() => router.push('/invite')} />

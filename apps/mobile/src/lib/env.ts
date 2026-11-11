@@ -11,6 +11,8 @@ export const env = {
   webBaseUrl: (process.env.EXPO_PUBLIC_WEB_BASE_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
   appEnv: (process.env.EXPO_PUBLIC_ENV ?? 'local') as 'local' | 'staging' | 'production',
   easProjectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '',
+  /** Cloudflare Turnstile site key (public). Empty = no CAPTCHA widget (local development). */
+  turnstileSiteKey: process.env.EXPO_PUBLIC_TURNSTILE_SITE_KEY ?? '',
 };
 
 export const isConfigured = Boolean(env.supabaseUrl && env.supabaseKey);

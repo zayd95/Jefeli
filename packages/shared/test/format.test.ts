@@ -5,7 +5,7 @@ import {
   formatClock, toFrenchError, describeCashDifference, signedDifferenceLabel, canRespond, canWithdraw,
   shareUrls,
   formatMemberSince, publicStorageUrl, timeLeft, formatListingPrice, hasDisplayedPrice,
-  suggestHandle, toSenegalE164,
+  suggestHandle, toSenegalE164, parsePhone, phoneProblem, formatPhone, retryAfterSeconds,
 } from '../src';
 
 const NN = '\u00A0';
@@ -88,6 +88,33 @@ describe('errors', () => {
     expect(toFrenchError({ message: 'audio_with_video' })).toMatch(/vidéo garde son propre son/);
     for (const key of ['too_many_audio', 'invalid_cues', 'invalid_reference', 'audience_wider_than_post', 'caption_too_long']) {
       expect(toFrenchError({ message: key })).not.toBe('Une erreur est survenue. Réessayez.');
+    }
+  });
+});
+
+describe('phone code errors (W1.4)', () => {
+  it('never falls back to the generic message for phone sign-in errors', () => {
+    const generic = 'Une erreur est survenue. Réessayez.';
+    const cases: [string, RegExp][] = [
+      ['For security purposes, you can only request this after 36 seconds.', /Patientez/],
+      ['SMS rate limit exceeded', /Trop de codes demandés en ce moment/],
+      ['Signups not allowed for otp', /Aucun compte n’utilise ce numéro/],
+      ['A user with this phone number has already been registered', /déjà utilisé par un autre compte/],
+      ['Token has expired or is invalid', /Code incorrect ou expiré/],
+      ['Unsupported phone provider', /SMS est momentanément fermée/],
+      ['captcha protection: request disallowed (timeout-or-duplicate)', /anti-robot/],
+      ['sms_destination_not_allowed', /mobiles du Sénégal/],
+      ['sms_limit_number', /pour ce numéro/],
+      ['sms_limit_ip', /depuis cette connexion/],
+      ['sms_daily_budget', /suspendus pour aujourd’hui/],
+      ['sms_send_failed', /n’a pas pu partir/],
+      ['sms_disabled', /momentanément fermée/],
+      ['sms_provider_unavailable', /momentanément indisponible/],
+    ];
+    for (const [message, expected] of cases) {
+      const fr = toFrenchError({ message });
+      expect(fr, message).not.toBe(generic);
+      expect(fr, message).toMatch(expected);
     }
   });
 });
@@ -199,12 +226,32 @@ describe('one-screen onboarding helpers', () => {
 });
 
 describe('Senegal-only SMS numbers (+221)', () => {
-  it('accepts Senegalese mobile and fixed numbers in common spellings', () => {
+  it('accepts Senegalese mobile numbers in common spellings', () => {
     expect(toSenegalE164('77 123 45 67')).toBe('+221771234567');
     expect(toSenegalE164('+221 76 000 11 22')).toBe('+221760001122');
     expect(toSenegalE164('00221 70 999 88 77')).toBe('+221709998877');
     expect(toSenegalE164('221781234567')).toBe('+221781234567');
-    expect(toSenegalE164('33 821 00 00')).toBe('+221338210000');
+    expect(toSenegalE164('75.123.45.67')).toBe('+221751234567');
+  });
+  it('refuses fixed lines: they cannot receive an SMS code', () => {
+    expect(toSenegalE164('33 821 00 00')).toBeNull();
+    expect(parsePhone('33 821 00 00')).toEqual({ ok: false, reason: 'landline' });
+    expect(phoneProblem(parsePhone('33 821 00 00'))).toMatch(/fixe/);
+  });
+  it('explains every other problem precisely, and stays quiet while typing', () => {
+    expect(parsePhone('')).toEqual({ ok: false, reason: 'empty' });
+    expect(phoneProblem(parsePhone('77 12'))).toBeNull();
+    expect(parsePhone('77 123 45 67 8')).toEqual({ ok: false, reason: 'too_long' });
+    expect(parsePhone('79 123 45 67')).toEqual({ ok: false, reason: 'not_mobile' });
+    expect(parsePhone('+33 6 12 34 56 78')).toEqual({ ok: false, reason: 'other_country' });
+    expect(phoneProblem(parsePhone('+33 6 12 34 56 78'))).toMatch(/Sénégal \(\+221\)/);
+    expect(parsePhone('+221 77 123 45 67')).toEqual({ ok: true, e164: '+221771234567', national: '771234567' });
+  });
+  it('formats for display and reads the wait from the server', () => {
+    expect(formatPhone('+221771234567')).toBe('+221 77 123 45 67');
+    expect(formatPhone('221771234567')).toBe('+221 77 123 45 67');
+    expect(retryAfterSeconds({ message: 'For security purposes, you can only request this after 36 seconds.' })).toBe(36);
+    expect(retryAfterSeconds(new Error('other'))).toBeNull();
   });
   it('refuses numbers outside Senegal or malformed ones', () => {
     expect(toSenegalE164('+33 6 12 34 56 78')).toBeNull();
