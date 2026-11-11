@@ -2,7 +2,8 @@
  * Small Atlantic Sand primitives: chips, tags, badges, wordmark, dividers, cards,
  * skeletons, empty/error states, progress bar, section headers.
  */
-import { BadgeCheck, CircleAlert, RefreshCw, type LucideIcon } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { BadgeCheck, ChevronDown, ChevronUp, CircleAlert, Copy, RefreshCw, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
@@ -210,20 +211,116 @@ export function EmptyState({
   );
 }
 
-export function ErrorState({ message, onRetry, tone = 'light' }: { message: string; onRetry?: () => void; tone?: 'light' | 'dark' }) {
+/**
+ * A failed request, with a way forward (W1.3: never a dead screen).
+ * - `title`/`message`: from describeFailure() when available, else « Oups » + message.
+ * - `onRetry`: always offered; `retrying` shows the attempt in progress.
+ * - `alternative`: an action that doesn't depend on the failed request (Explorer, se reconnecter…).
+ * - `details`: diagnostics for support, folded by default, with « Copier ».
+ */
+export function ErrorState({
+  title = 'Oups',
+  message,
+  onRetry,
+  retrying,
+  alternative,
+  details,
+  tone = 'light',
+}: {
+  title?: string;
+  message: string;
+  onRetry?: () => void;
+  retrying?: boolean;
+  alternative?: { label: string; icon?: LucideIcon; onPress: () => void };
+  details?: string;
+  tone?: 'light' | 'dark';
+}) {
   const isDark = tone === 'dark';
   return (
-    <View style={styles.empty} accessibilityLiveRegion="polite">
+    <View style={styles.empty} accessibilityLiveRegion="polite" testID="error-state">
       <View style={[styles.emptyIcon, { backgroundColor: isDark ? dark.subtle : colors.dangerSoft }]}>
         <CircleAlert size={26} color={isDark ? dark.danger : colors.danger} strokeWidth={1.8} />
       </View>
-      <Text variant="headline" tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }}>
-        Oups
+      <Text variant="headline" tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }} accessibilityRole="header">
+        {title}
       </Text>
       <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
         {message}
       </Text>
-      {onRetry ? <Button label="Réessayer" variant={isDark ? 'outlineDark' : 'outline'} icon={RefreshCw} onPress={onRetry} style={{ marginTop: spacing.lg }} /> : null}
+      <View style={styles.errorActions}>
+        {onRetry ? (
+          <Button label="Réessayer" variant={isDark ? 'outlineDark' : 'outline'} pill icon={RefreshCw} loading={retrying} onPress={onRetry} />
+        ) : null}
+        {alternative ? (
+          <Button label={alternative.label} variant={isDark ? 'ghostDark' : 'ghost'} pill icon={alternative.icon} onPress={alternative.onPress} />
+        ) : null}
+      </View>
+      {details ? <SupportDetails details={details} tone={tone} /> : null}
+    </View>
+  );
+}
+
+function SupportDetails({ details, tone }: { details: string; tone: 'light' | 'dark' }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const isDark = tone === 'dark';
+  const fg = isDark ? dark.textTertiary : colors.textSecondary;
+  return (
+    <View style={styles.details}>
+      <Pressable
+        onPress={() => setOpen((o) => !o)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        aria-expanded={open}
+        accessibilityLabel="Détails pour l’assistance"
+        style={styles.detailsToggle}
+      >
+        <Text variant="caption" weight="600" color={fg}>
+          Détails pour l’assistance
+        </Text>
+        {open ? <ChevronUp size={14} color={fg} /> : <ChevronDown size={14} color={fg} />}
+      </Pressable>
+      {open ? (
+        <View style={[styles.detailsBox, { backgroundColor: isDark ? dark.subtle : colors.surfaceSubtle }]}>
+          <Text variant="caption" color={isDark ? dark.textStrong : colors.ink} selectable style={{ lineHeight: 18 }}>
+            {details}
+          </Text>
+          <Pressable
+            onPress={async () => {
+              await Clipboard.setStringAsync(details);
+              setCopied(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={copied ? 'Détails copiés' : 'Copier les détails'}
+            hitSlop={8}
+            style={styles.detailsCopy}
+          >
+            <Copy size={14} color={fg} />
+            <Text variant="caption" weight="700" color={fg}>
+              {copied ? 'Copié' : 'Copier'}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** One quiet line above or below content that is still shown: « Actualisation impossible · Réessayer ». */
+export function InlineRetry({ message, onRetry, retrying, tone = 'light' }: { message: string; onRetry: () => void; retrying?: boolean; tone?: 'light' | 'dark' }) {
+  const isDark = tone === 'dark';
+  return (
+    <View style={[styles.inlineRetry, { backgroundColor: isDark ? dark.subtle : colors.dangerSoft }]} accessibilityLiveRegion="polite" testID="inline-retry">
+      <CircleAlert size={16} color={isDark ? dark.danger : colors.danger} strokeWidth={2} />
+      <Text variant="caption" weight="600" color={isDark ? dark.textStrong : colors.ink} style={{ flex: 1 }}>
+        {message}
+      </Text>
+      <Pressable onPress={onRetry} disabled={retrying} accessibilityRole="button" accessibilityLabel="Réessayer" hitSlop={10} style={styles.inlineRetryBtn}>
+        <RefreshCw size={14} color={isDark ? dark.mint : colors.ink} />
+        <Text variant="caption" weight="800" color={isDark ? dark.mint : colors.ink}>
+          {retrying ? '…' : 'Réessayer'}
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -278,6 +375,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  errorActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: spacing.sm, marginTop: spacing.lg },
+  details: { alignItems: 'center', marginTop: spacing.lg, alignSelf: 'stretch' },
+  detailsToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: spacing.md },
+  detailsBox: { width: '100%', maxWidth: 360, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm },
+  detailsCopy: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-end', minHeight: 32 },
+  inlineRetry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+  },
+  inlineRetryBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32 },
   progressTrack: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceMuted, overflow: 'hidden' },
   progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
 });

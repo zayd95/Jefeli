@@ -180,8 +180,10 @@ test.describe.serial('Two-account social commerce journey', () => {
 
   test('STA-01 · B posts a 24h status; A views it and replies privately', async () => {
     await b.goto('/publish/status');
-    await pickFile(b, () => btn(b, 'Choisir dans la galerie').click(), FIXTURE('dress.jpg'));
-    await b.getByRole('textbox', { name: 'Légende du statut' }).fill('Nouvel arrivage ce matin');
+    await pickFile(b, () => btn(b, 'Photo ou vidéo de la galerie').click(), FIXTURE('dress.jpg'));
+    await btn(b, 'Écrire sur le statut').click();
+    await b.getByRole('textbox', { name: 'Texte du statut' }).fill('Nouvel arrivage ce matin');
+    await b.getByRole('button', { name: /^Visible par/ }).click();
     await b.getByRole('radio', { name: 'Mes abonnés' }).click();
     await btn(b, 'Publier le statut').click();
     await expect(b.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });

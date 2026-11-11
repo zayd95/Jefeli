@@ -3,11 +3,12 @@ import type { ItemCondition, ListingMode, PriceMode, ProductStatus } from '@jefe
 import { supabase, unwrap } from '../supabase';
 import type { ProductCard } from '../types';
 import type { UploadedMedia } from '../upload';
+import type { UploadedVoice } from '../voice';
 import { PROFILE_LITE } from './profiles';
 
 export const PRODUCT_SELECT = `*,
   seller:profiles!products_seller_id_fkey(${PROFILE_LITE}, rating_sum, rating_count, products_count),
-  media:product_media(id, kind, storage_path, poster_path, width, height, duration_ms, position)`;
+  media:product_media(id, kind, storage_path, poster_path, width, height, duration_ms, position, language, waveform, cues)`;
 
 export const PRODUCT_PAGE = 20;
 
@@ -103,7 +104,8 @@ export interface ListingInput {
   delivery_notes: string;
 }
 
-export async function createListing(input: ListingInput, media: UploadedMedia[]): Promise<string> {
+/** `voice` (W1.3): the seller's « Présenter en voix », stored with the article (last in p_media). */
+export async function createListing(input: ListingInput, media: UploadedMedia[], voice?: UploadedVoice | null): Promise<string> {
   return unwrap(
     await supabase.rpc('create_listing', {
       p_title: input.title,
@@ -118,7 +120,7 @@ export async function createListing(input: ListingInput, media: UploadedMedia[])
       p_neighborhood: input.neighborhood,
       p_delivery_options: input.delivery_options,
       p_delivery_notes: input.delivery_notes,
-      p_media: media as unknown as never,
+      p_media: (voice ? [...media, voice] : media) as unknown as never,
     }),
   ) as string;
 }

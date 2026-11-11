@@ -193,8 +193,10 @@ export function MediaItem({
   /** Feed only: this slide is the one on screen in the most visible card. */
   active?: boolean;
 }) {
-  const uri = useMediaUrl(bucket, media.storage_path);
-  const poster = useMediaUrl(bucket, media.poster_path);
+  const remote = useMediaUrl(bucket, media.local_uri ? null : media.storage_path);
+  const remotePoster = useMediaUrl(bucket, media.local_uri ? null : media.poster_path);
+  const uri = media.local_uri ?? remote;
+  const poster = media.local_uri ? (media.local_poster ?? null) : remotePoster;
   return (
     <View style={{ width, height, backgroundColor: tone === 'dark' ? dark.surface : colors.surfaceMuted }}>
       {media.kind === 'video' ? (

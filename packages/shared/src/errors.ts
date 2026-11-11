@@ -69,7 +69,8 @@ const AUTH_ERRORS: Array<[RegExp, string]> = [
   [/email not confirmed/i, 'Confirmez votre e-mail avant de vous connecter.'],
   [/rate limit|too many requests/i, 'Trop de tentatives. Réessayez dans quelques minutes.'],
   [/invalid.*(otp|token)|token has expired/i, 'Code invalide ou expiré.'],
-  [/unable to validate email|invalid email/i, 'Adresse e-mail invalide.'],
+  [/unable to validate email|invalid email|email address .* is invalid|email_address_invalid/i, 'Adresse e-mail invalide. Vérifiez-la.'],
+  [/error sending (confirmation|magic link|recovery|invite)|email address not authorized/i, 'Inscription momentanément impossible : l’e-mail de confirmation n’a pas pu être envoyé. Réessayez plus tard.'],
   [/duplicate key value.*handle|profiles_handle_key/i, 'Ce nom d’utilisateur est déjà pris.'],
   [/network request failed|failed to fetch|fetch failed|network error/i, 'Connexion impossible. Vérifiez votre réseau et réessayez.'],
 ];
@@ -109,4 +110,46 @@ export function toFrenchError(err: unknown, fallback = 'Une erreur est survenue.
   for (const [name, fr] of CONSTRAINT_ERRORS) if (msg.includes(name)) return fr;
   if (/check constraint|violates/i.test(msg)) return 'Certaines informations sont invalides. Vérifiez le formulaire.';
   return fallback;
+}
+
+export type FailureKind = 'network' | 'service' | 'outdated' | 'session' | 'other';
+
+export interface Failure {
+  kind: FailureKind;
+  title: string;
+  message: string;
+  /** Short, copyable reference for support (« 42703 », « réseau »…). */
+  code: string;
+  /** Worth retrying automatically (network, server hiccup); not a schema mismatch or a bad request. */
+  retryable: boolean;
+}
+
+/**
+ * What went wrong with a request, in words a member can act on (W1.3). A database that is behind
+ * the app (missing column/function/table) is reported as an update in progress — never hidden —
+ * and is not retried in a loop; the code stays visible for support.
+ */
+export function describeFailure(err: unknown): Failure {
+  const raw = errorMessageRaw(err);
+  const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code ?? '') : '';
+  const status = typeof err === 'object' && err !== null && 'status' in err ? Number((err as { status: unknown }).status) : NaN;
+  if (/failed to fetch|network ?request failed|networkerror|load failed|err_internet|timeout|aborted/i.test(raw)) {
+    return { kind: 'network', title: 'Connexion impossible', message: 'Vérifiez votre connexion internet, puis réessayez.', code: 'réseau', retryable: true };
+  }
+  if (['42703', '42P01', '42883', 'PGRST200', 'PGRST202', 'PGRST204', 'PGRST205'].includes(code)) {
+    return {
+      kind: 'outdated',
+      title: 'Mise à jour en cours',
+      message: 'Jëfëli est en cours de mise à jour. Réessayez dans quelques minutes ; vos données ne sont pas perdues.',
+      code,
+      retryable: false,
+    };
+  }
+  if (/jwt expired|invalid jwt|not_authenticated|refresh token/i.test(raw) || code === 'PGRST301' || code === 'PGRST303') {
+    return { kind: 'session', title: 'Session expirée', message: 'Reconnectez-vous pour continuer.', code: code || 'session', retryable: false };
+  }
+  if ((Number.isFinite(status) && status >= 500) || code === 'PGRST002' || code === '57014' || code === '53300') {
+    return { kind: 'service', title: 'Service indisponible', message: 'Le service ne répond pas pour le moment. Réessayez dans un instant.', code: code || String(status), retryable: true };
+  }
+  return { kind: 'other', title: 'Oups', message: toFrenchError(err), code: code || errorKey(err) || 'inconnu', retryable: true };
 }

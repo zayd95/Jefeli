@@ -1,6 +1,26 @@
 # Next actions
 
-## Owner (now): W1.2 smart create — draft PR #5
+## Owner (now): web beta go/no-go — `docs/WEB_BETA_GO_NO_GO.md`
+
+1. Try the app preview with your own account:
+   https://jefeli-app-git-feature-w13-create-habibjallow95-9380.vercel.app
+2. Account e-mails on jefeli-staging: Site URL and redirect URLs to the beta address, and an e-mail
+   provider (custom SMTP), or decide another sign-up policy for a closed beta.
+3. Approve deploying `delete-account` (and the clean-up functions) to staging.
+4. On an iPhone: listen to a voice recorded in Chrome (feed, status, article, public page) and
+   record one in Safari.
+
+## Owner (now): W1.3 « créer, c’est montrer » — draft PR #6
+
+1. ~~Staging~~ done on 11 Nov (`docs/STAGING_MIGRATION_PLAN.md`).
+2. On the preview, from Safari on an iPhone and Chrome on Android (W1.3 doc §6): the + cards, a
+   draft continued and one started anew, photos with a spoken explanation (and a reorder), an
+   article « Présenter en voix », the narrated publication shared as a status.
+3. Decide: native photo + voice status (schema change, W1.3 doc §2), or « Partager en statut » is
+   enough for the beta.
+4. Review order for the stack: PR #2 → #3 → #4 → #5 → #6. Nothing is merged or public.
+
+## Owner (earlier): W1.2 smart create — draft PR #5 (superseded in part by W1.3)
 
 1. On the Vercel preview (after the staging migrations), from Safari on an iPhone and Chrome on
    Android:

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { describeFailure } from '../src/errors';
 import {
   formatXOF, parseXOF, formatAmountInput, timeAgo, formatCount, initials, normalizeHandle, HANDLE_PATTERN,
   formatClock, toFrenchError, describeCashDifference, signedDifferenceLabel, canRespond, canWithdraw,
@@ -73,6 +74,9 @@ describe('errors', () => {
     expect(toFrenchError({ message: 'prohibited_item' })).toMatch(/interdits/);
     expect(toFrenchError({ message: 'Invalid login credentials' })).toMatch(/incorrect/);
     expect(toFrenchError({ message: 'something odd' })).toMatch(/erreur/);
+    // Hosted sign-up (W1.3 acceptance): Supabase Auth's own wording, never « Une erreur est survenue ».
+    expect(toFrenchError({ message: 'Email address "a@b.test" is invalid', code: 'email_address_invalid' })).toBe('Adresse e-mail invalide. Vérifiez-la.');
+    expect(toFrenchError({ message: 'Error sending confirmation email' })).toMatch(/e-mail de confirmation n’a pas pu être envoyé/);
   });
   it('maps the video limits enforced by the database (W1.1)', () => {
     expect(toFrenchError({ message: 'video_too_long' })).toBe('Vidéo trop longue : 3 minutes maximum.');
@@ -85,6 +89,22 @@ describe('errors', () => {
     for (const key of ['too_many_audio', 'invalid_cues', 'invalid_reference', 'audience_wider_than_post', 'caption_too_long']) {
       expect(toFrenchError({ message: key })).not.toBe('Une erreur est survenue. Réessayez.');
     }
+  });
+});
+
+describe('describeFailure (W1.3: no dead homepage)', () => {
+  it('a database behind the app is an update in progress, not retried in a loop, with its code', () => {
+    const f = describeFailure({ code: '42703', message: 'column post_media_1.language does not exist' });
+    expect(f).toMatchObject({ kind: 'outdated', title: 'Mise à jour en cours', code: '42703', retryable: false });
+    expect(describeFailure({ code: 'PGRST202', message: 'Could not find the function' }).kind).toBe('outdated');
+  });
+  it('network, server and session failures say what to do', () => {
+    expect(describeFailure(new TypeError('Failed to fetch'))).toMatchObject({ kind: 'network', retryable: true });
+    expect(describeFailure({ code: 'PGRST002', message: 'Could not query the database for the schema cache' })).toMatchObject({ kind: 'service', retryable: true });
+    expect(describeFailure({ message: 'JWT expired', code: 'PGRST303' })).toMatchObject({ kind: 'session', retryable: false });
+  });
+  it('anything else keeps the French message and a reference', () => {
+    expect(describeFailure({ message: 'rate_limited' })).toMatchObject({ kind: 'other', code: 'rate_limited' });
   });
 });
 

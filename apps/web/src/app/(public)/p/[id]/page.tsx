@@ -85,7 +85,11 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound();
 
   const more = await getSellerProducts(product.seller_id, 7, product.id);
+  // W1.3: the seller's « Présenter en voix » is stored with the article; it is played below the
+  // price, never shown as a photo.
+  const voice = product.product_media.find((m) => m.kind === 'audio') ?? null;
   const media: GalleryItem[] = sortMedia(product.product_media)
+    .filter((m) => m.kind !== 'audio')
     .map((m): GalleryItem | null => {
       const url = publicMediaUrl(m.storage_path);
       if (!url) return null;
@@ -125,6 +129,13 @@ export default async function ProductPage({ params }: Props) {
             <PriceText product={product} />
           </p>
           <h1 className="product-title">{product.title}</h1>
+
+          {voice ? (
+            <figure className="post-voice">
+              <figcaption>Le vendeur vous présente l’article</figcaption>
+              <audio src={publicMediaUrl(voice.storage_path) ?? undefined} controls preload="none" aria-label="Écouter la présentation du vendeur" />
+            </figure>
+          ) : null}
 
           <div className="chip-row">
             {product.status !== 'active' ? (

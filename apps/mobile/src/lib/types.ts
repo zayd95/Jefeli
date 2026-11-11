@@ -21,6 +21,12 @@ export type MediaRow = {
   language?: string | null;
   waveform?: number[] | null;
   cues?: unknown;
+  /**
+   * Editor preview only (W1.3): a file not uploaded yet. The editor renders the same components as
+   * the feed with these instead of storage paths, so the preview behaves like the published post.
+   */
+  local_uri?: string | null;
+  local_poster?: string | null;
 };
 
 export type ProductCard = Tables<'products'> & {

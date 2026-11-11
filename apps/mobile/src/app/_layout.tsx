@@ -6,6 +6,7 @@ import { HankenGrotesk_600SemiBold } from '@expo-google-fonts/hanken-grotesk/600
 import { HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk/700Bold';
 import { HankenGrotesk_800ExtraBold } from '@expo-google-fonts/hanken-grotesk/800ExtraBold';
 import { useFonts } from 'expo-font';
+import { describeFailure } from '@jefeli/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -25,7 +26,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 2, staleTime: 15_000, refetchOnWindowFocus: false },
+    // Retrying can't fix a database that is behind the app or an expired session: fail fast and
+    // show the precise screen instead of three identical failures (W1.3).
+    queries: { retry: (count, err) => count < 2 && describeFailure(err).retryable, staleTime: 15_000, refetchOnWindowFocus: false },
     mutations: { retry: 0 },
   },
 });

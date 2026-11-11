@@ -429,14 +429,60 @@ Test environment:
 - Playwright's headless shell has no `getUserMedia`; `smart-create` runs on the full Chromium
   build with a fake microphone.
 
+### W1.3 — créer, c’est montrer (branch `feature/w1.3-create`, 8 Nov)
+
+Approved design canvas with the owner's corrections; decisions and verification:
+`docs/W1_3_CREATE.md`. Staging: `docs/STAGING_MIGRATION_PLAN.md` (applied 11 Nov, below).
+
+| Commit | What |
+|---|---|
+| `c189ef7` | Server: an article's voice in `product_media` (one audio row, never with video, cues → photos); 3 integration tests |
+| `fe502c1` | Schema contract + check before every Vercel build and in CI |
+| `bb9fb5f` | Staging plan, baseline counts, rollback scripts captured read-only from staging and dry-run locally |
+| `3266484` | `describeFailure()`; feed error screen with Réessayer, Explorer / Se reconnecter and copyable diagnostics; refresh banner; no retry when it can't help |
+| `18903b2` | Three-card + menu; explicit drafts (badge, Continuer, Nouvelle with confirmation, editor gate); W1.2 drafts adopted |
+| `8dc98df` | Adaptive Publication editor; `PostMedia` shared by the feed card and the editor; full-screen studio; reorderable gallery with cues remapped |
+| `c45f1a8` | Article shop window; « Présenter en voix »; article page and public web page play it |
+| `50e7de8` | Full-screen Statut editor; shared narrated publications play in statuses |
+
+Defects found on the way:
+- Pre-existing:
+  - Feed queries were retried three times on errors retrying can't fix (missing column, expired
+    session), delaying the error screen by several seconds.
+  - Removing a middle photo kept narration cues pointing past the end or to the wrong photo.
+  - An article draft restored after a browser refresh held dead `blob:` URLs (now kept like
+    publication drafts).
+  - The public web article page would have shown an article's voice as a broken photo.
+- In W1.3's own first version:
+  - Status photos labelled through expo-image were exposed as `alt` only; the viewer's photo now
+    has an image role and label of its own.
+
+### Staging sync and hosted acceptance (11 Nov, owner-approved)
+
+Go/no-go: `docs/WEB_BETA_GO_NO_GO.md`. Staging: `docs/STAGING_MIGRATION_PLAN.md`.
+
+| Commit | What |
+|---|---|
+| `c3b5c46` | jefeli-staging: identity and history checked, verified logical backup handed to the owner, baseline counts, migrations reviewed; 6/6 applied in order through the official migrations endpoint; counts unchanged after each; schema fingerprint identical to local; schema check ✓; 33/33 anonymous security probes |
+| `46a2932` | Hosted acceptance suite (`tests/e2e/specs/hosted.spec.ts`, `playwright.hosted.config.ts`, run only on demand against a preview); sign-up errors Supabase rejects now have a precise message; failed-publish banner no longer says « brouillon » twice nor adds a toast |
+
+Hosted run on the `46a2932` previews: H-00 → H-07 passed in Chromium; H-08 (public web page)
+checked through Vercel's authenticated fetch because the preview protection refused the browser
+cookie. Findings that need the owner: account e-mail configuration (Site URL `localhost:3000`,
+built-in sender), no Edge Function deployed (`delete-account`), voices recorded in Chrome are
+WebM/Opus (Safari untested), preview links point to the W1 aliases, `private.upload_quota_ok()`
+executable by PUBLIC, DÉMO test accounts left on staging.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 25 unit tests (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
-| `pnpm test:integration` (with `.env.test` functions) | 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
-| `npx expo export --platform ios --platform android` | pass: iOS and Android Hermes bundles (≈ 11 MB each) (on `3c02230`) |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 28 unit tests (W1.3); 25 (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 297/297 (W1.3, article voice); 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 53 passed, 1 skipped (W1.3, adds `create` 9, `smart-create` now 4; four specs re-run after mid-run edits); 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `npx expo export --platform ios --platform android` | pass: iOS 11 MB, Android 12 MB Hermes bundles (W1.3); ≈ 11 MB each on `3c02230` |
+| `node scripts/schema-contract.mjs generate --verify` / `check` (local) | up to date; ✓ 45 tables, 53 functions (W1.3) |
+| `playwright test -c playwright.hosted.config.ts` (previews `46a2932` + jefeli-staging) | 8 passed (H-00 → H-07); H-08 verified by authenticated fetch (preview protection refused the browser) |
 | `scripts/check-pilot-metrics.sh` | 12/12 read-only query blocks (P1) |
 | `pnpm --filter @jefeli/web typecheck` / `lint` | pass |
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |

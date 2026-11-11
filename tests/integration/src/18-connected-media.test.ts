@@ -195,3 +195,65 @@ describe('statuses: voice, and shared by reference', () => {
     expect(await visible(X, storyId)).toBe(false);
   });
 });
+
+describe('an article can carry its seller’s voice (W1.3)', () => {
+  let S: TestUser;
+  let O: TestUser;
+
+  beforeAll(async () => {
+    S = await createUser('article_voice_seller', { onboarded: true });
+    O = await createUser('article_voice_other', { onboarded: true });
+  });
+
+  const listing = (media: unknown[], extra: Record<string, unknown> = {}) => ({
+    p_title: `Boubou ${token(4)}`,
+    p_description: '',
+    p_price_xof: 25000,
+    p_category_slug: 'mode-femme',
+    p_condition: 'very_good',
+    p_listing_mode: 'sale',
+    p_quantity: 1,
+    p_city: 'Dakar',
+    p_neighborhood: null,
+    p_delivery_options: ['pickup'],
+    p_delivery_notes: '',
+    p_media: media,
+    ...extra,
+  });
+
+  it('photos and a narration with its visite guidée, stored with the article (no publication created)', async () => {
+    const [a, b] = await Promise.all([uploadImage(S, 'public-media'), uploadImage(S, 'public-media')]);
+    const voice = await uploadAudio(S);
+    const postsBefore = ((await adminClient.from('posts').select('id').eq('author_id', S.id)).data ?? []).length;
+    const id = await rpc<string>(S.client, 'create_listing', listing([image(a), image(b), audio(voice, 30000, { language: 'wo', cues: [{ t: 0, i: 0 }, { t: 9000, i: 1 }] })]));
+    const rows = must(await adminClient.from('product_media').select('kind, position, language, cues').eq('product_id', id).order('position')) as Record<string, unknown>[];
+    expect(rows.map((r) => r.kind)).toEqual(['image', 'image', 'audio']);
+    expect(rows[2]).toMatchObject({ language: 'wo', cues: [{ t: 0, i: 0 }, { t: 9000, i: 1 }] });
+    expect(((await adminClient.from('posts').select('id').eq('author_id', S.id)).data ?? []).length).toBe(postsBefore);
+  });
+
+  it('a voice alone is not an article; never with a video; one voice; audio files you own', async () => {
+    const photo = await uploadImage(S, 'public-media');
+    expectError(await S.client.rpc('create_listing', listing([audio(await uploadAudio(S), 5000)])), 'media_required');
+    expectError(await S.client.rpc('create_listing', listing([video(await uploadVideo(S)), audio(await uploadAudio(S), 5000)])), 'audio_with_video');
+    expectError(await S.client.rpc('create_listing', listing([image(photo), audio(await uploadAudio(S), 5000), audio(await uploadAudio(S), 5000)])), 'too_many_audio');
+    expectError(await S.client.rpc('create_listing', listing([image(photo), audio(await uploadImage(S, 'public-media'), 5000)])), 'invalid_media');
+    expectError(await S.client.rpc('create_listing', listing([image(photo), audio(await uploadAudio(S), 180001)])), 'audio_too_long');
+    expectError(await O.client.rpc('create_listing', listing([image(await uploadImage(O, 'public-media')), audio(await uploadAudio(S), 5000)])), 'media_not_found');
+    expectError(await S.client.rpc('create_listing', listing([image(photo), audio(await uploadAudio(S), 5000, { cues: [{ t: 0, i: 3 }] })])), 'invalid_cues');
+  });
+
+  it('editing the article’s media keeps the same rules, and its voice is never listed as an orphan', async () => {
+    const photo = await uploadImage(S, 'public-media');
+    const id = await rpc<string>(S.client, 'create_listing', listing([image(photo)]));
+    const voice = await uploadAudio(S);
+    await rpc(S.client, 'set_listing_media', { p_product_id: id, p_media: [image(photo), audio(voice, 12000)] });
+    expect(((await adminClient.from('product_media').select('kind').eq('product_id', id)).data ?? []).map((r) => r.kind).sort()).toEqual(['audio', 'image']);
+    expectError(await S.client.rpc('set_listing_media', { p_product_id: id, p_media: [audio(voice, 12000)] }), 'media_required');
+    if (hasPsql()) {
+      psql(`update storage.objects set created_at = now() - interval '3 days' where name = '${voice}'`);
+      const { data } = await adminClient.rpc('list_orphaned_media', { p_limit: 1000 });
+      expect(((data ?? []) as { name: string }[]).some((r) => r.name === voice)).toBe(false);
+    }
+  });
+});

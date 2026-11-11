@@ -68,9 +68,9 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
 
   test('MED-01 · a video over 3 minutes is refused as soon as it is chosen', async () => {
     await s.goto('/publish/post');
-    await pickFile(s, () => btn(s, 'Ajouter depuis la galerie').click(), clip(181));
+    await pickFile(s, () => btn(s, 'Média').click(), clip(181));
     await expect(s.getByText('Vidéo trop longue : 3 minutes maximum.').last()).toBeVisible();
-    await expect(btn(s, 'Retirer ce média')).toHaveCount(0);
+    await expect(s.getByTestId('reorder-strip')).toHaveCount(0);
     await shot(s, DIR, 'S-181s-refused');
   });
 
@@ -78,12 +78,17 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
     await publishListing(s, { file: FIXTURE('shoe.jpg'), title: ARTICLE, price: '12000', category: 'Chaussures', condition: 'Très bon état' });
 
     await s.goto('/publish/post');
-    await pickFile(s, () => btn(s, 'Ajouter depuis la galerie').click(), clip(180));
-    // The browser read the real duration and captured a cover frame before anything was sent.
-    await expect(s.getByText('180 s', { exact: true }).last()).toBeVisible({ timeout: 30_000 });
-    await expect(s.locator('img[src^="blob:"]').last()).toBeVisible();
+    await pickFile(s, () => btn(s, 'Média').click(), clip(180));
+    // The browser read the real duration and captured a cover frame before anything was sent: the
+    // editor's preview is the feed's player, poster first.
+    await expect(s.getByRole('button', { name: 'Couverture (vidéo)' })).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible();
+    // A video keeps its own sound: no voice over it.
+    await expect(s.getByRole('button', { name: 'Voix', exact: true })).toBeDisabled();
+    await btn(s, 'Article').click();
     await s.getByRole('checkbox', { name: ARTICLE }).click();
-    await s.getByRole('textbox', { name: 'Texte' }).fill(`Nouvelle collection en vidéo ${RUN}`);
+    await btn(s, 'Terminé').click();
+    await s.getByRole('textbox', { name: 'Légende' }).fill(`Nouvelle collection en vidéo ${RUN}`);
     await shot(s, DIR, 'S-composer-180s-video');
     await btn(s, 'Publier').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
@@ -137,8 +142,9 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
 
   test('MED-05 · a 12-second video status plays to its end, not cut at the image timer', async () => {
     await s.goto('/publish/status');
-    await pickFile(s, () => btn(s, 'Choisir dans la galerie').click(), clip(12));
-    await s.getByRole('textbox', { name: 'Légende du statut' }).fill(`Arrivage en vidéo ${RUN}`);
+    await pickFile(s, () => btn(s, 'Photo ou vidéo de la galerie').click(), clip(12));
+    await btn(s, 'Écrire sur le statut').click();
+    await s.getByRole('textbox', { name: 'Texte du statut' }).fill(`Arrivage en vidéo ${RUN}`);
     await btn(s, 'Publier le statut').click();
     await expect(s.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });
 

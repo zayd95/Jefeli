@@ -44,12 +44,12 @@ test.describe.serial('Community: intents, votes, comments', () => {
     // The dock's Plus (and /publish) opens the Publication composer directly, no hub.
     await b.goto('/publish');
     await expect(b).toHaveURL(/\/publish\/post$/);
-    await expect(b.getByRole('tab', { name: 'Publication' }).last()).toHaveAttribute('aria-selected', 'true');
-    await expect(b.getByRole('radio', { name: 'Je partage' })).toHaveAttribute('aria-checked', 'true');
+    // W1.3: no type selector; the type is a small pill on the writing canvas.
+    await b.getByRole('button', { name: 'Type de publication : Je partage. Changer' }).click();
     await b.getByRole('radio', { name: 'Je cherche' }).click();
-    await expect(b.getByRole('radio', { name: 'Je cherche' })).toHaveAttribute('aria-checked', 'true');
+    await expect(b.getByRole('button', { name: 'Type de publication : Je cherche. Changer' })).toBeVisible();
     await shot(b, DIR, 'B-composer-je-cherche');
-    await b.getByRole('textbox', { name: 'Texte' }).fill(REQUEST);
+    await b.getByRole('textbox', { name: 'Texte de la publication' }).fill(REQUEST);
     await btn(b, 'Publier').click();
     await expect(b).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 30_000 });
     postUrl = new URL(b.url()).pathname;

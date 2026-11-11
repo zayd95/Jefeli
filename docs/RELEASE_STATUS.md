@@ -16,6 +16,21 @@
 - Branch `feature/w1.2-smart-create`, draft PR #5 → PR #4's branch: smart + menu, composable
   publication (photos, video, voice, articles), voice in chat and statuses, statuses by
   reference (`docs/W1_2_SMART_CREATE.md`). **Not merged, not applied to staging.**
+- Branch `feature/w1.3-create`, draft PR #6 → PR #5's branch: three-card +, explicit drafts,
+  adaptive Publication / Article / Statut editors sharing the feed's media block, article voice,
+  narrated statuses by reference, recoverable feed errors, staging migration plan and a schema
+  check before every preview build (`docs/W1_3_CREATE.md`). **Not merged, not applied to
+  staging, not deployed publicly.** Its Vercel previews stop at the schema check until the
+  staging plan is applied (intended).
+- **Web beta go/no-go (11 Nov): NO-GO for outside testers, GO for the owner's acceptance on the
+  previews** (`docs/WEB_BETA_GO_NO_GO.md`). jefeli-staging is synchronized (6 migrations, verified
+  backup, schema identical, 33/33 security probes); both previews build; hosted journeys 8/8 +
+  public page checked; clean regression on `46a2932`: check pass, integration 297/297, E2E 53 passed.
+  Blockers: account e-mail configuration, `delete-account` not deployed, Safari voice untested.
+- **W1.3 verification (8 Nov), local stack, code `50e7de8` + specs `f92237b`:** `pnpm check` pass
+  (unit 28/28), integration 297/297, E2E 53 passed + 1 gated skip (full suite, then the four
+  specs updated during the run re-run green), schema contract current and satisfied locally;
+  iOS and Android bundles build. See « W1.3 » below.
 - **W1.2 verification (7 Nov), local stack:** `pnpm check` pass (unit 25/25), integration 294/294,
   E2E 46 passed + 1 gated skip; iOS and Android bundles build. See « W1.2 » below.
 - **W1.1 verification (7 Nov), local stack:** `pnpm check` pass (unit 24/24), integration 280/280,
@@ -202,6 +217,27 @@ and local backend only.
 | SC-08 | Private voice never public; others' recordings never republished | **PASS** | integration `18-connected-media` |
 | SC-09 | Native recorder and players on iPhone / Android | **NOT_TESTED** | Bundles build; no device here |
 | SC-10 | Chrome-recorded voice played in Safari on iPhone | **NOT_TESTED** | No device; see W1.2 doc §7 |
+
+### W1.3 créer, c’est montrer (branch `feature/w1.3-create`, draft PR #6)
+
+Details and limits: `docs/W1_3_CREATE.md`. Browser (Chromium with a fake microphone) and local
+backend only.
+
+| ID | Requirement | Status | Evidence |
+|---|---|---|---|
+| CR-01 | + : three cards side by side, ±5°, no overlap, ≥ 44 pt, feed recognizable; ×, outside tap, Escape | **PASS** (browser) · **NOT_TESTED** on a device | E2E CR-01, CR-02 (360 pt), SC-04 (360/390/412) |
+| CR-02 | A draft is never replaced silently: badge, continue, new after confirmation, editor gate | **PASS** | E2E CR-03, SC-03; resilience (article draft) |
+| CR-03 | Adaptive Publication: canvas → photos preview → voice; studio records at once; reorder by drag or buttons, cues follow | **PASS** (browser) | E2E CR-04, SC-02, SC-03 |
+| CR-04 | Editor preview behaves like the published card (narration, photo navigation, article chip) | **PASS** | E2E CR-04 (preview follows the voice), CR-05 (feed); same component `PostMedia` |
+| CR-05 | Buyer: no autoplay with sound, listens, photos follow, opens the article, writes | **PASS** (browser) | E2E CR-05 |
+| CR-06 | Article shop window: same required fields, missing ones named before sending; voice stored with the article | **PASS** | E2E CR-06, pricing; integration `18-connected-media` (3 new tests) |
+| CR-07 | Article voice heard on the article page (photos follow), the feed share and the public web page | **PASS** (browser) | E2E CR-06 |
+| CR-08 | Narrated publication shared as a status plays its voice, photos following, no file copied | **PASS** | E2E CR-07; W1.2 integration (`share_to_status`) |
+| CR-09 | Statut editor full screen: photo with text and article; voice with its own visual | **PASS** (browser) | E2E CR-08, CR-09, journey STA-01, media MED-05 |
+| CR-10 | A failed feed request leaves a way forward (precise title, retry, Explorer, diagnostics) | **PASS** | E2E resilience (offline, database behind the app, recovery); unit `describeFailure` |
+| CR-11 | Preview builds refuse a database that is behind | **PASS** | Vercel builds of PR #6 stopped at the check against jefeli-staging, naming every missing item; CI step in the integration job |
+| CR-12 | Native photo + voice status (not from a publication) | **NOT_BUILT** | Schema change; tradeoff in W1.3 doc §2 |
+| CR-13 | The new editors on iPhone / Android | **NOT_TESTED** | Bundles build; no device here |
 
 ### Other workstreams
 
