@@ -74,6 +74,9 @@ describe('errors', () => {
     expect(toFrenchError({ message: 'prohibited_item' })).toMatch(/interdits/);
     expect(toFrenchError({ message: 'Invalid login credentials' })).toMatch(/incorrect/);
     expect(toFrenchError({ message: 'something odd' })).toMatch(/erreur/);
+    // Hosted sign-up (W1.3 acceptance): Supabase Auth's own wording, never « Une erreur est survenue ».
+    expect(toFrenchError({ message: 'Email address "a@b.test" is invalid', code: 'email_address_invalid' })).toBe('Adresse e-mail invalide. Vérifiez-la.');
+    expect(toFrenchError({ message: 'Error sending confirmation email' })).toMatch(/e-mail de confirmation n’a pas pu être envoyé/);
   });
   it('maps the video limits enforced by the database (W1.1)', () => {
     expect(toFrenchError({ message: 'video_too_long' })).toBe('Vidéo trop longue : 3 minutes maximum.');

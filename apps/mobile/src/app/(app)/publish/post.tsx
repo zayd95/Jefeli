@@ -241,7 +241,6 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
       // The draft stays as it was: « Réessayer » sends it again.
       const message = e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e);
       setFailed(message);
-      toast(message, 'error');
     } finally {
       setUploading(false);
     }
@@ -290,7 +289,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {failed ? <InlineRetry tone="dark" message={`Publication non envoyée : ${failed} Votre brouillon est gardé.`} onRetry={publish} retrying={uploading} /> : null}
+        {failed ? <InlineRetry tone="dark" message={/brouillon/i.test(failed) ? `Publication non envoyée : ${failed}` : `Publication non envoyée : ${failed} Votre brouillon est gardé.`} onRetry={publish} retrying={uploading} /> : null}
 
         {stage === 'write' ? (
           <View style={styles.canvas}>

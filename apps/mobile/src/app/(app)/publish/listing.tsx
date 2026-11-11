@@ -297,7 +297,6 @@ function ListingEditor({ continued }: { continued: boolean }) {
       // The draft is kept: nothing typed, picked or recorded is lost; « Réessayer » sends it again.
       const message = e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e);
       setFailed(message);
-      toast(message, 'error');
     } finally {
       setUploading(false);
     }
@@ -331,7 +330,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {failed ? <InlineRetry message={`Article non envoyé : ${failed} Votre brouillon est gardé.`} onRetry={publish} retrying={uploading} /> : null}
+        {failed ? <InlineRetry message={/brouillon/i.test(failed) ? `Article non envoyé : ${failed}` : `Article non envoyé : ${failed} Votre brouillon est gardé.`} onRetry={publish} retrying={uploading} /> : null}
 
         {v.media.length === 0 ? (
           <Pressable

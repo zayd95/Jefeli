@@ -69,7 +69,8 @@ const AUTH_ERRORS: Array<[RegExp, string]> = [
   [/email not confirmed/i, 'Confirmez votre e-mail avant de vous connecter.'],
   [/rate limit|too many requests/i, 'Trop de tentatives. Réessayez dans quelques minutes.'],
   [/invalid.*(otp|token)|token has expired/i, 'Code invalide ou expiré.'],
-  [/unable to validate email|invalid email/i, 'Adresse e-mail invalide.'],
+  [/unable to validate email|invalid email|email address .* is invalid|email_address_invalid/i, 'Adresse e-mail invalide. Vérifiez-la.'],
+  [/error sending (confirmation|magic link|recovery|invite)|email address not authorized/i, 'Inscription momentanément impossible : l’e-mail de confirmation n’a pas pu être envoyé. Réessayez plus tard.'],
   [/duplicate key value.*handle|profiles_handle_key/i, 'Ce nom d’utilisateur est déjà pris.'],
   [/network request failed|failed to fetch|fetch failed|network error/i, 'Connexion impossible. Vérifiez votre réseau et réessayez.'],
 ];
