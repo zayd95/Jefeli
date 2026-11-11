@@ -187,7 +187,7 @@ test('PH-03 sign-in with an unknown number offers to create the account with it'
   await page.getByRole('tab', { name: 'Téléphone' }).click();
   await phoneInput(page).fill(n.national);
   await btn(page, 'Recevoir le code par SMS').click();
-  await expect(page.getByTestId('phone-error')).toHaveText('Aucun compte n’utilise ce numéro. Créez un compte avec ce numéro.');
+  await expect(page.getByTestId('phone-error')).toHaveText('Aucun compte n’utilise encore ce numéro.');
   expect(inbox.some((m) => m.to === n.e164)).toBe(false);
   await shot(page, 'phone', 'V-unknown-number-360');
   await btn(page, 'Créer un compte avec ce numéro').click();

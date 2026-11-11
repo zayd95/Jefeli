@@ -258,7 +258,9 @@ to the hook's local sink (no SMS to a real phone), Chromium.
 | PH-10 | Existing auth, onboarding, deletion, security policies and member data preserved | **PASS** (local) | Full regression below; migration adds objects only |
 
 - **W1.4 verification (11 Nov), local stack, clean database:** `pnpm check` pass (unit 32/32),
-  integration 312/312, E2E full run in progress (phone spec 6/6 on its own).
+  integration 312/312. E2E full run: 55 passed, 10 skipped (9 hosted-only, 1 gated), PH-03 failed on a
+  stale expected text (the test, not the app) so PH-04 → PH-06 did not run. After fixing the test,
+  `phone.spec.ts` 6/6 on the same stack.
 
 ### Other workstreams
 
