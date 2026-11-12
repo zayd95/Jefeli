@@ -31,6 +31,7 @@ import { VoiceStudio } from '@/components/audio/VoiceStudio';
 import { UploadOverlay } from '@/components/Composer';
 import { DraftChoice } from '@/components/DraftChoice';
 import { Thumb } from '@/components/Media';
+import { PostCard } from '@/components/PostCard';
 import { PostMedia } from '@/components/PostMedia';
 import { PriceLabel } from '@/components/PriceLabel';
 import { ReorderStrip } from '@/components/ReorderStrip';
@@ -40,8 +41,9 @@ import { fetchSellerProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import { keepMediaForDraft, restoreDraftMedia } from '@/lib/draftFiles';
 import { discardDraft, useDraft, useDraftGate } from '@/lib/drafts';
+import { useLayout } from '@/lib/layout';
 import { goBack } from '@/lib/nav';
-import type { MediaRow, TaggedProduct } from '@/lib/types';
+import type { MediaRow, PostCardData, TaggedProduct } from '@/lib/types';
 import { pickMedia, uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
 import { keepForDraft, restoreVoice, uploadVoice, type NarrationCue, type RecordedClip, type VoiceAttachment } from '@/lib/voice';
 
@@ -246,6 +248,8 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
     }
   }
 
+  // Two panes only from 1100 px; narrower screens keep the single W1.3 editor and its preview.
+  const { wide: desktop } = useLayout();
   const contentWidth = Math.min(screenWidth, 640) - spacing.lg * 2;
   const stage = media.length > 0 ? 'media' : voice ? 'voice' : 'write';
   const firstCue = (i: number) => {
@@ -260,6 +264,41 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
     .slice(0, 2)
     .toUpperCase();
 
+  // Desktop (W1.4): the right pane shows the real feed card built from this draft.
+  const PREVIEW_W = 420;
+  const draftPost: PostCardData | null =
+    desktop && profile
+      ? ({
+          id: 'draft-preview',
+          author_id: profile.id,
+          author: { id: profile.id, handle: profile.handle, display_name: profile.display_name, avatar_path: profile.avatar_path, verification_level: profile.verification_level, is_demo: profile.is_demo, city: profile.city },
+          body: body.trim(),
+          intent,
+          visibility,
+          kind: 'post',
+          city: profile.city,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          edited_at: null,
+          deleted_at: null,
+          pinned_at: null,
+          moderation_status: 'visible',
+          comment_count: 0,
+          save_count: 0,
+          upvote_count: 0,
+          my_vote: 0,
+          saved: false,
+          comments_preview: [],
+          media: [
+            ...previewRows,
+            ...(voice
+              ? [{ id: 'draft-voice', kind: 'audio', storage_path: '', poster_path: null, width: null, height: null, duration_ms: Math.round(voice.durationMs), position: previewRows.length, local_uri: voice.uri, local_poster: null, waveform: voice.waveform, language: voice.language, cues: voice.cues }]
+              : []),
+          ],
+          tagged: linked.map((p) => ({ product: { ...p, media: p.media.map((x) => ({ storage_path: x.storage_path, kind: x.kind, poster_path: x.poster_path, position: x.position })) } })),
+        } as unknown as PostCardData)
+      : null;
+
   const typePill = (
     <Pressable onPress={() => setSheet('type')} style={styles.typePill} accessibilityRole="button" accessibilityLabel={`Type de publication : ${intentInfo.label}. Changer`}>
       <Text variant="caption" weight="700" tone="mint">
@@ -271,6 +310,8 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
 
   return (
     <Screen edges={['top', 'bottom']} background={dark.background} keyboard>
+      <View style={desktop ? styles.desktopRow : { flex: 1 }}>
+      <View style={desktop ? styles.desktopEditor : { flex: 1 }}>
       <View style={styles.top}>
         <IconButton icon={X} label="Fermer" variant="glass" color={dark.text} onPress={() => goBack()} />
         <Pressable onPress={() => setSheet('audience')} style={styles.audience} accessibilityRole="button" accessibilityLabel={`Audience : ${audienceLabel.toLowerCase()}. Changer`}>
@@ -417,6 +458,24 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
           hint={products.length > 0 ? undefined : 'Créer un article'}
         />
       </View>
+      </View>
+      {desktop ? (
+        <ScrollView style={styles.desktopPreview} contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }} accessibilityLabel="Aperçu dans le fil">
+          <Text variant="micro" weight="800" color={dark.textSecondary} style={{ fontSize: 11, letterSpacing: 1.2 }}>
+            APERÇU DANS LE FIL · TEL QU’IL APPARAÎTRA
+          </Text>
+          {draftPost && (draftPost.body || draftPost.media.length > 0) ? (
+            <View pointerEvents="none" style={styles.previewCard} aria-hidden>
+              <PostCard post={draftPost} showReason={false} width={PREVIEW_W} />
+            </View>
+          ) : (
+            <Text variant="callout" tone="fogSecondary">
+              Écrivez, ajoutez des photos ou votre voix : la publication apparaît ici comme dans le fil.
+            </Text>
+          )}
+        </ScrollView>
+      ) : null}
+      </View>
 
       <VoiceStudio
         visible={studio}
@@ -532,6 +591,10 @@ function ToolButton({ icon: Icon, label, a11y, count = 0, onPress, disabled, hin
 }
 
 const styles = StyleSheet.create({
+  desktopRow: { flex: 1, flexDirection: 'row' },
+  desktopEditor: { flex: 1, minWidth: 0, maxWidth: 720, borderRightWidth: 1, borderRightColor: dark.border },
+  desktopPreview: { width: 468, flexGrow: 0, flexShrink: 0, backgroundColor: colors.night },
+  previewCard: { borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: dark.border, backgroundColor: dark.background },
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.md },
   gate: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   audience: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingLeft: 4, paddingRight: 12, borderRadius: 18, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.subtle },

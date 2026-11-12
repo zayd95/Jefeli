@@ -21,6 +21,7 @@ import { browseProducts, fetchActiveCities, fetchCategories, PRODUCT_PAGE, type 
 import { useAuth } from '@/lib/auth';
 import { ALL_CATEGORIES_TILE, categoryTile } from '@/lib/categoryIcons';
 import { useDockSpace } from '@/lib/dock';
+import { useLayout } from '@/lib/layout';
 import { useDarkStatusBar } from '@/lib/statusBar';
 import type { ProductCard } from '@/lib/types';
 
@@ -42,12 +43,22 @@ function browseArgs(kind: Kind): { mode: BrowseMode; condition: string | null } 
 
 type Row = { type: 'lead'; product: ProductCard } | { type: 'pair'; items: ProductCard[] };
 
+/** Desktop grid (W1.4): as many 220–280 px columns as fit, 3 to 5. */
+const DESKTOP_MAX = 1240;
+const DESKTOP_PAD = 32;
+const DESKTOP_GAP = 20;
+function desktopColumns(contentWidth: number): number {
+  return Math.max(3, Math.min(5, Math.floor((Math.min(contentWidth, DESKTOP_MAX) - DESKTOP_PAD * 2 + DESKTOP_GAP) / (230 + DESKTOP_GAP))));
+}
+
 export default function Explore() {
   // The safe-area strip and the intro are Atlantic night, so light status-bar icons.
   useDarkStatusBar();
   const { profile } = useAuth();
   const { width } = useWindowDimensions();
   const dockSpace = useDockSpace();
+  const { desktop } = useLayout();
+  const [contentWidth, setContentWidth] = useState(width);
   const params = useLocalSearchParams<{ kind?: string }>();
   const [kind, setKind] = useState<Kind>(isKind(params.kind) ? params.kind : 'all');
   const [category, setCategory] = useState<string | null>(null);
@@ -81,13 +92,22 @@ export default function Explore() {
 
   const items = useMemo(() => products.data?.pages.flat() ?? [], [products.data]);
   // Lovable rhythm: one large lead card, then two columns.
+  const columns = desktop ? desktopColumns(contentWidth) : 2;
   const rows = useMemo<Row[]>(() => {
     if (items.length === 0) return [];
+    // Desktop: a plain commerce grid (no lead card), every article the same size.
+    if (desktop) {
+      const out: Row[] = [];
+      for (let i = 0; i < items.length; i += columns) out.push({ type: 'pair', items: items.slice(i, i + columns) });
+      return out;
+    }
     const out: Row[] = [{ type: 'lead', product: items[0] as ProductCard }];
     for (let i = 1; i < items.length; i += 2) out.push({ type: 'pair', items: items.slice(i, i + 2) });
     return out;
-  }, [items]);
-  const itemW = gridItemWidth(width);
+  }, [items, desktop, columns]);
+  const itemW = desktop
+    ? Math.floor((Math.min(contentWidth, DESKTOP_MAX) - DESKTOP_PAD * 2 - DESKTOP_GAP * (columns - 1)) / columns)
+    : gridItemWidth(width);
   const leadW = Math.min(width, 720) - spacing.lg * 2;
 
   const cats = categories.data ?? [];
@@ -103,7 +123,7 @@ export default function Explore() {
 
   const header = (
     <View>
-      <View style={styles.intro}>
+      <View style={[styles.intro, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
         <Motif opacity={0.7} />
         <View style={styles.introTop}>
           <Text serif weight="600" tone="fog" accessibilityRole="header" style={{ fontSize: 30, lineHeight: 36 }}>
@@ -132,7 +152,7 @@ export default function Explore() {
         </Pressable>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tiles} accessibilityLabel="Catégories">
+      <ScrollView horizontal={!desktop} scrollEnabled={!desktop} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.tiles, desktop && styles.tilesWrap]} accessibilityLabel="Catégories">
         <CategoryTile all icon={ALL_CATEGORIES_TILE.icon} label={ALL_CATEGORIES_TILE.short} a11y="Toutes les catégories" selected={!category} onPress={() => setCategory(null)} />
         {cats.map((c) => {
           const t = categoryTile(c.slug, c.name);
@@ -140,7 +160,7 @@ export default function Explore() {
         })}
       </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pills} accessibilityRole="tablist">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pills, desktop && { paddingHorizontal: DESKTOP_PAD }]} accessibilityRole="tablist">
         {KINDS.map((k) => {
           const on = kind === k.key;
           return (
@@ -162,7 +182,7 @@ export default function Explore() {
         })}
       </ScrollView>
 
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
         <Text serif weight="600" style={{ fontSize: 22, lineHeight: 28, color: colors.ink, flexShrink: 1 }} numberOfLines={1}>
           {heading}
         </Text>
@@ -185,6 +205,7 @@ export default function Explore() {
   return (
     <Screen background={dark.background}>
       <FlatList<Row>
+        onLayout={(e) => setContentWidth(e.nativeEvent.layout.width)}
         style={{ backgroundColor: colors.background }}
         data={rows}
         keyExtractor={(row) => (row.type === 'lead' ? `lead-${row.product.id}` : row.items.map((p) => p.id).join('-'))}
@@ -195,9 +216,9 @@ export default function Explore() {
               <ListingCard product={item.product} width={leadW} big />
             </View>
           ) : (
-            <View style={styles.gridRow}>
+            <View style={[styles.gridRow, desktop && styles.gridRowDesktop]}>
               {item.items.map((p) => (
-                <ListingCard key={p.id} product={p} width={itemW} />
+                <ListingCard key={p.id} product={p} width={itemW} showVerified={desktop} />
               ))}
             </View>
           )
@@ -233,7 +254,7 @@ export default function Explore() {
         onEndReached={() => products.hasNextPage && !products.isFetchingNextPage && products.fetchNextPage()}
         onEndReachedThreshold={0.6}
         refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={() => void products.refetch()} tintColor={colors.ink} />}
-        contentContainerStyle={{ paddingBottom: dockSpace, flexGrow: 1 }}
+        contentContainerStyle={[{ paddingBottom: dockSpace, flexGrow: 1 }, desktop && styles.desktopList]}
       />
 
       <Sheet visible={citySheet} onClose={() => setCitySheet(false)} title="Ville" scroll tone="dark">
@@ -316,5 +337,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md },
   leadRow: { paddingHorizontal: spacing.lg, marginBottom: spacing.md, alignItems: 'center' },
   gridRow: { flexDirection: 'row', gap: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.md },
+  gridRowDesktop: { gap: DESKTOP_GAP, paddingHorizontal: DESKTOP_PAD, marginBottom: DESKTOP_GAP },
+  desktopList: { width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center' },
+  tilesWrap: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: DESKTOP_PAD, gap: 10 },
   empty: { marginHorizontal: spacing.lg, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.border },
 });

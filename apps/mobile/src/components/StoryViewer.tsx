@@ -8,7 +8,7 @@ import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
 import { Bookmark, Eye, Flag, Heart, Mic, MoreHorizontal, Pause, Play, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar, Button, colors, dark, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
@@ -25,6 +25,7 @@ import { fill, videoFill } from '@/design/fill';
 import { voiceSummary } from './audio/Voice';
 import { Thumb } from './Media';
 import { parseCues, photoAt } from './PostMedia';
+import { useLayout } from '@/lib/layout';
 import { goBack } from '@/lib/nav';
 
 const IMAGE_MS = 5500;
@@ -134,6 +135,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   }
 
   return (
+    <DesktopStage>
     <View style={styles.root}>
       <View style={StyleSheet.absoluteFill}>
         {story.media_kind === 'video' ? (
@@ -407,6 +409,22 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
         </View>
       </Sheet>
     </View>
+    </DesktopStage>
+  );
+}
+
+/**
+ * Desktop web (W1.4): the status keeps its phone proportions — a 9:16 stage centred on the night
+ * backdrop — instead of stretching a portrait photo or video across a wide window. Phones: as is.
+ */
+function DesktopStage({ children }: { children: React.ReactNode }) {
+  const { desktop } = useLayout();
+  const { height } = useWindowDimensions();
+  if (!desktop) return <>{children}</>;
+  return (
+    <View style={styles.desktopBackdrop}>
+      <View style={[styles.desktopStage, { width: Math.min(520, Math.round((height - 32) * 9 / 16)) }]}>{children}</View>
+    </View>
   );
 }
 
@@ -559,6 +577,8 @@ function StoryVideo({
 const styles = StyleSheet.create({
   videoState: { ...fill, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1, backgroundColor: '#000' },
+  desktopBackdrop: { flex: 1, backgroundColor: colors.night, alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
+  desktopStage: { flex: 1, borderRadius: 16, overflow: 'hidden' },
   voiceBackdrop: { backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
   voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.mint },
   textBackdrop: { backgroundColor: dark.surface, justifyContent: 'center', padding: spacing.xxl },

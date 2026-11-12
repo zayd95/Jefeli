@@ -4,7 +4,7 @@ import { MapPin, Pin, Repeat } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { colors, dark, radius, shadow, spacing, Text } from '@/design';
+import { colors, dark, radius, shadow, spacing, Text, VerifiedBadge } from '@/design';
 import { fill } from '@/design/fill';
 import type { ProductCard } from '@/lib/types';
 
@@ -26,6 +26,7 @@ function ListingCardInner({
   showPinned = false,
   big = false,
   tone = 'light',
+  showVerified = false,
 }: {
   product: ProductCard;
   width: number;
@@ -33,6 +34,8 @@ function ListingCardInner({
   showPinned?: boolean;
   big?: boolean;
   tone?: 'light' | 'dark';
+  /** Desktop grid (W1.4): seller line with the verified mark, only for real merchant verification. */
+  showVerified?: boolean;
 }) {
   const isDark = tone === 'dark';
   const media = product.media[0];
@@ -44,6 +47,7 @@ function ListingCardInner({
   const wecci = product.listing_mode !== 'sale';
   return (
     <Pressable
+      testID="listing-card"
       onPress={() => router.push(`/p/${product.id}`)}
       style={({ pressed }) => [styles.card, isDark ? styles.cardDark : styles.cardLight, { width }, pressed && { transform: [{ scale: 0.98 }] }]}
       accessibilityRole="button"
@@ -99,10 +103,13 @@ function ListingCardInner({
           <PriceLabel product={product} size="card" compact={isDark} tone={tone} />
         </View>
         {showSeller && product.seller ? (
-          <Text variant="caption" tone="secondary" numberOfLines={1} weight="600" style={{ marginTop: 2, fontSize: 11.5 }}>
-            {product.seller.display_name}
-            {product.seller.is_demo ? ' · DÉMO' : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+            <Text variant="caption" tone="secondary" numberOfLines={1} weight="600" style={{ fontSize: 11.5, flexShrink: 1 }}>
+              {product.seller.display_name}
+              {product.seller.is_demo ? ' · DÉMO' : ''}
+            </Text>
+            {showVerified && product.seller.verification_level === 'merchant_verified' ? <VerifiedBadge size={13} /> : null}
+          </View>
         ) : null}
       </View>
     </Pressable>

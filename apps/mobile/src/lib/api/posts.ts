@@ -82,6 +82,17 @@ export async function fetchFeed(
   return { items, next };
 }
 
+/**
+ * Latest « Je cherche » publications (real buyer requests) the viewer is allowed to see; RLS
+ * applies. Used by the desktop discovery rail (W1.4); nothing is invented when there are none.
+ */
+export async function fetchRecentRequests(limit = 3): Promise<PostCardData[]> {
+  const rows = unwrap(
+    await supabase.from('posts').select(POST_SELECT).eq('intent', 'seek').is('deleted_at', null).order('created_at', { ascending: false }).limit(limit),
+  ) as unknown as PostCardData[];
+  return rows;
+}
+
 export async function fetchPost(userId: string | null, id: string): Promise<PostCardData | null> {
   const row = unwrap(await supabase.from('posts').select(POST_SELECT).eq('id', id).maybeSingle()) as unknown as PostCardData | null;
   if (!row) return null;

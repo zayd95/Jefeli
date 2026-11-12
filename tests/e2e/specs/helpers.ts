@@ -47,6 +47,13 @@ export async function shot(page: Page, folder: string, name: string) {
 export const btn = (page: Page, name: string | RegExp) => page.getByRole('button', { name, exact: typeof name === 'string' });
 export const field = (page: Page, name: string | RegExp) => page.getByRole('textbox', { name, exact: typeof name === 'string' });
 
+/**
+ * Signed in and on the app: the header bell on phones, the sidebar link on desktop web (W1.4,
+ * ≥ 768 px), where Accueil has no header bell.
+ */
+export const homeReady = (page: Page) =>
+  page.getByRole('button', { name: 'Notifications', exact: true }).or(page.getByRole('link', { name: /^Notifications/ })).first();
+
 /** Real sign-up + onboarding through the UI. */
 export async function signUp(page: Page, opts: { name: string; email: string; handle: string; password: string; city?: string }) {
   await page.goto('/');
@@ -67,7 +74,7 @@ export async function signUp(page: Page, opts: { name: string; email: string; ha
   if (opts.city && opts.city !== 'Dakar') await btn(page, opts.city).click();
   await page.getByRole('checkbox', { name: 'Je confirme avoir 18 ans ou plus' }).click();
   await btn(page, 'Entrer dans Jëfëli').click();
-  await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
+  await expect(homeReady(page)).toBeVisible();
 }
 
 export async function signIn(page: Page, email: string, password: string) {
@@ -75,7 +82,7 @@ export async function signIn(page: Page, email: string, password: string) {
   await field(page, 'E-mail').fill(email);
   await field(page, 'Mot de passe').fill(password);
   await btn(page, 'Se connecter').click();
-  await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
+  await expect(homeReady(page)).toBeVisible();
 }
 
 /** Picks a file through the web image picker (expo-image-picker opens a file input). */

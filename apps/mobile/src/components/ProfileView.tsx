@@ -66,6 +66,7 @@ import type { PostCardData, ProductCard, ProfileRow } from '@/lib/types';
 
 import { ContentMenu, confirmAsync } from './ContentMenu';
 import { gridItemWidth, ListingCard } from './ListingCard';
+import { useLayout } from '@/lib/layout';
 import { Thumb } from './Media';
 import { PostCard } from './PostCard';
 
@@ -84,6 +85,10 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const insets = useSafeAreaInsets();
   const dockSpace = useDockSpace();
   const { width } = useWindowDimensions();
+  const { desktop } = useLayout();
+  const [contentW, setContentW] = useState(width);
+  // Desktop (W1.4): the same dark profile centered at 960 px, 3–4 boutique columns.
+  const cols = desktop ? (Math.min(contentW, 960) >= 860 ? 4 : 3) : 2;
   const isSelf = userId === profile.id;
   const [tab, setTab] = useState<Tab>('posts');
   const [menu, setMenu] = useState(false);
@@ -442,12 +447,12 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     if (products.isPending) return out;
     if (productList.length === 0) return [...out, { type: 'empty' }];
     const shown = productList.slice(0, itemLimit);
-    for (let i = 0; i < shown.length; i += 2) out.push({ type: 'row', items: shown.slice(i, i + 2) });
+    for (let i = 0; i < shown.length; i += cols) out.push({ type: 'row', items: shown.slice(i, i + cols) });
     if (productList.length > itemLimit) out.push({ type: 'more', label: 'Voir plus d’articles', onPress: () => setItemLimit((n) => n + ITEM_STEP) });
     return out;
-  }, [locked, tab, timeline, expandedId, posts, postLimit, products.isPending, productList, itemLimit]);
+  }, [locked, tab, timeline, expandedId, posts, postLimit, products.isPending, productList, itemLimit, cols]);
 
-  const itemW = gridItemWidth(width);
+  const itemW = desktop ? Math.floor((Math.min(contentW, 960) - spacing.lg * 2 - spacing.md * (cols - 1)) / cols) : gridItemWidth(width);
   const tabs = (
     <View style={styles.tabs} accessibilityRole="tablist" aria-label="Contenu du profil">
       {(
@@ -484,7 +489,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: dark.background }}>
+    <View style={{ flex: 1, backgroundColor: dark.background }} onLayout={(e) => setContentW(e.nativeEvent.layout.width)}>
       <FlatList<Item>
         data={data}
         keyExtractor={(item, i) => (item.type === 'post' || item.type === 'expanded' ? `${item.type}-${item.post.id}` : item.type === 'row' ? item.items.map((p) => p.id).join('-') : `${item.type}-${i}`)}
@@ -547,7 +552,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
             </View>
           ) : undefined
         }
-        contentContainerStyle={{ paddingBottom: isOwnTab ? dockSpace : spacing.xxxl + insets.bottom }}
+        contentContainerStyle={[{ paddingBottom: isOwnTab ? dockSpace : spacing.xxxl + insets.bottom }, desktop && { width: '100%', maxWidth: 960, alignSelf: 'center' }]}
         indicatorStyle="white"
       />
 

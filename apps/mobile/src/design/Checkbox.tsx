@@ -30,7 +30,7 @@ export function Checkbox({
           </Text>
         ) : null}
         {link ? (
-          <Text variant="callout" tone="accent" weight="600" onPress={link.onPress} suppressHighlighting>
+          <Text variant="callout" tone="accent" weight="600" onPress={link.onPress} suppressHighlighting accessibilityRole="link" style={{ alignSelf: 'flex-start' }}>
             {link.label}
           </Text>
         ) : null}
