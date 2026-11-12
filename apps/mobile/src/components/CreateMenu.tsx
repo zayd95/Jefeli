@@ -142,8 +142,9 @@ export function CreateMenu({ visible, onClose }: { visible: boolean; onClose: ()
   ) : null;
 
   const dockCenter = Math.max(insets.bottom, DOCK_GAP) + DOCK_HEIGHT / 2;
-  // 104 + 124 + 104 + two 10-pt gaps = 352 pt: scale down a little between 360 and 375 pt.
-  const scale = Math.min(1, (width - 20) / 352);
+  // 104 + 124 + 104 + two 10-pt gaps = 352 pt: scale down a little below 376 pt, keeping at least
+  // 12 pt each side so the tilted side cards never touch the screen edge (sub-pixel rounding).
+  const scale = Math.min(1, (width - 24) / 352);
   const fade = { opacity: anim };
   const rise = (dy: number, deg: number) => ({
     opacity: anim,

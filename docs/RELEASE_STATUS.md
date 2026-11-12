@@ -31,6 +31,16 @@
   312/312, E2E 67 passed + 10 skipped (9 hosted + 1 gated), including the new desktop spec 8/8.
   No horizontal overflow at 1440/1280/1024/768/390/360 px and at zoom equivalents. Phone screens
   at 390/360 px are identical before/after (layout).
+- Branch `feature/design-direction-v2`, draft PR #10 → #9's branch: « Dakar after dark » visual
+  direction (forest + Senegalese gold, DM Serif Display / DM Sans) and the **white Explorer** with
+  « Filtres », « Tendances cette semaine » and « Vendeurs à suivre » (real data only). New read-only
+  migration `20261113000100_explore_discovery.sql`, **not applied to staging** (needs the owner's
+  go). **Not merged, not deployed.**
+- **Design v2 verification (12 Nov), local stack:** `pnpm check` pass (unit 32/32), integration
+  321/321 (incl. 9 new discovery tests). Full E2E: 68 passed, 1 failed, 10 skipped (9 hosted + 1
+  gated); the failure was SC-04 at 360 pt (a tilted « + » menu card 0.12 px past the screen edge).
+  Fixed by keeping 12 pt side margin; SC-04 then passed 4 times, and create + smart-create +
+  explore specs 15/15. New `explore.spec.ts` EX-01/EX-02 pass.
 - Branch `feature/brand-logo`, draft PR → PR #8's branch: the owner-approved « Jëfëli. » logo
   and « J. » app icon (`brand/README.md`). Assets only, plus the desktop sidebar mark; the phone
   UI and every feature are unchanged. **Not merged.**
