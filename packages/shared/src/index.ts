@@ -1,5 +1,6 @@
 export * from './tokens';
 export * from './format';
+export * from './phone';
 export * from './labels';
 export * from './errors';
 export * from './links';

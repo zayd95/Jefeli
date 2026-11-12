@@ -47,7 +47,9 @@ jobs:
         with:
           version: 2.122.0
       - name: Start Supabase (applies all migrations)
-        run: supabase start
+        run: |
+          node scripts/supabase-local-env.mjs
+          supabase start
       - name: Serve Edge Functions with fake provider credentials
         run: |
           nohup supabase functions serve --env-file supabase/functions/.env.test > functions.log 2>&1 &

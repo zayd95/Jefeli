@@ -26,7 +26,12 @@
   previews** (`docs/WEB_BETA_GO_NO_GO.md`). jefeli-staging is synchronized (6 migrations, verified
   backup, schema identical, 33/33 security probes); both previews build; hosted journeys 8/8 +
   public page checked; clean regression on `46a2932`: check pass, integration 297/297, E2E 53 passed.
-  Blockers: account e-mail configuration, `delete-account` not deployed, Safari voice untested.
+  Blockers: account e-mail configuration, Safari voice untested. (`delete-account` was deployed on
+  12 Nov; the hosted deletion check is pending.)
+- **Phone auth on jefeli-staging (12 Nov, owner's go):** migration applied (history 22), `send-sms`
+  and `delete-account` deployed, Auth hook and phone settings on, and every probe refuses as
+  designed. `phone_auth` stays off until the Orange keys and Turnstile arrive
+  (`docs/PHONE_AUTH.md` § 8).
 - **W1.3 verification (8 Nov), local stack, code `50e7de8` + specs `f92237b`:** `pnpm check` pass
   (unit 28/28), integration 297/297, E2E 53 passed + 1 gated skip (full suite, then the four
   specs updated during the run re-run green), schema contract current and satisfied locally;
@@ -239,6 +244,29 @@ backend only.
 | CR-12 | Native photo + voice status (not from a publication) | **NOT_BUILT** | Schema change; tradeoff in W1.3 doc §2 |
 | CR-13 | The new editors on iPhone / Android | **NOT_TESTED** | Bundles build; no device here |
 
+### W1.4 phone sign-up and sign-in (branch `feature/w1.4-phone-auth`, draft PR #7)
+
+Details, costs and setup: `docs/PHONE_AUTH.md`. Local stack: real auth server, codes delivered
+to the hook's local sink (no SMS to a real phone), Chromium.
+
+| ID | Requirement | Status | Evidence |
+|---|---|---|---|
+| PH-01 | E-mail and Téléphone offered side by side on sign-up and sign-in | **PASS** (browser) | E2E PH-01, PH-03 (360 pt) |
+| PH-02 | Passwordless phone sign-up and returning sign-in through Supabase Auth | **PASS** (local) | Integration 19-phone-auth; E2E PH-01 (second device) |
+| PH-03 | Senegal (+221) first; country picker ready for more once delivery is verified | **PASS** | `packages/shared/src/phone.ts`, server allow-list `private.sms_settings`; unit tests |
+| PH-04 | Phone-only accounts without e-mail; export and deletion work | **PASS** (local) | Integration (export, delete-account, log link forgotten) |
+| PH-05 | Add a verified phone to an e-mail account: same profile, boutique and articles; number of another account refused | **PASS** (local) | Integration; E2E PH-05, PH-06 |
+| PH-06 | Invalid numbers, wrong or expired code, resend countdown, network failure, recovery after reload | **PASS** (browser) | E2E PH-01, PH-02 (real 60 s wait), PH-04; integration (expired code) |
+| PH-07 | Server-side caps, kill switch, Senegal-only destinations, retry idempotency, usage log without codes or numbers, admin monitoring | **PASS** (local) | Integration 19-phone-auth (15 tests); `docs/PILOT_METRICS.md` § 7 |
+| PH-08 | CAPTCHA (Turnstile) on every auth request on the web | **BUILT, NOT_TESTED** | Needs keys and network access to Cloudflare |
+| PH-09 | Real SMS delivery: Orange, Free/Yas, Expresso; Safari and Android Chrome | **NOT_TESTED** | Needs the approved provider and real SIM cards (owner checklist § 6) |
+| PH-10 | Existing auth, onboarding, deletion, security policies and member data preserved | **PASS** (local) | Full regression below; migration adds objects only |
+
+- **W1.4 verification (11 Nov), local stack, clean database:** `pnpm check` pass (unit 32/32),
+  integration 312/312. E2E full run: 55 passed, 10 skipped (9 hosted-only, 1 gated), PH-03 failed on a
+  stale expected text (the test, not the app) so PH-04 → PH-06 did not run. After fixing the test,
+  `phone.spec.ts` 6/6 on the same stack.
+
 ### Other workstreams
 
 | Workstream | Status | Notes |
@@ -260,7 +288,7 @@ backend only.
 2. **Expo account** + `eas init` (project id) for development/preview builds and push.
 3. **Apple Developer Program** membership: iPhone development builds, TestFlight, Sign in with Apple.
 4. **Stream** (or another live provider) account + API key/secret, and a decision on cost.
-5. **SMS provider** for phone OTP in Senegal, and a decision on cost.
+5. **SMS provider** for phone OTP in Senegal: Orange SMS API Sénégal recommended (`docs/PHONE_AUTH.md`); owner approval, account and credentials needed. Cloudflare Turnstile keys (free) for CAPTCHA.
 6. Web hosting for `apps/web` once public exposure is approved; domain after brand clearance.
 7. Legal review of the terms, privacy policy and community rules; a named moderation contact.
 8. Confirmation of the bundle id `sn.jefeli.app` and of rights to the reference imagery used in DÉMO seed data.
@@ -277,7 +305,7 @@ approve anything.
 | Apple Developer Program | ≈ US$99/year | iPhone builds, TestFlight, App Store |
 | Google Play Console | ≈ US$25 one-time | Play Store |
 | Stream Video | Possible free "Maker" programme for small companies. Otherwise usage-based (per participant-minute) | Live |
-| SMS OTP to +221 | Roughly US$0.05–0.30 per SMS depending on provider; WhatsApp OTP is an alternative | Phone sign-in |
+| SMS OTP to +221 | **Checked 11 Nov:** Twilio $0.5506/SMS (official page); Twilio Verify +$0.05 per success. Orange SMS API Sénégal bundles 20 → 3.3 F per SMS (search results; Orange's page refused automated reading). Comparison and monthly estimates: `docs/PHONE_AUTH.md` § 2 | Phone sign-up/sign-in |
 | Web hosting | Vercel Hobby is free but non-commercial. Pro ≈ US$20/user/month, or any Node host | Share pages, admin |
 | Domain `.sn` | Registrar fee, to be confirmed | Share links, universal links |
 

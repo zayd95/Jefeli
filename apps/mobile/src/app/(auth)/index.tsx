@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { MessageCircle, Search, Smartphone, Store } from 'lucide-react-native';
+import { MessageCircle, Search, Store } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { Button, colors, Screen, spacing, Text, Wordmark } from '@/design';
@@ -44,16 +44,10 @@ export default function Welcome() {
         <Button label="Créer un compte" variant="cta" size="lg" onPress={() => router.push('/sign-up')} />
         <Button label="J’ai déjà un compte" variant="outline" size="lg" onPress={() => router.push('/sign-in')} />
         {phoneAuth ? (
-          <Button label="Continuer avec mon numéro (+221)" variant="ghost" onPress={() => router.push('/phone')} />
-        ) : (
-          // Visibly gated: SMS needs a configured (paid) provider. Email stays the way in.
-          <View style={styles.smsGate} accessible accessibilityRole="text" accessibilityLabel="Connexion par SMS, numéros +221 : bientôt disponible. Utilisez l’e-mail pour le moment." aria-disabled>
-            <Smartphone size={16} color={colors.textSecondary} strokeWidth={2} />
-            <Text variant="caption" tone="secondary" style={{ flex: 1 }}>
-              Connexion par SMS (+221) : bientôt. Utilisez l’e-mail pour le moment.
-            </Text>
-          </View>
-        )}
+          <Text variant="caption" tone="secondary" align="center">
+            Avec votre e-mail ou votre numéro de mobile (+221).
+          </Text>
+        ) : null}
         {!isProduction ? (
           <Text variant="caption" tone="secondary" align="center" style={{ marginTop: spacing.sm }}>
             Version pilote · environnement {env.appEnv === 'staging' ? 'de recette' : 'de test'}
@@ -65,7 +59,6 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  smsGate: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, justifyContent: 'center', paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   wrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg },
   point: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   pointIcon: {

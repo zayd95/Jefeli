@@ -2,6 +2,7 @@
  * Formatting helpers — French (Senegal) conventions.
  * XOF has no minor unit: amounts are integers of francs CFA.
  */
+import { parsePhone } from './phone';
 
 const NNBSP = '\u00A0'; // regular no-break space (U+202F renders cramped in Inter)
 
@@ -171,14 +172,10 @@ export function suggestHandle(displayName: string): string {
 }
 
 /**
- * Senegal-only SMS sign-in (+221). Accepts a 9-digit national number (mobile 70/75/76/77/78,
- * fixed 33) with or without the +221 / 00221 prefix and spaces. Anything else returns null:
- * Jëfëli never sends an SMS to a number outside Senegal.
+ * Senegal mobile number (+221 70/75/76/77/78) in E.164, or null. Fixed lines (33) cannot
+ * receive an SMS code and return null. See `parsePhone` (./phone) for precise reasons.
  */
 export function toSenegalE164(input: string): string | null {
-  let digits = input.replace(/\D/g, '');
-  if (digits.startsWith('00221')) digits = digits.slice(5);
-  else if (digits.startsWith('221') && digits.length === 12) digits = digits.slice(3);
-  if (!/^(7[05678]|33)\d{7}$/.test(digits)) return null;
-  return `+221${digits}`;
+  const parsed = parsePhone(input);
+  return parsed.ok ? parsed.e164 : null;
 }

@@ -283,6 +283,35 @@ from members m where m.created_at < now() - interval '14 days';
 commit;
 ```
 
+## 7. Phone codes — SMS sent, refused, failed, cost (W1.4)
+
+Every phone sign-up / sign-in code goes through the `send-sms` hook, which logs each attempt
+(no code, no full number: keyed hashes and the operator prefix only). Admins also get this from
+`select * from admin_sms_usage(14);` in the app's SQL console.
+
+```sql
+begin read only;
+select (created_at at time zone 'Africa/Dakar')::date as day,
+       count(*) filter (where outcome = 'sent') as sent,
+       count(*) filter (where outcome = 'failed') as failed,
+       count(*) filter (where outcome = 'blocked') as blocked,
+       count(*) filter (where outcome = 'blocked' and reason in ('number_hour', 'number_day', 'ip_hour')) as blocked_caps,
+       count(*) filter (where outcome = 'blocked' and reason = 'destination') as blocked_destination,
+       coalesce(sum(est_cost_xof) filter (where outcome = 'sent'), 0) as est_cost_xof
+from private.sms_events
+where created_at > now() - interval '14 days'
+group by 1 order by 1 desc;
+-- Operator ranges (sent, last 14 days): 22177/22178 Orange, 22176 Free/Yas, 22170 Expresso, 22175 Promobile
+select phone_prefix, count(*) as sent, count(*) filter (where outcome = 'failed') as failed
+from private.sms_events
+where created_at > now() - interval '14 days' and outcome in ('sent', 'failed')
+group by 1 order by 2 desc;
+commit;
+```
+
+Watch: failures concentrated on one operator range (delivery problem), `blocked_caps` rising
+(abuse or a confused member), daily sends near the budget in `private.sms_settings`.
+
 ## What « good » looks like (proposed — owner to confirm before the pilot)
 
 | Question | Signal worth continuing | Stop and fix first |

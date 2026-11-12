@@ -473,13 +473,40 @@ built-in sender), no Edge Function deployed (`delete-account`), voices recorded 
 WebM/Opus (Safari untested), preview links point to the W1 aliases, `private.upload_quota_ok()`
 executable by PUBLIC, DÉMO test accounts left on staging.
 
+### W1.4 — phone sign-up and sign-in (branch `feature/w1.4-phone-auth`, 11 Nov)
+
+Owner requirement: phone registration and login next to e-mail, as a launch criterion.
+Provider report first (`docs/PHONE_AUTH.md`, sent to the owner); nothing paid enabled.
+
+| Commit | What |
+|---|---|
+| `b6cb3f9` | Server: `send-sms` Edge Function as the Supabase Send SMS hook. It verifies the Standard Webhooks signature, allows only Senegal mobile ranges, applies caps per number, IP and day plus a daily budget, has a kill switch (`phone_auth`) and retry idempotency, and uses Orange or Twilio adapters (no success without a provider). Also: `private.sms_events`/`sms_settings`, `sms_hook_begin`/`finish` (service role only), `admin_sms_usage()`, local test sink, 15 integration tests. |
+| `61759f4` | App: « E-mail \| Téléphone » on sign-up and sign-in; shared `PhoneOtpForm`; country picker; precise errors; resend countdown; recovery after reload; « E-mail et numéro de mobile » in Réglages (`phone_change`); Turnstile when configured. Also: French copy, E2E PH-01 → PH-06, SMS block in pilot metrics. |
+
+Verified on the local auth server (GoTrue v2.197.0) rather than from memory:
+- hook payload (`sms.phone`, `sms.otp`, `metadata.ip_address`) and signature headers;
+- refusals must be HTTP 200 with `{error:{http_code,message}}`: a 4xx becomes « Invalid
+  payload » and a 5xx « Unexpected status »;
+- the hook runs inside the transaction that creates the user, so `sms_events.user_id` has no
+  foreign key; a trigger clears it on account deletion;
+- the CLI enables phone auth only when a built-in provider is « enabled », hence placeholders that
+  the hook replaces.
+
+Defects found on the way, in W1.4's own first version:
+- A foreign key from the log to `auth.users` blocked behind the uncommitted new user. The hook
+  timed out and the auth server answered « Service currently unavailable due to hook ».
+- Typing the 6th digit verified inside the hook without calling the settings screen's success
+  callback. The number was attached but the screen stayed on the code step.
+- `toSenegalE164` accepted fixed lines (33), which cannot receive an SMS; they are now refused
+  with a precise message.
+
 ## Commands that were run (latest results)
 
 | Command | Result |
 |---|---|
-| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 28 unit tests (W1.3); 25 (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
-| `pnpm test:integration` (with `.env.test` functions) | 297/297 (W1.3, article voice); 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
-| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | 53 passed, 1 skipped (W1.3, adds `create` 9, `smart-create` now 4; four specs re-run after mid-run edits); 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
+| `pnpm check` (typecheck all, lint mobile + web, unit tests) | pass, 32 unit tests (W1.4); 28 (W1.3); 25 (W1.2); 24 (W1.1); 23 on `3c02230` (P1) |
+| `pnpm test:integration` (with `.env.test` functions) | 312/312 (W1.4, adds `19-phone-auth`, clean database); 297/297 (W1.3, article voice); 294/294 (W1.2, adds `18-connected-media`); 280/280 (W1.1); 259/259 on `3c02230`, also on a database with no DÉMO data |
+| `pnpm test:e2e` (journey 11, community 5, pricing 6, resilience 6, account-recovery 3, media 5, screens 3 sizes, email-confirmation gated) | W1.4: 55 passed + 10 skipped, then phone 6/6 after a stale test text was fixed; 53 passed, 1 skipped (W1.3, adds `create` 9, `smart-create` now 4; four specs re-run after mid-run edits); 46 passed, 1 skipped (W1.2, adds `smart-create` 8); 39 passed, 1 skipped (W1.1, Expo web dev server); 34 + 1 on `3c02230`; journeys 31/31 with `E2E_SEED=0` on an empty database; email-confirmation 1/1 with confirmations on |
 | `npx expo export --platform ios --platform android` | pass: iOS 11 MB, Android 12 MB Hermes bundles (W1.3); ≈ 11 MB each on `3c02230` |
 | `node scripts/schema-contract.mjs generate --verify` / `check` (local) | up to date; ✓ 45 tables, 53 functions (W1.3) |
 | `playwright test -c playwright.hosted.config.ts` (previews `46a2932` + jefeli-staging) | 8 passed (H-00 → H-07); H-08 verified by authenticated fetch (preview protection refused the browser) |

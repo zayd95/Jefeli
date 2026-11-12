@@ -199,7 +199,8 @@ password_requirements = ""
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
 email_sent = 2
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
-sms_sent = 30
+# Local only: high so automated tests are not throttled. Hosted value: docs/PHONE_AUTH.md.
+sms_sent = 1000
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
 anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
@@ -256,14 +257,15 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
-# If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
-# Template for sending OTP to users
-template = "Your code is {{ .Code }}"
-# Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
+# Phone sign-up and sign-in (W1.4, docs/PHONE_AUTH.md).
+enable_signup = true
+# A phone number is only attached to an account after its code was entered (prevents
+# claiming someone else's number with a phone + password sign-up).
+enable_confirmations = true
+# Unused: the Send SMS hook writes the message (French, one SMS segment).
+template = "Jëfëli : votre code est {{ .Code }}."
+# At least 60 s between two codes to the same number (same as hosted).
+max_frequency = "60s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Keys are the phone number with country code and without the + prefix.
@@ -278,6 +280,13 @@ max_frequency = "5s"
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
+# Every phone code goes through our Edge Function (supabase/functions/send-sms): Senegal-only
+# ranges, caps, usage log, provider choice. Local secret: scripts/supabase-local-env.mjs.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/send-sms"
+secrets = "env(SEND_SMS_HOOK_SECRET)"
+
 # [auth.hook.before_user_created]
 # enabled = true
 # uri = "pg-functions://postgres/auth/before-user-created-hook"
@@ -288,12 +297,14 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# Local only: the CLI enables phone auth only when a built-in provider is "enabled". Every SMS
+# goes through the Send SMS hook above (it replaces the provider), so these placeholders are
+# never used to send anything. Hosted projects: see docs/PHONE_AUTH.md.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+enabled = true
+account_sid = "unused-send-sms-hook-replaces-provider"
+message_service_sid = "unused"
+auth_token = "unused"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]
@@ -433,4 +444,8 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.cleanup-media]
+verify_jwt = false
+
+# Called by the auth server, authenticated by the Standard Webhooks signature (no user JWT).
+[functions.send-sms]
 verify_jwt = false

@@ -129,6 +129,11 @@ export async function createUser(label: string, opts: CreateUserOptions = {}): P
   return { id, email, label, accessToken: session.session.access_token, client };
 }
 
+/** Registers a user created outside `createUser` (phone sign-up through the auth API) for cleanup. */
+export function trackUser(id: string): void {
+  createdUserIds.push(id);
+}
+
 /** Ground truth for a profile row, read with the service role. */
 export async function adminProfile(id: string): Promise<Record<string, any>> {
   const row = must(await adminClient.from('profiles').select('*').eq('id', id).single());
