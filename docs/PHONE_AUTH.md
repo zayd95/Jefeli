@@ -1,8 +1,8 @@
 # Jëfëli — phone sign-up and sign-in (+221)
 
-Status (11 Nov 2026): **built and verified on the local stack; waiting for the owner's
-approval of the provider before staging.** Nothing has been bought, no paid provider is
-enabled, and no SMS has been sent to a real number.
+Status (12 Nov 2026): **staging steps 1–3 of § 8 done (owner's go on 12 Nov); waiting for the
+Orange credentials and the Turnstile keys (steps 2b, 4, 5).** `phone_auth` stays off. Nothing has
+been bought, no paid provider is enabled, and no SMS has been sent to a real number.
 
 Branch `feature/w1.4-phone-auth` (stacked on W1.3). Code: `supabase/functions/send-sms`,
 `supabase/migrations/20261112000100_phone_auth_sms_guard.sql`, `apps/mobile/src/components/auth`,
@@ -159,6 +159,22 @@ nothing is simulated in staging or production.
    variables (`EXPO_PUBLIC_TURNSTILE_SITE_KEY`).
 5. Turn on `phone_auth`. Then the owner runs the § 6 checklist; the result goes in
    `docs/WEB_BETA_GO_NO_GO.md`.
+
+### Done on jefeli-staging (12 Nov 2026)
+
+| Step | Result |
+|---|---|
+| Pre-check | jefeli-staging, ref `gbsoifwllbacwsknydkq`, 21 migrations, no SMS objects, no Edge Functions deployed |
+| Backup | logical backup (49 tables, 212 rows, 36/38 files; the two private-bucket photos need the service key, and this migration does not touch storage), archive sha256 `ee58c92b…82a1`, kept out of the repository |
+| 1. Migration | `20261112000100_phone_auth_sms_guard.sql` applied, history 21 → 22, row counts identical. Grants: hook functions `service_role` only, `admin_sms_usage` refused to the public key. Deploy check: `✓ Schema compatible: 45 tables, 56 functions` |
+| 2. Functions | `send-sms` and `delete-account` deployed (v1, `verify_jwt` off, as in `config.toml`). Secrets `SEND_SMS_HOOK_SECRET` and `SMS_LOG_KEY` set through the Management API, never committed. **No `SMS_PROVIDER` yet** |
+| 3. Auth | Send SMS hook → `send-sms`; phone sign-in on with confirmation required; code 6 digits, 5 min, 60 s apart; 60 SMS/hour. Previous settings saved for rollback |
+| Probes | unsigned hook call → 401 `invalid_signature`; signed call → refused `sms_provider_unavailable`; `delete-account` without a session → 401; a code requested through Supabase Auth for +221 77 000 00 00 → 503 `sms_provider_unavailable`, no account created, nothing logged or sent |
+
+Still to do, after the owner's inputs:
+- **2b.** Set `SMS_PROVIDER=orange` and the Orange keys.
+- **4.** Add the Turnstile keys.
+- **5.** Turn `phone_auth` on, then run the § 6 checklist.
 
 Rollback: turn `phone_auth` off (stops sends server-side at once), disable the hook. The
 migration's objects are independent and can stay.

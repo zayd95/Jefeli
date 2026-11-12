@@ -8,8 +8,9 @@
    number through the secure form, and buy the 100-SMS starter bundle (2,000 F) once you approve.
 3. Create a Cloudflare Turnstile widget (free): the site key goes to me, and you paste the secret
    in Supabase › Authentication.
-4. Say « go » for the staging enablement in `docs/PHONE_AUTH.md` § 8. It includes deploying
-   `send-sms` and `delete-account`.
+4. ~~Say « go » for the staging enablement~~: given on 12 Nov. Done: the migration, `send-sms` +
+   `delete-account` deployed, and the Auth hook and phone settings. `phone_auth` stays off until
+   items 2 and 3 arrive (`docs/PHONE_AUTH.md` § 8).
 5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
 6. Optional: ask LAfricaMobile for a quote, as the backup provider.
 
@@ -31,7 +32,8 @@ Promotion on KaaySamp / TikTok only when e-mail **and** phone registration both 
    https://jefeli-app-git-feature-w13-create-habibjallow95-9380.vercel.app
 2. Account e-mails on jefeli-staging: Site URL and redirect URLs to the beta address, and an e-mail
    provider (custom SMTP), or decide another sign-up policy for a closed beta.
-3. Approve deploying `delete-account` (and the clean-up functions) to staging.
+3. ~~Deploy `delete-account`~~ done on 12 Nov. The clean-up functions (`cleanup-media`, `cleanup-stories`)
+   still wait for approval.
 4. On an iPhone: listen to a voice recorded in Chrome (feed, status, article, public page) and
    record one in Safari.
 
