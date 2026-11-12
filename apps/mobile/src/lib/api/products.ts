@@ -43,6 +43,64 @@ export async function browseProducts(args: {
   return rows.map(sortMedia);
 }
 
+export type ExploreSort = 'recent' | 'price_asc' | 'price_desc';
+export type ExploreOffer = 'sale' | 'trade' | null;
+
+/** Explorer: browse filters plus price range, sale / Wecci and sort (explore_products). */
+export async function exploreProducts(args: {
+  mode?: BrowseMode;
+  category?: string | null;
+  city?: string | null;
+  condition?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  offer?: ExploreOffer;
+  sort?: ExploreSort;
+  offset?: number;
+  limit?: number;
+}): Promise<ProductCard[]> {
+  const rows = unwrap(
+    await supabase
+      .rpc('explore_products', {
+        p_mode: args.mode ?? 'recent',
+        p_category: args.category || undefined,
+        p_city: args.city || undefined,
+        p_condition: args.condition || undefined,
+        p_min_price: args.minPrice ?? undefined,
+        p_max_price: args.maxPrice ?? undefined,
+        p_offer: args.offer || undefined,
+        p_sort: args.sort ?? 'recent',
+        p_limit: args.limit ?? PRODUCT_PAGE,
+        p_offset: args.offset ?? 0,
+      })
+      .select(PRODUCT_SELECT),
+  ) as unknown as ProductCard[];
+  return rows.map(sortMedia);
+}
+
+/** « Tendances »: articles most saved as favourites by different members this week (real data). */
+export async function fetchTrendingProducts(limit = 10): Promise<ProductCard[]> {
+  const rows = unwrap(await supabase.rpc('trending_products', { p_days: 7, p_limit: limit }).select(PRODUCT_SELECT)) as unknown as ProductCard[];
+  return rows.map(sortMedia);
+}
+
+export interface SuggestedSeller {
+  id: string;
+  handle: string;
+  display_name: string;
+  avatar_path: string | null;
+  city: string | null;
+  is_demo: boolean;
+  verification_level: string;
+  boutique_name: string | null;
+  active_products: number;
+}
+
+/** « Vendeurs à suivre »: active sellers the member does not follow yet, same city first. */
+export async function fetchSuggestedSellers(limit = 8): Promise<SuggestedSeller[]> {
+  return unwrap(await supabase.rpc('suggested_sellers', { p_limit: limit })) as unknown as SuggestedSeller[];
+}
+
 export async function fetchProduct(id: string): Promise<ProductCard | null> {
   const row = unwrap(await supabase.from('products').select(PRODUCT_SELECT).eq('id', id).maybeSingle()) as unknown as ProductCard | null;
   return row ? sortMedia(row) : null;
@@ -73,6 +131,12 @@ export async function fetchSavedProducts(userId: string): Promise<ProductCard[]>
       .limit(60),
   ) as unknown as { product: ProductCard | null }[];
   return rows.map((r) => r.product).filter((p): p is ProductCard => !!p).map(sortMedia);
+}
+
+/** Ids of the articles the member saved (cards' heart state, one query for the whole grid). */
+export async function fetchSavedProductIds(userId: string): Promise<string[]> {
+  const rows = unwrap(await supabase.from('product_saves').select('product_id').eq('user_id', userId).limit(500)) as { product_id: string }[];
+  return rows.map((r) => r.product_id);
 }
 
 export async function isProductSaved(userId: string, productId: string): Promise<boolean> {

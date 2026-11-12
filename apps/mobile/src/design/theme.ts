@@ -1,20 +1,22 @@
-import { colors, dark, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
+import { colors, dark, light, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
 import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 
-export { colors, dark, radius, spacing, typeScale, touchTarget, palette };
+export { colors, dark, light, radius, spacing, typeScale, touchTarget, palette };
 
 /**
- * Lovable typography: Hanken Grotesk for body/labels (`font-lab`), Fraunces for editorial
+ * Typography: DM Sans for the interface, DM Serif Display for editorial headings
  * display text (`font-display`). Each weight ships as its own family on native.
  */
 export const fonts = {
-  regular: 'HankenGrotesk_400Regular',
-  medium: 'HankenGrotesk_500Medium',
-  semibold: 'HankenGrotesk_600SemiBold',
-  bold: 'HankenGrotesk_700Bold',
-  extrabold: 'HankenGrotesk_800ExtraBold',
-  serif: 'Fraunces_400Regular',
-  serifSemibold: 'Fraunces_600SemiBold',
+  regular: 'DMSans_400Regular',
+  medium: 'DMSans_500Medium',
+  semibold: 'DMSans_600SemiBold',
+  bold: 'DMSans_700Bold',
+  extrabold: 'DMSans_800ExtraBold',
+  // DM Serif Display ships one weight: editorial headings, product names, wordmark.
+  serif: 'DMSerifDisplay_400Regular',
+  serifSemibold: 'DMSerifDisplay_400Regular',
+  serifItalic: 'DMSerifDisplay_400Regular_Italic',
 } as const;
 
 export function serifFor(weight: TextStyle['fontWeight']): string {

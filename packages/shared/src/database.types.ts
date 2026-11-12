@@ -1297,6 +1297,38 @@ isOneToOne: false
 "expire_stale_offers":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"explore_products":
+{ Args: { "p_category"?: string,"p_city"?: string,"p_condition"?: string,"p_limit"?: number,"p_max_price"?: number,"p_min_price"?: number,"p_mode"?: string,"p_offer"?: string,"p_offset"?: number,"p_query"?: string,"p_sort"?: string }; Returns: {
+              "category_slug": string,
+"city": string | null,
+"collection_id": string | null,
+"condition": Database["public"]['Enums']["item_condition"],
+"created_at": string,
+"delivery_notes": string,
+"delivery_options": (string)[],
+"description": string,
+"id": string,
+"listing_mode": Database["public"]['Enums']["listing_mode"],
+"moderation_status": Database["public"]['Enums']["moderation_state"],
+"neighborhood": string | null,
+"pinned_at": string | null,
+"price_mode": string,
+"price_xof": number | null,
+"quantity": number,
+"save_count": number,
+"search_text": string | null,
+"seller_id": string,
+"sold_at": string | null,
+"status": Database["public"]['Enums']["product_status"],
+"title": string,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "products"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "export_my_data":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -1450,6 +1482,43 @@ isOneToOne: false
 "submit_appeal":
 { Args: { "p_body": string,"p_moderation_action_id": string }; Returns: string
                            },
+"suggested_sellers":
+{ Args: { "p_limit"?: number }; Returns: {
+              "active_products": number,"avatar_path": string,"boutique_name": string,"city": string,"display_name": string,"handle": string,"id": string,"is_demo": boolean,"verification_level": Database["public"]['Enums']["verification_level"]
+            }[]
+                           },
+"trending_products":
+{ Args: { "p_days"?: number,"p_limit"?: number }; Returns: {
+              "category_slug": string,
+"city": string | null,
+"collection_id": string | null,
+"condition": Database["public"]['Enums']["item_condition"],
+"created_at": string,
+"delivery_notes": string,
+"delivery_options": (string)[],
+"description": string,
+"id": string,
+"listing_mode": Database["public"]['Enums']["listing_mode"],
+"moderation_status": Database["public"]['Enums']["moderation_state"],
+"neighborhood": string | null,
+"pinned_at": string | null,
+"price_mode": string,
+"price_xof": number | null,
+"quantity": number,
+"save_count": number,
+"search_text": string | null,
+"seller_id": string,
+"sold_at": string | null,
+"status": Database["public"]['Enums']["product_status"],
+"title": string,
+"updated_at": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "products"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "unpin_live_product":
 { Args: { "p_session_id": string }; Returns: undefined
                            },

@@ -16,7 +16,8 @@ export interface AvatarProps {
   border?: boolean;
 }
 
-const fallbackTints = ['#D7F1E9', '#E8E3D6', '#DCE6EE', '#EDE2E4', '#E3EBDC'];
+// Deep, earthy initials backgrounds (terracotta red, forest, teal, ochre) under warm off-white letters.
+const fallbackTints = ['#B43F31', '#0D3A30', '#14755D', '#8C6A1C', '#5E3A2E'];
 
 export function Avatar({ path, name, size = 40, border }: AvatarProps) {
   const url = avatarUrl(path);
@@ -78,7 +79,7 @@ export function StoryRing({
         <Avatar path={path} name={name} size={size} />
         {addBadge ? (
           <View style={styles.add}>
-            <Plus size={13} color={colors.ink} strokeWidth={3} />
+            <Plus size={13} color={colors.onPrimary} strokeWidth={3} />
           </View>
         ) : null}
         {live ? (

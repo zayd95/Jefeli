@@ -21,7 +21,8 @@
     "20261109000100_media_videos.sql",
     "20261110000100_connected_media.sql",
     "20261111000100_article_voice.sql",
-    "20261112000100_phone_auth_sms_guard.sql"
+    "20261112000100_phone_auth_sms_guard.sql",
+    "20261113000100_explore_discovery.sql"
   ],
   "tables": {
     "account_settings": [
@@ -604,6 +605,21 @@
     "expire_stale_offers": [
       []
     ],
+    "explore_products": [
+      [
+        "p_mode",
+        "p_query",
+        "p_category",
+        "p_city",
+        "p_condition",
+        "p_min_price",
+        "p_max_price",
+        "p_offer",
+        "p_sort",
+        "p_limit",
+        "p_offset"
+      ]
+    ],
     "export_my_data": [
       []
     ],
@@ -821,6 +837,17 @@
       [
         "p_moderation_action_id",
         "p_body"
+      ]
+    ],
+    "suggested_sellers": [
+      [
+        "p_limit"
+      ]
+    ],
+    "trending_products": [
+      [
+        "p_days",
+        "p_limit"
       ]
     ],
     "unpin_live_product": [

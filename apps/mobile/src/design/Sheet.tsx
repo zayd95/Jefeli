@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
-  sheetDark: { backgroundColor: dark.dock, borderWidth: 1, borderBottomWidth: 0, borderColor: dark.glassBorder },
+  sheetDark: { backgroundColor: dark.surface, borderWidth: 1, borderBottomWidth: 0, borderColor: dark.glassBorder },
   grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong, marginBottom: spacing.md },
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 10, paddingHorizontal: 4, borderRadius: radius.md, minHeight: 52 },
   actionIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceSubtle, alignItems: 'center', justifyContent: 'center' },

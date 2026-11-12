@@ -14,6 +14,14 @@
 5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
 6. Optional: ask LAfricaMobile for a quote, as the backup provider.
 
+## Owner (now): design direction v2 + white Explorer — draft PR (feature/design-direction-v2)
+
+1. Review `docs/evidence/design-v2/compare/` (before/after) and `docs/evidence/design-v2/explore/`.
+2. On Explorer, try « Filtres » (price, to buy / Wecci, sort), « Tendances cette semaine » (appears
+   once members save articles this week) and « Vendeurs à suivre ».
+3. Staging needs the new read-only migration `20261113000100_explore_discovery.sql` before the
+   preview can show the new Explorer rows; it is applied only after your go.
+
 ## Owner (now): brand — draft PR (feature/brand-logo)
 
 1. Accept the asset previews (`docs/evidence/brand/`).

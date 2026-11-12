@@ -133,7 +133,7 @@ test.describe.serial('W1.4 desktop web', () => {
     const chooser = s.waitForEvent('filechooser');
     await s.getByRole('button', { name: 'Média', exact: true }).click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg')]);
-    await expect(s.getByText('1/2', { exact: true }).first()).toBeVisible();
+    await expect(s.locator('text="1/2" >> visible=true').first()).toBeVisible();
 
     await s.getByRole('button', { name: 'Voix', exact: true }).click();
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
@@ -196,7 +196,7 @@ test.describe.serial('W1.4 desktop web', () => {
     const listen = b.getByRole('button', { name: /^Écouter l’explication/ }).first();
     await listen.scrollIntoViewIfNeeded();
     await listen.click();
-    await expect(b.getByText('2/2', { exact: true }).first()).toBeVisible({ timeout: 8_000 });
+    await expect(b.locator('text="2/2" >> visible=true').first()).toBeVisible({ timeout: 8_000 });
     await expect.poll(async () => (await playing(b)).length).toBe(0); // the voice took over
     await shot(b, DIR, 'B-desktop-narration-following');
     await b.getByRole('button', { name: 'Mettre en pause' }).first().click();

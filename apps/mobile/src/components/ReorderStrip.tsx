@@ -154,7 +154,7 @@ function DraggableThumb({
           if (e.nativeEvent.actionName === 'remove') onRemove();
         }}
       >
-        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.ink }]} />}
+        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.night }]} />}
         {item.kind === 'video' ? (
           <View style={styles.video}>
             <Play size={12} color={colors.white} fill={colors.white} />

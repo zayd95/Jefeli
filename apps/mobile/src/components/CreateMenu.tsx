@@ -318,14 +318,14 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingVertical: 6, borderRadius: 14 },
   rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
   // Card pictures
-  picStatus: { width: 48, height: 70, borderRadius: 10, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 8 },
+  picStatus: { width: 48, height: 70, borderRadius: 10, backgroundColor: colors.forest, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 8 },
   picStatusBars: { position: 'absolute', top: 6, left: 6, right: 6, flexDirection: 'row', gap: 3 },
   picStatusBar: { flex: 1, height: 2, borderRadius: 1 },
   picStatusDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.gold },
   picPost: { width: 98, height: 74, borderRadius: 12, backgroundColor: colors.surfaceMuted, overflow: 'hidden', alignItems: 'center' },
-  picPostGarment: { width: 34, height: 46, marginTop: 8, borderRadius: 6, backgroundColor: colors.inkSoft },
+  picPostGarment: { width: 34, height: 46, marginTop: 8, borderRadius: 6, backgroundColor: colors.surfaceMuted },
   picPostBar: { position: 'absolute', left: 6, right: 6, bottom: 6, height: 16, borderRadius: 8, backgroundColor: dark.glass, flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6 },
   picPostPlay: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.mint, marginRight: 3 },
-  picTag: { width: 80, height: 50, marginVertical: 10, borderRadius: radius.md, backgroundColor: colors.ink, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8 },
+  picTag: { width: 80, height: 50, marginVertical: 10, borderRadius: radius.md, backgroundColor: colors.forest, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8 },
   picTagHole: { width: 8, height: 8, borderRadius: 4, backgroundColor: dark.text },
 });

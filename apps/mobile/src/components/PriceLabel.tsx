@@ -8,7 +8,7 @@
 import { formatListingPrice, formatXOF, hasDisplayedPrice } from '@jefeli/shared';
 import { View, type TextStyle } from 'react-native';
 
-import { colors, dark, Text } from '@/design';
+import { colors, dark, light, Text } from '@/design';
 
 type Priced = { price_xof: number | null; price_mode?: string | null; listing_mode?: string | null };
 
@@ -29,12 +29,14 @@ export function PriceLabel({
   size?: keyof typeof SIZES;
   compact?: boolean;
   style?: TextStyle;
-  tone?: 'light' | 'dark';
+  /** 'paper': the white Explorer page. */
+  tone?: 'light' | 'dark' | 'paper';
 }) {
   const s = SIZES[size];
   const isDark = tone === 'dark';
-  const strong = isDark ? dark.text : colors.ink;
-  const soft = isDark ? dark.textSecondary : colors.textSecondary;
+  const paper = tone === 'paper';
+  const strong = paper ? light.ink : isDark ? dark.text : colors.ink;
+  const soft = paper ? light.textSecondary : isDark ? dark.textSecondary : colors.textSecondary;
   const label = formatListingPrice(product, { compact });
   const negotiable = product.price_mode === 'negotiable';
   const pill = negotiable && size !== 'display';
@@ -46,7 +48,7 @@ export function PriceLabel({
       return (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }} accessible accessibilityLabel={label}>
           {pill ? (
-            <NegotiablePill dark={isDark} />
+            <NegotiablePill dark={isDark} paper={paper} />
           ) : (
             <>
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.gold }} />
@@ -85,15 +87,15 @@ export function PriceLabel({
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 2 }} accessible accessibilityLabel={label}>
       {amount}
-      <NegotiablePill dark={isDark} />
+      <NegotiablePill dark={isDark} paper={paper} />
     </View>
   );
 }
 
-function NegotiablePill({ dark: isDark }: { dark: boolean }) {
+function NegotiablePill({ dark: isDark, paper }: { dark: boolean; paper?: boolean }) {
   return (
-    <View style={{ borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: isDark ? dark.goldSoft : colors.goldSoft }}>
-      <Text weight="700" color={isDark ? dark.gold : colors.ink} style={{ fontSize: 11, lineHeight: 15 }}>
+    <View style={{ borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: paper ? 'rgba(239, 189, 56, 0.22)' : isDark ? dark.goldSoft : colors.goldSoft }}>
+      <Text weight="700" color={paper ? light.ink : isDark ? dark.gold : colors.ink} style={{ fontSize: 11, lineHeight: 15 }}>
         À discuter
       </Text>
     </View>

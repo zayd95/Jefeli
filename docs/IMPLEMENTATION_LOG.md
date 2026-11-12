@@ -569,3 +569,30 @@ Verification:
 - desktop E2E DT-01/DT-02 pass;
 - the web build serves `/icon.svg` and `/favicon.ico`;
 - real-size acceptance sheet in `docs/evidence/brand/`.
+
+### Design direction v2 « Dakar after dark » + white Explorer — branch `feature/design-direction-v2` (12 Nov)
+
+Owner request: « upgrade the design to match the reference, don't change anything major », then
+« Explorer page should remain white, that's our commercial page; add extra filtering, most trendy
+things, who to follow ». Screens, flows and layouts are unchanged; only the visual direction moved.
+
+- Tokens (`packages/shared/src/tokens.ts`): forest greens (`#061D18` page, `#0B2922` cards,
+  `#12382F` active), Senegalese gold `#EFBD38` + `onPrimary` for active states and primary actions,
+  mint `#7ED8BD` for discovery icons, red `#DB4A35` for counts and favourites, warm text
+  `#F6F5ED`; new `light` set for the white Explorer. Fonts: DM Serif Display + DM Sans (mobile via
+  `@expo-google-fonts`, web via `@fontsource`).
+- Components: gold selected states (segments, chips, pills, checkboxes), gold buttons, floating
+  dock with a raised gold « Publier », gold desktop « Créer », redesigned `ListingCard` (badge,
+  real favourite heart through `product_saves`, seller, serif title, place · condition, price),
+  `Eyebrow`, paper tones for the white page. Brand assets regenerated on the new night + gold.
+- Explorer: white page with a dark intro band; « Filtres » sheet (price range, to buy / Wecci,
+  sort); « Tendances cette semaine » and « Vendeurs à suivre » rows, real data only, hidden when
+  empty or filtered.
+- Migration `20261113000100_explore_discovery.sql`: `explore_products` (security invoker, browse
+  visibility), `trending_products` and `suggested_sellers` (security definer, authenticated only,
+  block / mute / private-account rules, public fields only). Integration
+  `20-explore-discovery.test.ts` (9 tests). E2E `explore.spec.ts` (EX-01 sort + price range,
+  EX-02 sellers to follow).
+- Defects found in review and fixed: white cards rendered dark on Explorer (missing paper style),
+  « À discuter » pill invisible on white, filter sheet slightly translucent over the white page.
+- Evidence: `docs/evidence/design-v2/` (before/after sheets, after shots, `explore/`).

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/inter';
+import '@fontsource-variable/dm-sans';
+import '@fontsource/dm-serif-display/400.css';
 import './globals.css';
 import { env } from '@/lib/env';
 import { themeCss } from '@/lib/theme';

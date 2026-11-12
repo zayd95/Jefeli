@@ -120,7 +120,7 @@ export function VideoPlayerInline({
   if (!started) {
     return (
       <Pressable style={StyleSheet.absoluteFill} onPress={start} accessibilityRole="button" accessibilityLabel="Lire la vidéo">
-        {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.ink }]} />}
+        {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.night }]} />}
         <View style={styles.playWrap}>
           <View style={styles.play}>
             <Play size={24} color={dark.text} fill={dark.text} />

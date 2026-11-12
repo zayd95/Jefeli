@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { CreateMenu } from '@/components/CreateMenu';
-import { colors, dark, shadow, Text } from '@/design';
+import { colors, dark, light, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { DOCK_GAP } from '@/lib/dock';
@@ -55,19 +55,19 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
   }, []);
   if (keyboard) return null;
 
-  const activeName = state.routes[state.index]?.name;
-  const light = activeName === 'explore';
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, DOCK_GAP) }]}>
-      <View style={[styles.dock, light ? styles.dockLight : styles.dockDark, shadow.floating]} accessibilityRole="tablist" aria-label="Navigation principale">
+      <View style={[styles.dock, styles.dockDark, shadow.floating]} accessibilityRole="tablist" aria-label="Navigation principale">
         {state.routes.map((route, index) => {
           const meta = TABS[route.name];
           if (!meta) return null;
           const selected = state.index === index && route.name !== 'publish';
           const Icon = meta.icon;
           const unreadCount = route.name === 'messages' ? (unread.data ?? 0) : 0;
-          const ink = selected ? colors.night : light ? colors.inkSoft : dark.textStrong;
+          const isPublish = route.name === 'publish';
+          // Active destination: Senegalese gold on a deeper green; others: muted green-grey.
+          const ink = selected ? colors.gold : dark.textSecondary;
 
           return (
             <Pressable
@@ -84,21 +84,21 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
               style={({ pressed }) => [
                 styles.item,
                 selected && styles.itemSelected,
-                pressed && !selected && (light ? styles.pressedLight : styles.pressedDark),
+                pressed && !selected && !isPublish && styles.pressedDark,
                 pressed && { transform: [{ scale: 0.96 }] },
               ]}
             >
-              <View style={styles.iconWrap}>
-                <Icon size={21} color={ink} strokeWidth={route.name === 'publish' ? 2.1 : 1.9} />
+              <View style={isPublish ? styles.publish : styles.iconWrap}>
+                <Icon size={isPublish ? 22 : 21} color={isPublish ? colors.onPrimary : ink} strokeWidth={isPublish ? 2.4 : 1.9} />
                 {unreadCount > 0 && (
-                  <View style={[styles.badge, { borderColor: light ? colors.surface : colors.night }]}>
+                  <View style={[styles.badge, { borderColor: colors.night }]}>
                     <Text variant="micro" weight="700" color={colors.white} style={{ fontSize: 10, lineHeight: 12 }}>
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </Text>
                   </View>
                 )}
               </View>
-              <Text variant="micro" weight="600" color={ink} numberOfLines={1} style={styles.label}>
+              <Text variant="micro" weight="600" color={isPublish ? dark.textStrong : ink} numberOfLines={1} style={styles.label}>
                 {meta.label}
               </Text>
             </Pressable>
@@ -119,7 +119,7 @@ export default function TabsLayout() {
       tabBar={(props) => (desktop ? null : <JefeliTabBar {...(props as unknown as TabBarProps)} />)}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: colors.background } }} />
+      <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: light.background } }} />
       <Tabs.Screen name="publish" />
       <Tabs.Screen name="messages" />
       <Tabs.Screen name="profile" />
@@ -135,27 +135,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     padding: 5,
-    borderRadius: 30,
+    borderRadius: 23,
     borderWidth: 1,
     maxWidth: 520,
     width: '100%',
     alignSelf: 'center',
   },
-  dockLight: { backgroundColor: colors.dockLight, borderColor: colors.dockLightBorder },
   dockDark: { backgroundColor: dark.dock, borderColor: dark.dockBorder },
   item: {
     flex: 1,
     minWidth: 0,
-    height: 58,
-    borderRadius: 24,
+    height: 62,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 4,
   },
-  itemSelected: { backgroundColor: colors.mint },
-  pressedLight: { backgroundColor: colors.surface },
+  itemSelected: { backgroundColor: dark.raised },
   pressedDark: { backgroundColor: dark.subtle },
   iconWrap: { height: 22, alignItems: 'center', justifyContent: 'center' },
+  // « Publier »: a small gold action button raised above the dock, ringed with the page colour.
+  publish: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    marginTop: -22,
+    backgroundColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.night,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   label: { fontSize: 10, lineHeight: 12, paddingHorizontal: 2 },
   badge: {
     position: 'absolute',
@@ -165,7 +175,7 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: colors.live,
+    backgroundColor: colors.red,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
