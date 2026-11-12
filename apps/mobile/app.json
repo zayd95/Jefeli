@@ -21,7 +21,7 @@
     "android": {
       "package": "sn.jefeli.app",
       "adaptiveIcon": {
-        "backgroundColor": "#10252C",
+        "backgroundColor": "#091B19",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -46,9 +46,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FAFBFA",
+          "backgroundColor": "#091B19",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 160
+          "imageWidth": 200
         }
       ],
       [

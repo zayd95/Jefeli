@@ -10,7 +10,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { CreateMenu } from '@/components/CreateMenu';
-import { Avatar, colors, dark, DemoBadge, spacing, Text, Wordmark } from '@/design';
+import { Avatar, BrandLogo, BrandMark, colors, dark, DemoBadge, spacing, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { fetchUnreadNotificationCount } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth';
@@ -61,13 +61,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
     <View style={styles.row}>
       <View style={[styles.sidebar, { width: compact ? SIDEBAR_COMPACT : SIDEBAR_WIDE }, compact && styles.sidebarCompact]} accessibilityRole="navigation" aria-label="Navigation principale">
         <Pressable onPress={() => router.push('/')} accessibilityRole="link" accessibilityLabel="Jëfëli, accueil" style={[styles.brand, compact && { paddingHorizontal: 0 }]}>
-          {compact ? (
-            <Text serif weight="600" color={dark.text} style={{ fontSize: 30, lineHeight: 36 }}>
-              J<Text serif weight="600" color={colors.gold} style={{ fontSize: 30, lineHeight: 36 }}>.</Text>
-            </Text>
-          ) : (
-            <Wordmark size={30} color={dark.text} />
-          )}
+          {compact ? <BrandMark height={32} /> : <BrandLogo height={30} />}
         </Pressable>
         <View style={{ gap: 2 }}>
           {items.map((item) => (

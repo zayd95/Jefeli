@@ -31,6 +31,9 @@
   312/312, E2E 67 passed + 10 skipped (9 hosted + 1 gated), including the new desktop spec 8/8.
   No horizontal overflow at 1440/1280/1024/768/390/360 px and at zoom equivalents. Phone screens
   at 390/360 px are identical before/after (layout).
+- Branch `feature/brand-logo`, draft PR → PR #8's branch: the owner-approved « Jëfëli. » logo
+  and « J. » app icon (`brand/README.md`). Assets only, plus the desktop sidebar mark; the phone
+  UI and every feature are unchanged. **Not merged.**
 - **Web beta go/no-go (11 Nov): NO-GO for outside testers, GO for the owner's acceptance on the
   previews** (`docs/WEB_BETA_GO_NO_GO.md`). jefeli-staging is synchronized (6 migrations, verified
   backup, schema identical, 33/33 security probes); both previews build; hosted journeys 8/8 +
