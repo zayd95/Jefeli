@@ -17,6 +17,12 @@ with a write token entered in the secure form (the first token was read-only and
 Not done (not in the approval): the Edge Functions `delete-account` and `cleanup-media` are still
 not deployed on staging (no function is deployed there).
 
+**12 Nov 2026 (phone-auth go):**
+- `20261112000100_phone_auth_sms_guard.sql` applied after a fresh backup (history 21 → 22, counts
+  unchanged, schema check `✓ 45 tables, 56 functions`).
+- `send-sms` and `delete-account` deployed. `cleanup-media` is still not deployed.
+- Details: `docs/PHONE_AUTH.md` § 8.
+
 ## Why
 
 jefeli-staging (`gbsoifwllbacwsknydkq`) has 15 migrations. The code on the W1 → W1.3 branches

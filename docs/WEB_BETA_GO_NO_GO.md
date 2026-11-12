@@ -61,9 +61,10 @@ Hosted journeys, on the preview with two DÉMO test accounts:
    working confirmation link. Fix (Dashboard › Authentication): set the Site URL and redirect
    URLs to the beta address, and connect an e-mail provider (custom SMTP; a provider account may
    cost money: owner's choice). Not verified with a real inbox from here.
-2. **Account deletion.** The `delete-account` Edge Function is not deployed on staging (no
-   function is), so « Supprimer mon compte » fails on the hosted app. Deploying it (and the
-   media/status clean-up functions) needs the owner's go-ahead.
+2. **Account deletion.** Partly resolved on 12 Nov:
+   - `delete-account` is deployed on staging and refuses calls without a session (401);
+   - deleting a real hosted test account from the preview is still to be checked;
+   - the media and status clean-up functions are still not deployed and need the owner's go-ahead.
 3. **Safari / iPhone voice.** Chrome records voices as WebM/Opus. Recent Safari plays it; older
    iPhones may not. Not testable here (no Safari or device). Owner test: record in Chrome, listen
    on the iPhone (feed, status, article, public page); and record on the iPhone, listen in
