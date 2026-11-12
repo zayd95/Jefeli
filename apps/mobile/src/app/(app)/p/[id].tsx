@@ -25,6 +25,7 @@ import { messageAboutProduct } from '@/lib/api/messages';
 import { setPinned } from '@/lib/api/posts';
 import { deleteListing, fetchCategories, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
+import { useLayout } from '@/lib/layout';
 import { useMediaUrl } from '@/lib/media';
 import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
@@ -83,7 +84,11 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const unavailable = product.status !== 'active';
   const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade';
   const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale';
-  const mediaW = Math.min(width, 640);
+  const { desktop } = useLayout();
+  const [contentW, setContentW] = useState(width);
+  // Desktop (W1.4): gallery left, a fixed action panel right; one column below 940 px of content.
+  const twoCol = desktop && contentW >= 940;
+  const mediaW = desktop ? Math.min(640, twoCol ? contentW - 64 - 40 - 380 : contentW - 64) : Math.min(width, 640);
   // W1.3: « Présenter en voix », stored with the article.
   const voice = product.media.find((m) => m.kind === 'audio') ?? null;
   const voiceUri = useMediaUrl('public-media', voice?.storage_path);
@@ -132,11 +137,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const offer = () => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'price' } });
   const barter = () => router.push({ pathname: '/offer/[productId]', params: { productId: product.id, kind: 'barter' } });
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: ctaHeight + spacing.lg }} showsVerticalScrollIndicator={false}>
-        {/* Image-led, full-bleed (Lovable aspect-square) with glass controls over the photo. */}
-        <View style={{ alignItems: 'center', backgroundColor: colors.night }}>
+  // Shared blocks: the phone layout and the desktop two-column layout (W1.4) use the same pieces.
+  const mediaBlock = (
           <View>
             {/* W1.3: the seller's voice plays over the photos, following the « visite guidée ». */}
             <PostMedia
@@ -154,9 +156,9 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               </View>
             ) : null}
           </View>
-        </View>
-
-        <View style={styles.sheet}>
+  );
+  const headBlock = (
+    <>
           <View style={styles.tags}>
             <Chip label={CONDITION_LABELS[product.condition]} />
             {category ? <Chip label={category.name} /> : null}
@@ -181,7 +183,10 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               Valeur estimée par le vendeur
             </Text>
           ) : null}
-
+    </>
+  );
+  const sellerBlock = (
+    <>
           {seller ? (
             <Pressable
               onPress={() => router.push(`/u/${seller.handle}`)}
@@ -209,7 +214,10 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               <ArrowRight size={16} color={colors.textSecondary} />
             </Pressable>
           ) : null}
-
+    </>
+  );
+  const descBlock = (
+    <>
           {product.description ? (
             <Text style={styles.description}>{product.description}</Text>
           ) : null}
@@ -261,23 +269,10 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
               Le paiement se règle directement entre vous (Wave, Orange Money, espèces…). {PLATFORM_DISCLAIMER}
             </Text>
           </View>
-        </View>
-      </ScrollView>
-
-      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 10) }]} pointerEvents="box-none">
-        <IconButton icon={ArrowLeft} label="Retour" variant="glass" size={20} color={dark.text} onPress={() => goBack()} />
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} />
-          {!isOwner ? (
-            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} variant="glass" size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : dark.text} onPress={toggleSave} />
-          ) : null}
-          <IconButton icon={MoreHorizontal} label="Plus d’options" variant="glass" size={19} color={dark.text} onPress={() => setMenu(true)} />
-        </View>
-      </View>
-
-      {/* Sticky Lovable CTA: a light glass bar with the main action in ink. */}
-      <View style={[styles.ctaWrap, { paddingBottom: Math.max(insets.bottom, spacing.md) }]} onLayout={(e) => setCtaHeight(e.nativeEvent.layout.height)}>
-        <View style={[styles.cta, shadow.floating]}>
+    </>
+  );
+  const actions = (
+    <>
           {isOwner ? (
             <View style={{ gap: 8 }}>
               {product.status === 'active' ? (
@@ -315,6 +310,115 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           ) : (
             <Button label="Envoyer un message au vendeur" variant="outline" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} style={{ borderRadius: 18 }} />
           )}
+    </>
+  );
+
+  const menus = (
+    <>
+      <ContentMenu
+        visible={menu}
+        onClose={() => setMenu(false)}
+        ownerId={product.seller_id}
+        ownerName={seller?.display_name ?? 'ce vendeur'}
+        target={{ type: 'product', id: product.id }}
+        onShare={() => shareLinks.product(product)}
+        onShareToStatus={product.status === 'active' || product.status === 'reserved' ? () => setStatusSheet(true) : undefined}
+        pin={{
+          pinned: !!product.pinned_at,
+          onToggle: async () => {
+            try {
+              await setPinned('product', product.id, !product.pinned_at);
+              qc.invalidateQueries({ queryKey: ['product', product.id] });
+              qc.invalidateQueries({ queryKey: ['seller-products', product.seller_id] });
+              toast(product.pinned_at ? 'Retiré de votre profil' : 'Épinglé sur votre profil', 'success');
+            } catch (e) {
+              toast(toFrenchError(e), 'error');
+            }
+          },
+        }}
+        onEdit={() => router.push(`/listing-edit/${product.id}`)}
+        deleteLabel="Supprimer l’article"
+        onDelete={async () => {
+          await deleteListing(product.id);
+          qc.invalidateQueries({ queryKey: ['seller-products', product.seller_id] });
+          qc.invalidateQueries({ queryKey: ['me'] });
+          goBack();
+        }}
+      />
+      <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
+    </>
+  );
+
+  if (desktop) {
+    const toolbar = (
+      <View style={styles.dToolbar}>
+        <Button label="Retour" variant="ghost" size="sm" icon={ArrowLeft} onPress={() => goBack()} />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <IconButton icon={Share2} label="Partager l’article" size={19} color={colors.ink} onPress={() => shareLinks.product(product)} />
+          {!isOwner ? (
+            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : colors.ink} onPress={toggleSave} />
+          ) : null}
+          <IconButton icon={MoreHorizontal} label="Plus d’options" size={19} color={colors.ink} onPress={() => setMenu(true)} />
+        </View>
+      </View>
+    );
+    const panel = (
+      <View style={[styles.dPanel, twoCol && styles.dPanelSide]}>
+        <View style={styles.dCard}>
+          {headBlock}
+          <View style={{ marginTop: spacing.lg }}>{actions}</View>
+        </View>
+        {sellerBlock}
+      </View>
+    );
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }} onLayout={(e) => setContentW(e.nativeEvent.layout.width)}>
+        <ScrollView contentContainerStyle={styles.dScroll}>
+          {toolbar}
+          <View style={[styles.dRow, !twoCol && { flexDirection: 'column' }]}>
+            <View style={{ width: mediaW, maxWidth: '100%', gap: spacing.lg }}>
+              <View style={styles.dMedia} testID="product-media">{mediaBlock}</View>
+              {!twoCol ? panel : null}
+              <View>{descBlock}</View>
+            </View>
+            {twoCol ? panel : null}
+          </View>
+        </ScrollView>
+        {menus}
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: ctaHeight + spacing.lg }} showsVerticalScrollIndicator={false}>
+        {/* Image-led, full-bleed (Lovable aspect-square) with glass controls over the photo. */}
+        <View style={{ alignItems: 'center', backgroundColor: colors.night }}>
+          {mediaBlock}
+        </View>
+
+        <View style={styles.sheet}>
+          {headBlock}
+          {sellerBlock}
+          {descBlock}
+        </View>
+      </ScrollView>
+
+      <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 10) }]} pointerEvents="box-none">
+        <IconButton icon={ArrowLeft} label="Retour" variant="glass" size={20} color={dark.text} onPress={() => goBack()} />
+        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} />
+          {!isOwner ? (
+            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} variant="glass" size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : dark.text} onPress={toggleSave} />
+          ) : null}
+          <IconButton icon={MoreHorizontal} label="Plus d’options" variant="glass" size={19} color={dark.text} onPress={() => setMenu(true)} />
+        </View>
+      </View>
+
+      {/* Sticky Lovable CTA: a light glass bar with the main action in ink. */}
+      <View style={[styles.ctaWrap, { paddingBottom: Math.max(insets.bottom, spacing.md) }]} onLayout={(e) => setCtaHeight(e.nativeEvent.layout.height)}>
+        <View style={[styles.cta, shadow.floating]}>
+          {actions}
         </View>
       </View>
 
@@ -386,6 +490,13 @@ function Detail({ icon: Icon, label, hint, first }: { icon: typeof MapPin; label
 
 
 const styles = StyleSheet.create({
+  dScroll: { width: '100%', maxWidth: 1180, alignSelf: 'center', paddingHorizontal: 32, paddingBottom: 48 },
+  dToolbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md },
+  dRow: { flexDirection: 'row', gap: 40, alignItems: 'flex-start' },
+  dMedia: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.night, alignItems: 'center' },
+  dPanel: { gap: spacing.md },
+  dPanelSide: { width: 380, position: 'sticky' as never, top: 16 },
+  dCard: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: 20, gap: 4 },
   statusBanner: { position: 'absolute', left: 0, right: 0, bottom: 24, backgroundColor: dark.scrim, paddingVertical: 10, alignItems: 'center' },
   topBar: { position: 'absolute', left: 0, right: 0, top: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.lg },
   // Lovable: rounded near-white sheet overlapping the photo by 24 pt.

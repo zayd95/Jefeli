@@ -14,6 +14,16 @@
 5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
 6. Optional: ask LAfricaMobile for a quote, as the backup provider.
 
+## Owner (now): W1.4 desktop web — draft PR #8
+
+1. Review the before/after sheets in `docs/evidence/desktop/compare/` and the desktop E2E shots in
+   `docs/evidence/e2e/desktop/`. Phones are unchanged.
+2. Once the stack is on a preview, open it on a laptop (Chrome and Safari) at full width and at
+   125 % / 150 % zoom: sidebar, rail, Explorer grid, article, Messages with an offer, the editor
+   with its feed preview, and a video status.
+3. No further visual expansion after this pass. Next comes phone and e-mail auth activation, then
+   the public beta.
+
 ## Owner (now): web beta go/no-go — `docs/WEB_BETA_GO_NO_GO.md`
 
 Promotion on KaaySamp / TikTok only when e-mail **and** phone registration both work for real.

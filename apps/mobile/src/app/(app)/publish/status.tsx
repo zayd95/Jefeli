@@ -28,6 +28,7 @@ import { fetchSellerProducts } from '@/lib/api/products';
 import { getSettings } from '@/lib/api/profiles';
 import { createStory } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
+import { useLayout } from '@/lib/layout';
 import { goBack } from '@/lib/nav';
 import { pickMedia, uploadErrorMessage, uploadMediaBatch, UploadError, type LocalMedia } from '@/lib/upload';
 import { uploadVoice, type RecordedClip } from '@/lib/voice';
@@ -37,6 +38,7 @@ const AUDIENCE_SHORT: Record<Audience, string> = { public: 'Tout le monde', foll
 
 export default function NewStatus() {
   const { userId, profile } = useAuth();
+  const { desktop } = useLayout();
   const qc = useQueryClient();
   const toast = useToast();
   const [media, setMedia] = useState<LocalMedia | null>(null);
@@ -198,7 +200,8 @@ export default function NewStatus() {
 
   // « 5b » photo/video full screen, or « 5c » voice.
   return (
-    <Screen edges={['top', 'bottom']} background={colors.night} keyboard>
+    // Desktop web (W1.4): the same portrait status, centered like a phone screen.
+    <Screen edges={['top', 'bottom']} background={colors.night} keyboard style={desktop ? { width: '100%', maxWidth: 520, alignSelf: 'center' } : undefined}>
       <View style={styles.stage}>
         {voice ? (
           <View style={[StyleSheet.absoluteFill, styles.voiceStage]}>

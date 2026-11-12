@@ -515,3 +515,28 @@ Defects found on the way, in W1.4's own first version:
 | `pnpm --filter @jefeli/web build` (`next build`) | pass |
 | `npx expo prebuild --no-install` | pass (output gitignored) |
 | `npx expo-doctor` | 18/20 (2 need blocked network) |
+
+### W1.4 desktop web — branch `feature/w1.4-desktop-web` (12 Nov)
+
+The approved design canvas was implemented with the owner's ten refinements (`docs/W1_4_DESKTOP.md`).
+
+- **Layout rule** (`lib/layout.ts`): phone below 768 px or native; compact 768–1099; wide ≥ 1100.
+  The phone path is untouched.
+- **New components:** `DesktopShell` (sidebar of real links, « Créer » → the same menu) and
+  `DiscoveryRail` (buyer requests, articles linked in the feed, nearby articles and their
+  boutiques; empty sections hidden; verified badge only for `merchant_verified`). Also
+  `MessagesWorkspace`, `ConversationList` and `ChatView`, extracted from the routes so phone and
+  desktop share them, and `ChatContext` (article, proposals with real status, safety).
+- **Screens with a desktop layout:** Accueil (640 px feed + rail), Explorer grid (3–5 columns),
+  article in two columns, boutique grid, Publication editor beside the exact `PostCard` preview,
+  and a 9:16 status stage. Other screens use a 720 px column; auth uses a 520 px column.
+- **Read-only helpers:** `fetchRecentRequests`, `fetchLatestConversationProductId`. No migration.
+- **Defects found and fixed:**
+  - the sign-up terms link swallowed clicks on wide rows;
+  - sidebar items ignored Enter, so they are now `<a href>`;
+  - category tiles stacked;
+  - the status viewer was stretched.
+- **Tests:** `tests/e2e/specs/desktop.spec.ts` DT-01…08. `helpers.homeReady` accepts the
+  sidebar link.
+- **Results:** check pass (unit 32/32), integration 312/312, E2E 67 passed + 10 skipped.
+- **Evidence:** `docs/evidence/desktop/` (before, after, compare) and `docs/evidence/e2e/desktop/`.

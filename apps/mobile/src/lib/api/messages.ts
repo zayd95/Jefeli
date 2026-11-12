@@ -41,6 +41,14 @@ export async function fetchOffersForConversation(conversationId: string): Promis
   return unwrap(await supabase.from('offers').select('*').eq('conversation_id', conversationId).order('created_at'));
 }
 
+/** The article most recently discussed in a conversation (attached to a message), or null. */
+export async function fetchLatestConversationProductId(conversationId: string): Promise<string | null> {
+  const rows = unwrap(
+    await supabase.from('messages').select('product_id').eq('conversation_id', conversationId).not('product_id', 'is', null).is('deleted_at', null).order('created_at', { ascending: false }).limit(1),
+  ) as { product_id: string | null }[];
+  return rows[0]?.product_id ?? null;
+}
+
 export async function fetchAgreementsForConversation(conversationId: string): Promise<AgreementRow[]> {
   return unwrap(await supabase.from('agreements').select('*').eq('conversation_id', conversationId).order('created_at'));
 }

@@ -7,6 +7,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import { Button, Checkbox, colors, Field, Screen, spacing, Text, Wordmark } from '@/design';
 import { isHandleAvailable, updateMyProfile } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
+import { desktopColumn, useLayout } from '@/lib/layout';
 
 /**
  * Native counterpart of the approved Lovable one-screen entry.
@@ -16,6 +17,7 @@ import { useAuth } from '@/lib/auth';
  * Keep the existing Supabase Auth + RLS and avatar upload machinery intact.
  */
 export default function Onboarding() {
+  const { desktop } = useLayout();
   const { userId, profile, refreshProfile, signOut } = useAuth();
   const [name, setName] = useState(profile?.display_name === 'Nouveau membre' ? '' : (profile?.display_name ?? ''));
   const [handle, setHandle] = useState(profile?.handle?.startsWith('membre') ? '' : (profile?.handle ?? ''));
@@ -73,7 +75,7 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']} keyboard background={colors.background}>
+    <Screen edges={['top', 'bottom']} keyboard background={colors.background} style={desktopColumn(desktop)}>
       <View style={styles.top}>
         <Wordmark size={27} />
         {/* Moved up from the footer so the fixed CTA stays a single, compact bar. */}

@@ -9,6 +9,7 @@ import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { DOCK_GAP } from '@/lib/dock';
+import { useLayout } from '@/lib/layout';
 
 const TABS: Record<string, { label: string; icon: LucideIcon }> = {
   index: { label: 'Accueil', icon: House },
@@ -110,10 +111,12 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
 }
 
 export default function TabsLayout() {
+  const { desktop } = useLayout();
   return (
     <Tabs
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.darkBackground } }}
-      tabBar={(props) => <JefeliTabBar {...(props as unknown as TabBarProps)} />}
+      // Desktop web: the sidebar replaces the dock (DesktopShell).
+      tabBar={(props) => (desktop ? null : <JefeliTabBar {...(props as unknown as TabBarProps)} />)}
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: colors.background } }} />

@@ -56,8 +56,11 @@ function PostCardInner({
   showReason = true,
   showPinned = false,
   onOpenComments,
+  width,
 }: {
   post: PostCardData;
+  /** Desktop editor preview (W1.4): the card at a given width instead of the screen's. */
+  width?: number;
   showReason?: boolean;
   /** Profile timeline only: label posts the author pinned. */
   showPinned?: boolean;
@@ -73,7 +76,9 @@ function PostCardInner({
   const [contacting, setContacting] = useState(false);
   const activeOnScreen = useIsActivePost(post.id);
   const voice = post.media.find((m) => m.kind === 'audio') ?? null;
-  const voiceUri = useMediaUrl(post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media', voice?.storage_path);
+  // A draft preview (desktop editor, W1.4) plays the recorded file before it is uploaded.
+  const remoteVoiceUri = useMediaUrl(post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media', voice?.local_uri ? null : voice?.storage_path);
+  const voiceUri = voice?.local_uri ?? remoteVoiceUri;
   const author = post.author;
   if (!author) return null;
 
@@ -89,7 +94,7 @@ function PostCardInner({
   const hasMedia = visual.length > 0;
   const long = post.body.length > (hasMedia ? 180 : 260);
   const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
-  const mediaWidth = Math.min(screenWidth, 640);
+  const mediaWidth = width ?? Math.min(screenWidth, 640);
   const openPost = (focusComment = false) =>
     router.push({ pathname: '/post/[id]', params: focusComment ? { id: post.id, comment: '1' } : { id: post.id } });
 

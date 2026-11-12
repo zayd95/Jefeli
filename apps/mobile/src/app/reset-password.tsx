@@ -13,12 +13,14 @@ import { ActivityIndicator, Platform, ScrollView, View } from 'react-native';
 
 import { Button, colors, Field, Header, Screen, spacing, Text, useToast } from '@/design';
 import { useAuth } from '@/lib/auth';
+import { desktopColumn, useLayout } from '@/lib/layout';
 import { parseRecoveryLink } from '@/lib/recovery';
 import { initialWebUrl, supabase } from '@/lib/supabase';
 
 const MIN_PASSWORD = 8;
 
 export default function ResetPassword() {
+  const { desktop } = useLayout();
   const linkingUrl = Linking.useLinkingURL();
   const link = useMemo(() => parseRecoveryLink(Platform.OS === 'web' ? initialWebUrl : linkingUrl), [linkingUrl]);
   const { session } = useAuth();
@@ -57,7 +59,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <Screen edges={['top', 'bottom']} keyboard>
+    <Screen edges={['top', 'bottom']} keyboard style={desktopColumn(desktop)}>
       <Header title="Nouveau mot de passe" />
       <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         {state === 'checking' ? (

@@ -512,7 +512,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Button label={isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56 }} />
+        <Button label={isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56, width: '100%', maxWidth: 640, alignSelf: 'center' }} />
       </View>
 
       <VoiceStudio

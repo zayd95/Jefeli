@@ -22,6 +22,15 @@
   check before every preview build (`docs/W1_3_CREATE.md`). **Not merged, not applied to
   staging, not deployed publicly.** Its Vercel previews stop at the schema check until the
   staging plan is applied (intended).
+- Branch `feature/w1.4-desktop-web`, draft PR #8 → PR #7's branch (`feature/w1.4-phone-auth`):
+  one app, two experiences. Desktop web gets a sidebar shell, a centred feed with a contextual
+  rail (real content only), an Explorer grid, a two-column article, a social boutique grid, a
+  three-pane Messages workspace and the W1.3 editor beside its exact feed preview. Phones are
+  unchanged (`docs/W1_4_DESKTOP.md`). **Not merged, not deployed.**
+- **W1.4 desktop verification (12 Nov), local stack:** `pnpm check` pass (unit 32/32), integration
+  312/312, E2E 67 passed + 10 skipped (9 hosted + 1 gated), including the new desktop spec 8/8.
+  No horizontal overflow at 1440/1280/1024/768/390/360 px and at zoom equivalents. Phone screens
+  at 390/360 px are identical before/after (layout).
 - **Web beta go/no-go (11 Nov): NO-GO for outside testers, GO for the owner's acceptance on the
   previews** (`docs/WEB_BETA_GO_NO_GO.md`). jefeli-staging is synchronized (6 migrations, verified
   backup, schema identical, 33/33 security probes); both previews build; hosted journeys 8/8 +

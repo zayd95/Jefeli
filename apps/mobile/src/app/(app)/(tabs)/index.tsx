@@ -14,6 +14,7 @@ import { Bell, Compass, LogIn, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Us
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View, type ListViewToken } from 'react-native';
 
+import { DiscoveryRail } from '@/components/desktop/DiscoveryRail';
 import { ActivePostContext, pauseAllVideos } from '@/components/Media';
 import { PostCard } from '@/components/PostCard';
 import { ProfileName } from '@/components/ProfileName';
@@ -27,6 +28,7 @@ import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
+import { useLayout } from '@/lib/layout';
 import { useDarkStatusBar } from '@/lib/statusBar';
 import type { PostCardData } from '@/lib/types';
 
@@ -40,6 +42,7 @@ export default function Home() {
   const { userId, profile, signOut } = useAuth();
   const dockSpace = useDockSpace();
   const liveEnabled = useFlag('live_streaming');
+  const { desktop, wide } = useLayout();
   const [tab, setTab] = useState<HomeTab>('for_you');
   const isPostTab = tab !== 'live';
 
@@ -106,6 +109,7 @@ export default function Home() {
 
   const top = (
     <View style={styles.header}>
+      {desktop ? null : (
       <View style={styles.headerRow}>
         <Wordmark size={30} color={dark.text} />
         <View style={styles.headerActions}>
@@ -113,6 +117,7 @@ export default function Home() {
           <IconButton icon={Bell} label="Notifications" variant="glass" size={20} color={dark.text} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
         </View>
       </View>
+      )}
       <View style={styles.tabs} accessibilityRole="tablist">
         {(
           [
@@ -227,8 +232,8 @@ export default function Home() {
     );
   };
 
-  return (
-    <Screen background={dark.background}>
+  const body = (
+    <>
       {top}
       {tab === 'live' ? (
         <FlatList
@@ -261,6 +266,18 @@ export default function Home() {
         />
         </ActivePostContext.Provider>
       )}
+    </>
+  );
+
+  if (!desktop) return <Screen background={dark.background}>{body}</Screen>;
+  // Desktop web (W1.4): the same dark feed in a centered column; on wide screens a contextual
+  // rail of real requests, linked articles, nearby articles and boutiques.
+  return (
+    <Screen background={dark.background}>
+      <View style={styles.desktopRow}>
+        <View style={styles.desktopFeed}>{body}</View>
+        {wide ? <DiscoveryRail feed={postItems} /> : null}
+      </View>
     </Screen>
   );
 }
@@ -304,6 +321,8 @@ function FeedSkeleton() {
 }
 
 const styles = StyleSheet.create({
+  desktopRow: { flex: 1, flexDirection: 'row', justifyContent: 'center', gap: spacing.xl },
+  desktopFeed: { flex: 1, maxWidth: 640, minWidth: 0, borderLeftWidth: 1, borderRightWidth: 1, borderColor: dark.border },
   header: { backgroundColor: dark.header, borderBottomWidth: 1, borderBottomColor: dark.border },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xs },
   headerActions: { flexDirection: 'row', gap: spacing.sm },
