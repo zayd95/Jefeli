@@ -8,7 +8,7 @@
  * Trending and suggestions compare only rows created here (seed data may also rank).
  */
 import { beforeAll, describe, expect, it } from 'vitest';
-import { anonClient, createListing, createUser, expectPermissionDenied, must, rpc, token, type TestUser } from './helpers';
+import { adminClient, anonClient, createListing, createUser, expectPermissionDenied, must, rpc, token, type TestUser } from './helpers';
 
 const ids = (rows: { id: string }[]) => rows.map((r) => r.id);
 
@@ -105,6 +105,38 @@ describe('trending_products: real favourites only', () => {
     expect(ids(await rpc<any[]>(M.client, 'trending_products', { p_limit: 20 }))).not.toContain(hot);
     expectPermissionDenied(await anonClient().rpc('trending_products', {}));
   });
+
+  it('never returns a moderated article, a sold one or one from a suspended seller', async () => {
+    const S2 = await createUser('TrendSeller2', { onboarded: true });
+    const [hidden, sold, fromSuspended] = await Promise.all([
+      createListing(S, { title: `Tendance ${token(6)} masqué` }),
+      createListing(S, { title: `Tendance ${token(6)} vendu` }),
+      createListing(S2, { title: `Tendance ${token(6)} suspendu` }),
+    ]);
+    const savers = await Promise.all([createUser('Saver3'), createUser('Saver4')]);
+    for (const b of savers) {
+      for (const id of [hidden, sold, fromSuspended]) must(await b.client.from('product_saves').insert({ user_id: b.id, product_id: id }));
+    }
+    const before = ids(await rpc<any[]>(V.client, 'trending_products', { p_limit: 20 }));
+    expect(before).toEqual(expect.arrayContaining([hidden, sold, fromSuspended]));
+    must(await adminClient.from('products').update({ moderation_status: 'hidden' }).eq('id', hidden));
+    must(await adminClient.from('products').update({ status: 'sold' }).eq('id', sold));
+    must(await adminClient.from('profiles').update({ status: 'suspended' }).eq('id', S2.id));
+    const after = ids(await rpc<any[]>(V.client, 'trending_products', { p_limit: 20 }));
+    expect(after).not.toContain(hidden);
+    expect(after).not.toContain(sold);
+    expect(after).not.toContain(fromSuspended);
+  });
+
+  it('a private seller trends only for viewers allowed to see their content', async () => {
+    const P = await createUser('TrendPrivate', { onboarded: true, profile: { is_private: true } });
+    const item = await createListing(P, { title: `Tendance ${token(6)} privé` });
+    // Saved by members allowed to see it (inserted directly: they would be approved followers).
+    const savers = await Promise.all([createUser('Saver5'), createUser('Saver6')]);
+    for (const b of savers) must(await adminClient.from('product_saves').insert({ user_id: b.id, product_id: item }));
+    expect(ids(await rpc<any[]>(P.client, 'trending_products', { p_limit: 20 }))).not.toContain(item); // own article
+    expect(ids(await rpc<any[]>(V.client, 'trending_products', { p_limit: 20 }))).not.toContain(item);
+  });
 });
 
 describe('suggested_sellers: real sellers to follow', () => {
@@ -146,5 +178,21 @@ describe('suggested_sellers: real sellers to follow', () => {
     must(await M.client.from('mutes').insert({ muter_id: M.id, muted_id: S.id }));
     expect(ids(await rpc<any[]>(M.client, 'suggested_sellers', { p_limit: 20 }))).not.toContain(S.id);
     expectPermissionDenied(await anonClient().rpc('suggested_sellers', {}));
+  });
+
+  it('drops suspended sellers and does not count moderated articles', async () => {
+    const city = `Ville ${token(6)}`; // same city: ranked first among many local sellers
+    const T = await createUser('SuggestSuspended', { onboarded: true, profile: { city } });
+    await createListing(T, { title: `Suggestion ${token(6)} suspendue` });
+    const M = await createUser('SuggestModerated', { onboarded: true, profile: { city } });
+    const only = await createListing(M, { title: `Suggestion ${token(6)} masquée` });
+    const V = await createUser('SuggestViewer2', { onboarded: true, profile: { city } });
+    const before = ids(await rpc<any[]>(V.client, 'suggested_sellers', { p_limit: 20 }));
+    expect(before).toEqual(expect.arrayContaining([T.id, M.id]));
+    must(await adminClient.from('profiles').update({ status: 'suspended' }).eq('id', T.id));
+    must(await adminClient.from('products').update({ moderation_status: 'hidden' }).eq('id', only));
+    const after = ids(await rpc<any[]>(V.client, 'suggested_sellers', { p_limit: 20 }));
+    expect(after).not.toContain(T.id);
+    expect(after).not.toContain(M.id);
   });
 });
