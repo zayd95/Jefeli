@@ -14,6 +14,14 @@
 5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
 6. Optional: ask LAfricaMobile for a quote, as the backup provider.
 
+## Owner (now): brand — draft PR (feature/brand-logo)
+
+1. Accept the asset previews (`docs/evidence/brand/`).
+2. Decide later, separately: whether the phone header, welcome and onboarding screens also move
+   from the Fraunces text to the new logo (not done in this PR, to keep the mobile UI unchanged).
+3. After merge, a new native build is needed for the iOS/Android icon and splash; the web picks
+   them up on the next deploy.
+
 ## Owner (now): W1.4 desktop web — draft PR #8
 
 1. Review the before/after sheets in `docs/evidence/desktop/compare/` and the desktop E2E shots in

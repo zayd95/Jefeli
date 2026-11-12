@@ -11,3 +11,4 @@ export * from './Sheet';
 export * from './Checkbox';
 export * from './fill';
 export * from './Motif';
+export * from './BrandLogo';

@@ -540,3 +540,32 @@ The approved design canvas was implemented with the owner's ten refinements (`do
   sidebar link.
 - **Results:** check pass (unit 32/32), integration 312/312, E2E 67 passed + 10 skipped.
 - **Evidence:** `docs/evidence/desktop/` (before, after, compare) and `docs/evidence/e2e/desktop/`.
+
+### Brand — branch `feature/brand-logo` (12 Nov)
+
+Owner-approved « Jëfëli. » logo, built from geometry in `brand/source/wordmark.py`:
+- one stroke weight with round ends, and a shared x-height and ascender;
+- optical overshoot on the round letters, and a thinner `e` crossbar;
+- no third-party font or artwork.
+
+The app icon is the « J. » from the same letters.
+
+Assets regenerated from the masters:
+- iOS 1024 px icon (opaque);
+- Android adaptive layers: foreground with 0 px outside the 66 dp safe zone, night background,
+  monochrome;
+- favicon.png, web `icon.svg` and `favicon.ico` (16/32/48);
+- apple-touch-icon;
+- splash (night background, logo 200 pt);
+- both social previews, with their existing slogans.
+
+In the app: `BrandLogo` / `BrandMark` in `@/design` (react-native-svg). The desktop sidebar
+shows the logo (wide) and « J. » (compact rail).
+
+Unchanged: the phone header, welcome and onboarding screens keep the Fraunces wordmark.
+
+Verification:
+- `pnpm check` pass;
+- desktop E2E DT-01/DT-02 pass;
+- the web build serves `/icon.svg` and `/favicon.ico`;
+- real-size acceptance sheet in `docs/evidence/brand/`.
