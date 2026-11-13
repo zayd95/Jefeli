@@ -597,3 +597,13 @@ things, who to follow ». Screens, flows and layouts are unchanged; only the vis
   « À discuter » pill invisible on white, filter sheet slightly translucent over the white page.
 - Evidence: `docs/evidence/design-v2/` (before/after sheets, after shots, `explore/`).
 - Full-run defect: « + » menu side card 0.12 px past a 360-pt screen (SC-04); the fan now keeps 12 pt side margin.
+
+#### Hosted validation of the Explorer (12–13 Nov, owner-approved)
+
+Security review before staging: both SECURITY DEFINER functions return only rows the existing
+`products_select` / `profiles_select` policies already allow (active and moderated articles, active
+sellers, `can_view_profile_content` for private accounts, blocks both ways, mutes), plus 3 new
+integration tests (moderated, sold, suspended, private). Then backup → migration → grants →
+hosted probes 40/40 → previews rebuilt → hosted Explorer 16/16 → clean E2E 69/0/10. The preview
+hosts of this branch were added to the session's network allowlist to run the hosted UI check.
+Evidence: `docs/evidence/design-v2/hosted/`.

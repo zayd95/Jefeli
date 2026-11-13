@@ -140,3 +140,13 @@ migrations by `pnpm db:types` / `pnpm db:contract`.
   the freshly migrated local database.
 - **Consequence today:** previews of this stack built against jefeli-staging will fail at the
   check until the plan above is applied. That is the intended signal.
+
+## 12 Nov 2026 — Explorer discovery (PR #10, owner-approved)
+
+One more migration, applied the same way: fresh verified backup, then
+`20261113000100_explore_discovery.sql` alone (three read-only functions, no table or row change),
+then grants checked (`trending_products` / `suggested_sellers`: authenticated only, security
+definer, `search_path=''`), hosted probes 40/40 and both previews rebuilt with the schema check
+passing. Rollback: `drop function public.explore_products(text, text, text, text, text, integer,
+integer, text, text, integer, integer), public.trending_products(integer, integer),
+public.suggested_sellers(integer);` — nothing else depends on them except the PR #10 client.

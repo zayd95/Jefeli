@@ -36,6 +36,22 @@
   « Filtres », « Tendances cette semaine » and « Vendeurs à suivre » (real data only). New read-only
   migration `20261113000100_explore_discovery.sql`, **not applied to staging** (needs the owner's
   go). **Not merged, not deployed.**
+- **Explorer hosted validation (12–13 Nov, owner-approved), PR #10 on jefeli-staging:**
+  - fresh verified backup (`staging-backup-2026-11-12-explore.tar.gz`, sha256 `ac994c90…caf3f0`,
+    49 tables / 212 rows, 36/38 media; the 2 private-bucket files need the service key, as before);
+  - `20261113000100_explore_discovery.sql` applied (history 22 → 23, row counts unchanged);
+    `explore_products` security invoker, anon + authenticated; `trending_products` and
+    `suggested_sellers` security definer, `search_path=''`, **authenticated only** (no `public`
+    or `anon` EXECUTE);
+  - hosted security probes **40/40** (33 existing + 7 new discovery probes: anon refused,
+    signed-in results only active/moderated, never own, public profile fields, visible, not followed);
+  - both previews rebuilt and READY (schema check passes against staging);
+  - hosted Explorer UI **16/16** at 393 px and 1440 px: filters (sort, price range with its empty
+    state, Wecci), « Vendeurs à suivre », « Tendances » after one real favourite by the hosted test
+    buyer, no sideways scroll, no page errors; web preview 200 at 390 / 1440 px;
+  - clean final local regression: integration 12/12 discovery (incl. moderated / sold / suspended /
+    private cases), E2E **69 passed, 0 failed**, 10 skipped (9 hosted + 1 gated), SC-04 (360 pt
+    creation menu) and EX-01/EX-02 included. **PR #10 stays draft; nothing merged or deployed publicly.**
 - **Design v2 verification (12 Nov), local stack:** `pnpm check` pass (unit 32/32), integration
   321/321 (incl. 9 new discovery tests). Full E2E: 68 passed, 1 failed, 10 skipped (9 hosted + 1
   gated); the failure was SC-04 at 360 pt (a tilted « + » menu card 0.12 px past the screen edge).

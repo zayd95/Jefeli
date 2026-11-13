@@ -19,8 +19,10 @@
 1. Review `docs/evidence/design-v2/compare/` (before/after) and `docs/evidence/design-v2/explore/`.
 2. On Explorer, try « Filtres » (price, to buy / Wecci, sort), « Tendances cette semaine » (appears
    once members save articles this week) and « Vendeurs à suivre ».
-3. Staging needs the new read-only migration `20261113000100_explore_discovery.sql` before the
-   preview can show the new Explorer rows; it is applied only after your go.
+3. ~~Staging migration~~: applied on 12 Nov after your go (backup, 40/40 hosted probes, hosted
+   Explorer 16/16). Review the two previews on a phone and a laptop; no more feature additions.
+4. The hosted test buyer (`test_acheteur_w13`) saved « Jef meme » as a favourite during the check, so
+   « Tendances » has one real entry; remove it from that account's Enregistrés if you prefer.
 
 ## Owner (now): brand — draft PR (feature/brand-logo)
 
