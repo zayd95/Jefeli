@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.red,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

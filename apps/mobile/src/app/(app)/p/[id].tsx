@@ -101,6 +101,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
       await setProductSaved(userId ?? '', product.id, next);
       toast(next ? 'Ajouté à vos favoris' : 'Retiré des favoris', 'success');
       qc.invalidateQueries({ queryKey: ['saved-products'] });
+      qc.invalidateQueries({ queryKey: ['saved-product-ids'] });
     } catch (e) {
       qc.setQueryData(['product-saved', product.id], !next);
       toast(toFrenchError(e), 'error');

@@ -9,7 +9,7 @@ import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle }
 
 import { Button } from './Button';
 import { Text } from './Text';
-import { colors, dark, radius, shadow, spacing } from './theme';
+import { colors, dark, light, radius, shadow, spacing } from './theme';
 
 /** Lovable wordmark: Fraunces semibold « Jëfëli » with a gold full stop. */
 export function Wordmark({ size = 28, color = colors.ink }: { size?: number; color?: string }) {
@@ -40,7 +40,7 @@ export function Chip({
   style?: StyleProp<ViewStyle>;
   tone?: 'light' | 'dark';
 }) {
-  const fg = tone === 'dark' ? (selected ? colors.ink : colors.white) : selected ? colors.white : colors.textSecondary;
+  const fg = selected ? colors.onPrimary : tone === 'dark' ? colors.ink : colors.textSecondary;
   return (
     <Pressable
       onPress={onPress}
@@ -68,7 +68,7 @@ export function Tag({ label, tone = 'neutral' }: { label: string; tone?: 'neutra
     neutral: { bg: colors.surfaceMuted, fg: colors.ink },
     mint: { bg: colors.mintSoft, fg: colors.ink },
     warning: { bg: colors.warningSoft, fg: colors.warning },
-    ink: { bg: colors.ink, fg: colors.white },
+    ink: { bg: colors.surfaceMuted, fg: colors.ink },
     danger: { bg: colors.dangerSoft, fg: colors.danger },
   }[tone];
   return (
@@ -88,7 +88,17 @@ export function VerifiedBadge({ size = 16 }: { size?: number }) {
   );
 }
 
-export function DemoBadge({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
+export function DemoBadge({ tone = 'light' }: { tone?: 'light' | 'dark' | 'paper' }) {
+  if (tone === 'paper') {
+    // White Explorer page: dark ochre on pale gold (AA on white).
+    return (
+      <View style={[styles.demo, { backgroundColor: '#FFF4D6' }]} accessibilityLabel="Compte de démonstration">
+        <Text variant="micro" weight="800" color="#7A5A00" style={{ fontSize: 9.5, letterSpacing: 0.6 }}>
+          DÉMO
+        </Text>
+      </View>
+    );
+  }
   if (tone === 'dark') {
     // Lovable DemoTag on Atlantic night: quiet fog pill, still clearly « DÉMO ».
     return (
@@ -128,6 +138,18 @@ export function Card({ children, style, padded = true }: { children: ReactNode; 
   return <View style={[styles.card, padded && { padding: spacing.lg }, style]}>{children}</View>;
 }
 
+/** Gold eyebrow: a short gold rule and a spaced uppercase label above an editorial heading. */
+export function Eyebrow({ label }: { label: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={{ width: 24, height: 2, borderRadius: 1, backgroundColor: colors.gold }} />
+      <Text weight="700" color={dark.textSecondary} style={{ fontSize: 11.5, lineHeight: 14, letterSpacing: 1.6 }}>
+        {label.toUpperCase()}
+      </Text>
+    </View>
+  );
+}
+
 export function SectionHeader({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return (
     <View style={styles.sectionHeader}>
@@ -156,7 +178,7 @@ export function Skeleton({
   height: number;
   radius?: number;
   style?: StyleProp<ViewStyle>;
-  tone?: 'light' | 'dark';
+  tone?: 'light' | 'dark' | 'paper';
 }) {
   const [opacity] = useState(() => new Animated.Value(0.55));
   useEffect(() => {
@@ -169,7 +191,7 @@ export function Skeleton({
     loop.start();
     return () => loop.stop();
   }, [opacity]);
-  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: tone === 'dark' ? dark.raised : colors.skeleton, opacity }, style]} />;
+  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: tone === 'dark' ? dark.raised : tone === 'paper' ? light.surfaceMuted : colors.skeleton, opacity }, style]} />;
 }
 
 export function EmptyState({
@@ -187,20 +209,21 @@ export function EmptyState({
   actionLabel?: string;
   onAction?: () => void;
   compact?: boolean;
-  /** Dark = Lovable editorial empty state on Atlantic night (serif title, fog body). */
-  tone?: 'light' | 'dark';
+  /** Dark = Lovable editorial empty state on Atlantic night (serif title, fog body). Paper = the white Explorer page. */
+  tone?: 'light' | 'dark' | 'paper';
 }) {
   const isDark = tone === 'dark';
+  const paper = tone === 'paper';
   return (
     <View style={[styles.empty, compact && { paddingVertical: spacing.xl }]}>
-      <View style={[styles.emptyIcon, isDark && { backgroundColor: dark.mintSoft, borderWidth: 1, borderColor: dark.mintLine }]}>
-        <Icon size={26} color={isDark ? dark.mint : colors.ink} strokeWidth={1.8} />
+      <View style={[styles.emptyIcon, isDark && { backgroundColor: dark.mintSoft, borderWidth: 1, borderColor: dark.mintLine }, paper && { backgroundColor: light.accentSoft }]}>
+        <Icon size={26} color={isDark ? dark.mint : paper ? light.ink : colors.ink} strokeWidth={1.8} />
       </View>
-      <Text variant={isDark ? 'title' : 'headline'} serif={isDark} tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }}>
+      <Text variant={isDark ? 'title' : 'headline'} serif={isDark} tone={isDark ? 'fog' : 'default'} color={paper ? light.ink : undefined} align="center" style={{ marginTop: spacing.md }}>
         {title}
       </Text>
       {body ? (
-        <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
+        <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} color={paper ? light.textSecondary : undefined} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
           {body}
         </Text>
       ) : null}
@@ -343,7 +366,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   chipIdle: { backgroundColor: 'transparent' },
-  chipSelected: { backgroundColor: colors.ink },
+  chipSelected: { backgroundColor: colors.primary },
   tag: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: radius.xs, alignSelf: 'flex-start' },
   demo: {
     backgroundColor: colors.warningSoft,
@@ -392,5 +415,5 @@ const styles = StyleSheet.create({
   },
   inlineRetryBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 32 },
   progressTrack: { height: 4, borderRadius: 2, backgroundColor: colors.surfaceMuted, overflow: 'hidden' },
-  progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.ink },
+  progressFill: { height: 4, borderRadius: 2, backgroundColor: colors.primary },
 });

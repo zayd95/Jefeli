@@ -73,9 +73,9 @@ test.describe.serial('Two-account social commerce journey', () => {
   test('SOC-03 · A finds B’s listing without following B (search, accent/typo tolerant)', async () => {
     await a.goto('/search');
     await a.getByRole('textbox', { name: 'Rechercher' }).fill(`baskets test ${RUN}`);
-    await expect(a.getByRole('button', { name: new RegExp(LISTING) })).toBeVisible();
+    await expect(a.getByRole('button', { name: new RegExp(`^${LISTING}, `) })).toBeVisible();
     await shot(a, DIR, 'A-search-results');
-    await a.getByRole('button', { name: new RegExp(LISTING) }).click();
+    await a.getByRole('button', { name: new RegExp(`^${LISTING}, `) }).click();
     await expect(a.getByText('Très bon état', { exact: true }).last()).toBeVisible();
     await expect(a.getByText('Vente ou troc', { exact: true }).last()).toBeVisible();
     await shot(a, DIR, 'A-product-detail');

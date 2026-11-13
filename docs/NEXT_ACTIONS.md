@@ -14,6 +14,16 @@
 5. Then run the real-SIM checklist (§ 6): Orange, Free/Yas, Expresso; Safari and Android Chrome.
 6. Optional: ask LAfricaMobile for a quote, as the backup provider.
 
+## Owner (now): design direction v2 + white Explorer — draft PR (feature/design-direction-v2)
+
+1. Review `docs/evidence/design-v2/compare/` (before/after) and `docs/evidence/design-v2/explore/`.
+2. On Explorer, try « Filtres » (price, to buy / Wecci, sort), « Tendances cette semaine » (appears
+   once members save articles this week) and « Vendeurs à suivre ».
+3. ~~Staging migration~~: applied on 12 Nov after your go (backup, 40/40 hosted probes, hosted
+   Explorer 16/16). Review the two previews on a phone and a laptop; no more feature additions.
+4. The hosted test buyer (`test_acheteur_w13`) saved « Jef meme » as a favourite during the check, so
+   « Tendances » has one real entry; remove it from that account's Enregistrés if you prefer.
+
 ## Owner (now): brand — draft PR (feature/brand-logo)
 
 1. Accept the asset previews (`docs/evidence/brand/`).

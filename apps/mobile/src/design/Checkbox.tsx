@@ -19,7 +19,7 @@ export function Checkbox({
 }) {
   return (
     <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked }} aria-checked={checked} accessibilityLabel={label} style={[styles.check, !description && !link && styles.checkSingle]}>
-      <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Check size={16} color={colors.white} strokeWidth={3} /> : null}</View>
+      <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Check size={16} color={colors.onPrimary} strokeWidth={3} /> : null}</View>
       <View style={{ flex: 1 }}>
         <Text variant="callout" weight={description ? '600' : '400'}>
           {label}
@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     marginTop: 1,
   },
-  boxOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  boxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingVertical: spacing.sm },
   track: { width: 48, height: 28, borderRadius: 14, backgroundColor: colors.surfaceMuted, padding: 3, borderWidth: 1, borderColor: colors.border },
-  trackOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  trackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   thumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.white },
-  thumbOn: { transform: [{ translateX: 20 }], backgroundColor: colors.action },
+  thumbOn: { transform: [{ translateX: 20 }], backgroundColor: colors.onPrimary },
 });

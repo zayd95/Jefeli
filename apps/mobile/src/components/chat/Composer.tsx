@@ -115,7 +115,7 @@ export function ChatComposer({
             <VoicePreview uri={clip.uri} durationMs={clip.durationMs} waveform={clip.waveform} tone="dark" />
           </View>
           <Pressable onPress={sendVoice} disabled={sending} style={[styles.send, sending && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel="Envoyer le message vocal">
-            <Send size={19} color={colors.mint} />
+            <Send size={19} color={colors.onPrimary} />
           </Pressable>
         </View>
       </View>
@@ -208,7 +208,7 @@ export function ChatComposer({
         </View>
         {text.trim() ? (
           <Pressable onPress={send} disabled={sending || disabled} style={[styles.send, (sending || disabled) && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel="Envoyer">
-            <Send size={19} color={colors.mint} />
+            <Send size={19} color={colors.onPrimary} />
           </Pressable>
         ) : voiceEnabled ? (
           <Pressable onPress={() => void rec.start()} disabled={disabled || sending || rec.phase === 'requesting'} style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="Enregistrer un message vocal">
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   iconBtn: { width: 44, height: 48, alignItems: 'center', justifyContent: 'center' },
   inputWrap: { flex: 1, minHeight: 48, maxHeight: 120, borderRadius: 16, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.subtle, paddingHorizontal: spacing.md, justifyContent: 'center' },
   input: { fontFamily: fonts.regular, fontSize: fieldFontSize(15), color: dark.text, paddingVertical: 12, maxHeight: 110 },
-  send: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.ink, borderWidth: 1, borderColor: dark.mintLine, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   recording: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md, borderRadius: 16, backgroundColor: dark.subtle },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },
   previewBox: { flex: 1, minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: 16, backgroundColor: dark.subtle },

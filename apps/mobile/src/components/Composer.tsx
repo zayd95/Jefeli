@@ -137,7 +137,7 @@ export function OptionRow<T extends string>({
     <View style={segmented ? styles.segment : styles.optionRow}>
       {options.map((o) => {
         const on = o.key === value;
-        const fg = dark ? (on ? colors.ink : colors.white) : on ? colors.white : colors.ink;
+        const fg = on ? colors.onPrimary : colors.ink;
         return (
           <Pressable
             key={o.key}
@@ -155,7 +155,7 @@ export function OptionRow<T extends string>({
               {o.label}
             </Text>
             {o.hint ? (
-              <Text variant="micro" weight="500" color={dark ? fg : on ? colors.mintSoft : colors.textSecondary} align="center">
+              <Text variant="micro" weight="500" color={on ? colors.onPrimary : colors.textSecondary} align="center">
                 {o.hint}
               </Text>
             ) : null}
@@ -196,7 +196,7 @@ export function ChoicePills<T extends string>({
             aria-checked={on}
             accessibilityLabel={o.a11y ?? o.label}
           >
-            <Text weight="600" color={on ? colors.surface : colors.textSecondary} style={{ fontSize: 13 }}>
+            <Text weight="600" color={on ? colors.onPrimary : colors.textSecondary} style={{ fontSize: 13 }}>
               {o.label}
             </Text>
           </Pressable>
@@ -209,7 +209,7 @@ export function ChoicePills<T extends string>({
 const styles = StyleSheet.create({
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   pill: { minHeight: 40, paddingHorizontal: spacing.lg, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' },
-  pillOn: { backgroundColor: colors.night, borderColor: colors.night },
+  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   add: {
     width: 84,
     height: 84,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   thumb: { width: 84, height: 84, borderRadius: 16, overflow: 'hidden', backgroundColor: colors.surfaceMuted },
-  video: { backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  video: { backgroundColor: colors.night, alignItems: 'center', justifyContent: 'center' },
   videoBadgePlain: { alignItems: 'center', gap: 2 },
   // Over the captured cover frame: the same ink scrim as « Couverture » below.
   videoBadge: { alignItems: 'center', gap: 2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.md, backgroundColor: 'rgba(16,37,44,0.65)' },
@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
   optionRow: { flexDirection: 'row', gap: spacing.sm },
   segment: { flexDirection: 'row', padding: 4, gap: 4, borderRadius: radius.xl, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   segmentItem: { flex: 1, minHeight: 42, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, paddingVertical: 4 },
-  segmentOn: { backgroundColor: colors.ink },
+  segmentOn: { backgroundColor: colors.primary },
   option: { flex: 1, minHeight: 48, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
-  optionOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  optionOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   optionDark: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.35)' },
   optionDarkOn: { backgroundColor: colors.action, borderColor: colors.action },
 });

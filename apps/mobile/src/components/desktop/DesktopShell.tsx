@@ -75,9 +75,9 @@ export function DesktopShell({ children }: { children: ReactNode }) {
           accessibilityHint="Ouvre le menu : statut, publication ou article"
           style={({ pressed }) => [styles.create, compact && styles.createCompact, pressed && { opacity: 0.85 }]}
         >
-          <Plus size={20} color={colors.night} strokeWidth={2.6} />
+          <Plus size={20} color={colors.onPrimary} strokeWidth={2.6} />
           {!compact ? (
-            <Text weight="800" color={colors.night} style={{ fontSize: 16 }}>
+            <Text weight="700" color={colors.onPrimary} style={{ fontSize: 16 }}>
               Créer
             </Text>
           ) : null}
@@ -131,11 +131,11 @@ function NavItem({ item, on, compact }: { item: Item; on: boolean; compact: bool
         style={StyleSheet.flatten([styles.item, compact && styles.itemCompact, on ? styles.itemOn : hovered && styles.itemHover])}
       >
         <View>
-          <Icon size={22} color={on ? dark.mint : dark.textStrong} strokeWidth={on ? 2.2 : 1.9} />
+          <Icon size={22} color={on ? colors.gold : dark.textSecondary} strokeWidth={on ? 2.2 : 1.9} />
           {item.badge && compact ? <View style={styles.dot} /> : null}
         </View>
         {!compact ? (
-          <Text weight={on ? '800' : '600'} color={on ? dark.mint : dark.textStrong} style={{ fontSize: 16, flex: 1 }}>
+          <Text weight={on ? '700' : '600'} color={on ? colors.gold : dark.textStrong} style={{ fontSize: 16, flex: 1 }}>
             {item.label}
           </Text>
         ) : null}
@@ -160,9 +160,9 @@ const styles = StyleSheet.create({
   itemCompact: { width: 50, justifyContent: 'center', paddingHorizontal: 0 },
   itemOn: { backgroundColor: dark.mintSelected },
   itemHover: { backgroundColor: dark.subtle },
-  badge: { minWidth: 22, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.live, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', top: -2, right: -4, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.live },
-  create: { height: 50, borderRadius: 999, backgroundColor: colors.mint, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  badge: { minWidth: 22, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: -2, right: -4, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.red },
+  create: { height: 50, borderRadius: 13, backgroundColor: colors.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   createCompact: { width: 50 },
   me: { marginTop: 'auto', flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: 14, backgroundColor: dark.subtle },
   meCompact: { padding: 4, backgroundColor: 'transparent' },

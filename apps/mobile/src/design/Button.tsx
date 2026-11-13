@@ -20,11 +20,11 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
 }
 
 const palettes: Record<Variant, { bg: string; bgPressed: string; fg: string; border?: string }> = {
-  primary: { bg: colors.ink, bgPressed: colors.inkSoft, fg: colors.white },
-  cta: { bg: colors.action, bgPressed: colors.actionPressed, fg: colors.actionText },
+  primary: { bg: colors.primary, bgPressed: colors.actionPressed, fg: colors.onPrimary },
+  cta: { bg: colors.primary, bgPressed: colors.actionPressed, fg: colors.onPrimary },
   outline: { bg: 'transparent', bgPressed: colors.surfaceSubtle, fg: colors.ink, border: colors.borderStrong },
   ghost: { bg: 'transparent', bgPressed: colors.surfaceSubtle, fg: colors.ink },
-  danger: { bg: colors.dangerSoft, bgPressed: '#F6D6D8', fg: colors.danger },
+  danger: { bg: colors.dangerSoft, bgPressed: 'rgba(219, 74, 53, 0.24)', fg: colors.danger },
   soft: { bg: colors.surfaceSubtle, bgPressed: colors.surfaceMuted, fg: colors.ink },
   // Atlantic After Dark (Lovable `border-lab-fog/20 text-lab-fog`)
   outlineDark: { bg: 'transparent', bgPressed: dark.subtle, fg: dark.text, border: dark.borderStrong },

@@ -1,6 +1,60 @@
-# Jëfëli — Atlantic After Dark / near-white design system
+# Jëfëli — design system
 
-## Authority
+## Current direction (owner, 12 Nov 2026): « Dakar after dark »
+
+**This section supersedes the palette and surface rules below wherever they conflict.** A premium
+dark marketplace inspired by Senegal: deep forest greens, Senegalese gold for anything active or
+commerce-related, mint for discovery, red only for attention, warm off-white text, rounded cards,
+DM Serif Display headings with DM Sans for the interface. Screens, flows and layouts are unchanged:
+only the visual direction moved. Every screen is dark **except Explorer**, which stays white: it is
+the commercial page (owner, 12 Nov 2026). Explorer uses the `light` tokens below with the same gold
+for active states, white product cards (`ListingCard surface="paper"`) and a dark intro band.
+
+| Token (`@jefeli/shared`) | Value | Use |
+|---|---|---|
+| `colors.background` / `palette.night` | `#061D18` | page background |
+| `colors.surface` | `#0B2922` | product cards, panels |
+| `colors.surfaceSubtle` | `#0C2A23` | search fields, chips |
+| `colors.surfaceMuted` / `dark.raised` | `#12382F` | secondary active surfaces (active dock item, toasts) |
+| `colors.forest` | `#0D3A30` | deep green buttons |
+| `colors.primary` / `colors.gold` | `#EFBD38` | active category, publish button, primary actions, eyebrows, active nav |
+| `colors.onPrimary` | `#0A2922` | text and icons on gold |
+| `colors.mintAccent` / `dark.mint` | `#7ED8BD` | italic highlights, category and meta icons, links |
+| `colors.mint` | `#A3E4D7` | logo letters only |
+| `colors.red` | `#DB4A35` | notification dots, favourites, identity details |
+| `colors.ink` | `#F6F5ED` | primary text (warm off-white, never `#FFFFFF`) |
+| `colors.textSecondary` / `textTertiary` | `#9BADA7` / `#91A59F` | supporting copy, metadata |
+| `colors.border` / `borderStrong` | `#1C4137` / `#21463D` | card and input borders |
+| `colors.live` | `#D93A44` | a real « EN DIRECT » state only |
+
+`light` (Explorer only): background `#FAFBFA`, cards `#FFFFFF`, text `#10252C` / `#607071`,
+borders `#E2E6E4`, accent icons `#2E8C73` on `#D7F1E9`.
+
+Explorer discovery (real data only, each row hidden when empty or when a filter is active):
+- « Filtres » sheet: price range, « Je veux » (to buy / Wecci), sort (recent, price up, price down),
+  through `explore_products`;
+- « Tendances cette semaine »: articles saved by the most different members in 7 days
+  (`trending_products`; a seller's own save never counts, savers are never revealed);
+- « Vendeurs à suivre »: active sellers the member does not follow, same city first
+  (`suggested_sellers`), with a one-tap « Suivre ».
+
+Rules:
+- `colors.ink` is a **text** colour. Filled primary actions use `primary` + `onPrimary`; selected
+  segments, chips, pills and checkboxes are gold with dark-green content.
+- Gold is selective: the active state, the main action, the publish button, eyebrow rules. Not
+  every surface.
+- Red is reserved for notification counts, favourites and attention details.
+- Radii: product card 16 (phone) / 20 (wider grids), category 16, search 15, modal 25, buttons 12–13,
+  dock 23; pills only for small statuses and controls.
+- Product card: full-bleed photo (≈ 4:5 phone, 4:4.6 wide), status badge top-left, the real
+  favourite heart top-right (`product_saves`), seller, serif title, place · condition, thin divider,
+  price.
+- Phone dock: floating 23-pt capsule; active item gold on `#12382F`; « Publier » a raised 42-pt gold
+  button. Desktop keeps the approved W1.4 sidebar (active item and « Créer » in gold).
+- Logo: the approved « Jëfëli. » geometric logo (`brand/`) stays the logo; the in-app text wordmark
+  is now set in DM Serif Display.
+
+## Authority (history)
 Owner initially selected Palette 4, then approved Lovable's **Atlantic After Dark** Home and member Profile alongside clean **near-white** commerce screens. The latest approved visual authority is docs/LOVABLE_NATIVE_HANDOFF.md and the pinned Lovable implementation in that file; older UI/layout guidance below is historical when it conflicts. Brand is **Jëfëli** (two diaereses); ASCII jefeli is a technical fallback.
 
 ## Design tokens

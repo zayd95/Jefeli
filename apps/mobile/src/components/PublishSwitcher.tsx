@@ -45,7 +45,7 @@ export function PublishHeader({ mode, right }: { mode: PublishMode; right?: Reac
               aria-selected={on}
               accessibilityLabel={m.label}
             >
-              <Text weight="700" color={on ? colors.surface : colors.textSecondary} style={{ fontSize: 13 }}>
+              <Text weight="700" color={on ? colors.onPrimary : colors.textSecondary} style={{ fontSize: 13 }}>
                 {m.label}
               </Text>
             </Pressable>
@@ -62,5 +62,5 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: 26, lineHeight: 32, color: colors.ink },
   switcher: { flexDirection: 'row', gap: 4, marginHorizontal: spacing.lg, marginTop: spacing.lg, padding: 4, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   mode: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  modeOn: { backgroundColor: colors.ink },
+  modeOn: { backgroundColor: colors.primary },
 });

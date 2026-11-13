@@ -104,7 +104,7 @@ export function ProductPicker({
               accessibilityState={{ selected: on }}
               aria-selected={on}
             >
-              <Text variant="callout" weight="700" color={on ? colors.white : colors.ink} numberOfLines={1}>
+              <Text variant="callout" weight="700" color={on ? colors.onPrimary : colors.ink} numberOfLines={1}>
                 {t.label}
               </Text>
             </Pressable>
@@ -145,7 +145,7 @@ export function ProductPicker({
                     {item.status === 'reserved' ? ' · Réservé' : ''}
                   </Text>
                 </View>
-                <View style={[styles.check, on && styles.checkOn]}>{on ? <Check size={14} color={colors.white} strokeWidth={3} /> : null}</View>
+                <View style={[styles.check, on && styles.checkOn]}>{on ? <Check size={14} color={colors.onPrimary} strokeWidth={3} /> : null}</View>
               </Pressable>
             );
           }}
@@ -170,10 +170,10 @@ export function ProductPicker({
 const styles = StyleSheet.create({
   segment: { flexDirection: 'row', padding: 3, borderRadius: radius.md, backgroundColor: colors.surfaceSubtle, marginBottom: spacing.md },
   segmentItem: { flex: 1, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: spacing.sm },
-  segmentOn: { backgroundColor: colors.ink },
+  segmentOn: { backgroundColor: colors.primary },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.sm, borderRadius: radius.md, minHeight: 64 },
   rowOn: { backgroundColor: colors.mintSoft },
   thumb: { width: 48, height: 48, borderRadius: radius.sm },
   check: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  checkOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
 });
