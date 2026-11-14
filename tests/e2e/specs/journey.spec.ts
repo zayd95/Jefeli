@@ -123,7 +123,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     await btn(b, 'Contre-offre').click();
     await field(b, 'Votre nouveau prix').fill('32000');
     await btn(b, 'Envoyer la contre-offre').click();
-    await expect(b.getByText(/^· Contre-offre$/).first()).toBeVisible();
+    await expect(b.getByText(/^· Contre-offre$/).filter({ visible: true }).first()).toBeVisible();
 
     await expect(a.getByText('32 000 F CFA').last()).toBeVisible({ timeout: 20_000 });
     await shot(a, DIR, 'A-counter-received');

@@ -607,3 +607,40 @@ integration tests (moderated, sold, suspended, private). Then backup → migrati
 hosted probes 40/40 → previews rebuilt → hosted Explorer 16/16 → clean E2E 69/0/10. The preview
 hosts of this branch were added to the session's network allowlist to run the hosted UI check.
 Evidence: `docs/evidence/design-v2/hosted/`.
+
+### P1 identity sprint — branch `feature/p1-identity` (14 Nov, draft PR #11)
+
+Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale, Boutique, Jëf).
+
+- **Consolidation:** `git merge-base --is-ancestor` true for all 10 other branches into
+  `feature/design-direction-v2`; « v1 baseline » PR prepared in `docs/V1_BASELINE_PR.md`, not opened.
+- **Docs:** `PILLARS_AUDIT.md` (inventory, model mapping, 19 schema deltas, three journeys with tap
+  counts, ranked frictions), `IDENTITY.md` (lexicon, tone, Jëf economy, market, rituals, signature
+  moments, templates), `SPEC_PILLARS.md` (per-pillar specs, acceptance tests, estimates ≈ 80–125
+  dev-days, business model with prices as hypotheses), `ANDROID_RELEASE.md` (config review, blockers,
+  owner checklist, data-safety draft). Nothing submitted anywhere.
+- **Prototype (a) Waxaale in chat:** `OfferCard` redesigned (gold WAXAALE band, amount with gap to
+  the displayed price, steps Offre → Réponse → Accord → Échange fait, expiry bar). Voice offers:
+  migration `20261114000100_waxaale_voice_offer.sql` (`attach_offer_voice`: proposer only, pending
+  only, one note, own audio ≤ 180 s through the existing message checks), recorder in the offer
+  screen, player inside the card (the note no longer shows as a separate bubble).
+- **Prototype (b) « Marché conclu ! »:** `components/DealSealed.tsx` — scrim, gold seal with spring
+  and rotation, 12-dot burst, serif title, success haptic and an original 0.7 s chime
+  (`assets/sounds/deal-sealed.wav`, synthesised in-house), auto close 2.4 s, reduced-motion
+  fallback. Shown on acceptance (OfferCard) and as « Échange fait ! » when the second party confirms
+  (agreement screen).
+- **Prototype (c) Explorer as a market:** launch aisles Téléphones (telephones + electronique) and
+  Mode (5 categories) with real article / seller counts, small aisles for the rest, « Près de moi ·
+  <quartier> » from the profile, and an empty aisle that invites « Publier « Je cherche » » (opens
+  the composer on the seek intent). Migration `20261114000200_market_aisles.sql` (`explore_market`,
+  `market_counts`, security invoker = Explorer visibility).
+- **Defect found and fixed:** a second chat screen for the same conversation (counter-offer →
+  `router.replace`) reused the open Supabase channel and crashed (« cannot add postgres_changes
+  callbacks … after subscribe() »). Each subscriber now gets its own channel topic (`lib/realtime.ts`).
+- **Tests:** integration `21-waxaale-voice-offer` (3); E2E `identity.spec.ts` (PI-01 aisles + « Je
+  cherche », PI-02 voice offer → « Marché conclu ») ; selectors updated for the new labels.
+- **Evidence:** `docs/evidence/p1-identity/` (before / after at 390, 360, 1440 px; deal moment at
+  650 and 1100 ms). Local DÉMO data only (a generated tone stands in for Fatou's voice note).
+- Migrations are **local only**; staging unchanged; PR #11 previews stay red on the schema check
+  until the owner's go.
+- **Verification:** clean local database: check pass, integration 327/327, E2E 72 passed / 0 failed / 10 skipped.

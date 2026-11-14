@@ -36,6 +36,19 @@
   « Filtres », « Tendances cette semaine » and « Vendeurs à suivre » (real data only). New read-only
   migration `20261113000100_explore_discovery.sql`, **not applied to staging** (needs the owner's
   go). **Not merged, not deployed.**
+- Branch `feature/p1-identity`, draft PR #11 → #10's branch: P1 identity sprint (four pillars
+  docs + three prototypes: Waxaale card with voice offers, « Marché conclu ! » moment, Explorer
+  as market aisles with the « Je cherche » empty state). Two **local-only** migrations
+  (`20261114000100`, `20261114000200`): staging unchanged, so the PR's Vercel previews stay red on
+  the schema check until the owner's go. **Not merged, not deployed.**
+- **P1 identity verification (14 Nov), local stack, clean database (reset + DÉMO seed):**
+  `pnpm check` pass (unit 32/32), integration **327/327** (incl. 3 new voice-offer tests), E2E
+  **72 passed, 0 failed**, 10 skipped (9 hosted + 1 gated), incl. the new `identity.spec.ts` (3) and
+  SC-04 (360 pt creation menu). A first full run had 7 failures: 3 because the local web server
+  was down, 3 screen-tour runs expecting the old « Toutes les catégories » tile (updated), and one
+  real defect (realtime channel reused after a counter-offer → crash), fixed in `lib/realtime.ts`.
+  CI on PR #11: the integration job failed in the runner (port 54324 already in use) before any
+  test ran; a re-run is needed from the Actions tab (not possible from this session).
 - **Explorer hosted validation (12–13 Nov, owner-approved), PR #10 on jefeli-staging:**
   - fresh verified backup (`staging-backup-2026-11-12-explore.tar.gz`, sha256 `ac994c90…caf3f0`,
     49 tables / 212 rows, 36/38 media; the 2 private-bucket files need the service key, as before);

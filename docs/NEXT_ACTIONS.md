@@ -1,5 +1,22 @@
 # Next actions
 
+## Owner (now): P1 identity sprint — draft PR #11 (`feature/p1-identity`)
+
+Read the one-page report (in the session) and these docs: `docs/PILLARS_AUDIT.md`,
+`docs/IDENTITY.md`, `docs/SPEC_PILLARS.md`, `docs/ANDROID_RELEASE.md`, `docs/V1_BASELINE_PR.md`.
+Decisions needed (yes/no or a short choice):
+1. Wolof labels to validate with native speakers: Wecci, Waxaale, Jëf, Jambaar, Jërëjëf, Wecci Day,
+   Tabaski / Korité spellings (`docs/IDENTITY.md` § 1).
+2. Rename the current « Wecci » mode (troc) to « Troquer » and keep Wecci for the pillar? (yes/no)
+3. Jëf values (earn / spend tables, caps) as proposed, or change? (`docs/IDENTITY.md` § 3)
+4. Prices to test later (Boost 24 h 300–500 F, 7 j 1 500–2 500 F, Pro 2 500–5 000 F/mois) and the
+   payment trigger (4 weeks ≥ 150 qualified conversations / week)? (`docs/SPEC_PILLARS.md` § 5)
+5. Rituals to keep: marché de nuit 20 h, Wecci Day (samedi), marchés de saison? (each yes/no)
+6. Apply the two P1 migrations to jefeli-staging (backup first) so PR #11 previews build? (go / not yet)
+7. Open the « v1 baseline » PR into `main` as a draft? (yes / no)
+8. Android: confirm the package name `sn.jefeli.app` (cannot change after the first upload), then
+   the Play account ($25) and the items in `docs/ANDROID_RELEASE.md` § 7.
+
 ## Owner (now): phone sign-up — `docs/PHONE_AUTH.md` (draft PR #7)
 
 1. Approve (or change) the SMS provider: Orange SMS API Sénégal behind our hook, about 10–20 F per
