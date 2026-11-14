@@ -104,7 +104,7 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await btn(b, 'Faire une offre').click();
     await field(b, 'Votre offre').fill('45000');
     await btn(b, 'Envoyer la proposition').click();
-    await expect(visible(b.getByText('OFFRE DE PRIX', { exact: true }))).toBeVisible({ timeout: 30_000 });
+    await expect(visible(b.getByText(/^· (Offre|Contre-offre)$/))).toBeVisible({ timeout: 30_000 });
     await expect(visible(b.getByText('45 000 F CFA'))).toBeVisible();
     await shot(b, DIR, 'B-offer-on-request');
   });
@@ -127,7 +127,7 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await s.goto('/messages');
     await s.getByRole('button', { name: new RegExp(`Conversation avec ${BUYER.name}`) }).click();
     await expect(visible(s.getByRole('button', { name: `Article ${NEGOTIABLE}` }))).toBeVisible({ timeout: 20_000 });
-    await expect(visible(s.getByText('OFFRE DE PRIX', { exact: true }))).toBeVisible();
+    await expect(visible(s.getByText(/^· (Offre|Contre-offre)$/))).toBeVisible();
     await shot(s, DIR, 'S-chat-receives-articles');
   });
 

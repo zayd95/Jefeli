@@ -43,6 +43,11 @@ export async function respondOffer(offerId: string, accept: boolean): Promise<st
   return unwrap(await supabase.rpc('respond_offer', { p_offer_id: offerId, p_accept: accept })) as string | null;
 }
 
+/** Waxaale (P1): the proposer's voice note for a pending offer (one per offer). */
+export async function attachOfferVoice(offerId: string, path: string, meta: { duration_ms: number; waveform?: number[] }): Promise<string> {
+  return unwrap(await supabase.rpc('attach_offer_voice', { p_offer_id: offerId, p_attachment_path: path, p_attachment_meta: meta as never })) as string;
+}
+
 export async function withdrawOffer(offerId: string) {
   unwrap(await supabase.rpc('withdraw_offer', { p_offer_id: offerId }));
 }

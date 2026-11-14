@@ -47,6 +47,46 @@ export type ExploreSort = 'recent' | 'price_asc' | 'price_desc';
 export type ExploreOffer = 'sale' | 'trade' | null;
 
 /** Explorer: browse filters plus price range, sale / Wecci and sort (explore_products). */
+/** P1 market: an aisle (several categories) and « Près de moi » (the member's neighbourhood). */
+export async function exploreMarket(args: {
+  categories?: string[] | null;
+  neighborhood?: string | null;
+  mode?: BrowseMode;
+  city?: string | null;
+  condition?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  offer?: ExploreOffer;
+  sort?: ExploreSort;
+  offset?: number;
+  limit?: number;
+}): Promise<ProductCard[]> {
+  const rows = unwrap(
+    await supabase
+      .rpc('explore_market', {
+        p_categories: args.categories && args.categories.length > 0 ? args.categories : undefined,
+        p_neighborhood: args.neighborhood || undefined,
+        p_mode: args.mode ?? 'recent',
+        p_city: args.city || undefined,
+        p_condition: args.condition || undefined,
+        p_min_price: args.minPrice ?? undefined,
+        p_max_price: args.maxPrice ?? undefined,
+        p_offer: args.offer || undefined,
+        p_sort: args.sort ?? 'recent',
+        p_limit: args.limit ?? PRODUCT_PAGE,
+        p_offset: args.offset ?? 0,
+      })
+      .select(PRODUCT_SELECT),
+  ) as unknown as ProductCard[];
+  return rows.map(sortMedia);
+}
+
+export type MarketCount = { category_slug: string; articles: number; sellers: number };
+
+export async function fetchMarketCounts(city?: string | null, neighborhood?: string | null): Promise<MarketCount[]> {
+  return unwrap(await supabase.rpc('market_counts', { p_city: city || undefined, p_neighborhood: neighborhood || undefined })) as MarketCount[];
+}
+
 export async function exploreProducts(args: {
   mode?: BrowseMode;
   category?: string | null;

@@ -22,7 +22,9 @@
     "20261110000100_connected_media.sql",
     "20261111000100_article_voice.sql",
     "20261112000100_phone_auth_sms_guard.sql",
-    "20261113000100_explore_discovery.sql"
+    "20261113000100_explore_discovery.sql",
+    "20261114000100_waxaale_voice_offer.sql",
+    "20261114000200_market_aisles.sql"
   ],
   "tables": {
     "account_settings": [
@@ -510,6 +512,13 @@
         "p_days"
       ]
     ],
+    "attach_offer_voice": [
+      [
+        "p_offer_id",
+        "p_attachment_path",
+        "p_attachment_meta"
+      ]
+    ],
     "browse_products": [
       [
         "p_mode",
@@ -605,6 +614,21 @@
     "expire_stale_offers": [
       []
     ],
+    "explore_market": [
+      [
+        "p_categories",
+        "p_neighborhood",
+        "p_city",
+        "p_mode",
+        "p_condition",
+        "p_min_price",
+        "p_max_price",
+        "p_offer",
+        "p_sort",
+        "p_limit",
+        "p_offset"
+      ]
+    ],
     "explore_products": [
       [
         "p_mode",
@@ -682,6 +706,12 @@
     ],
     "mark_all_notifications_read": [
       []
+    ],
+    "market_counts": [
+      [
+        "p_city",
+        "p_neighborhood"
+      ]
     ],
     "message_about_product": [
       [

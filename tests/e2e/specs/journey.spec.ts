@@ -114,16 +114,16 @@ test.describe.serial('Two-account social commerce journey', () => {
     await btn(a, 'Faire une offre').click();
     await field(a, 'Votre offre').fill('28000');
     await btn(a, 'Envoyer la proposition').click();
-    await expect(a.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible();
+    await expect(a.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
     await expect(a.getByText('28 000 F CFA').last()).toBeVisible();
     await shot(a, DIR, 'A-price-offer-sent');
 
     await b.reload();
-    await expect(b.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible();
-    await btn(b, 'Contre-proposer').click();
+    await expect(b.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
+    await btn(b, 'Contre-offre').click();
     await field(b, 'Votre nouveau prix').fill('32000');
-    await btn(b, 'Envoyer la contre-proposition').click();
-    await expect(b.getByText('CONTRE-PROPOSITION', { exact: false }).first()).toBeVisible();
+    await btn(b, 'Envoyer la contre-offre').click();
+    await expect(b.getByText(/^· Contre-offre$/).first()).toBeVisible();
 
     await expect(a.getByText('32 000 F CFA').last()).toBeVisible({ timeout: 20_000 });
     await shot(a, DIR, 'A-counter-received');
@@ -148,7 +148,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     await a.getByRole('radio', { name: /Moi/ }).click();
     await shot(a, DIR, 'A-barter-composer');
     await btn(a, 'Envoyer la proposition').click();
-    await expect(a.getByText('PROPOSITION DE TROC', { exact: true }).last()).toBeVisible();
+    await expect(a.getByText(/^· (Troc|Contre-offre)$/).last()).toBeVisible();
     await expect(a.getByText('Vous ajoutez 15 000 F CFA', { exact: true }).last()).toBeVisible();
 
     await b.reload();

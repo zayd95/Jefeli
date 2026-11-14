@@ -5,6 +5,7 @@ import { ArrowLeftRight, CheckCircle2, FileX, MapPin, MessageCircle, ShieldAlert
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { DealSealed } from '@/components/DealSealed';
 import { Thumb } from '@/components/Media';
 import { Button, Card, colors, EmptyState, Field, Header, radius, Screen, Sheet, Skeleton, spacing, Tag, Text, useToast } from '@/design';
 import { closeAgreement, confirmAgreementCompleted, fetchAgreement, leaveReview, myReviewFor } from '@/lib/api/offers';
@@ -34,6 +35,7 @@ export default function AgreementScreen() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [sealed, setSealed] = useState(false);
 
   const q = useQuery({ queryKey: ['agreement', id], queryFn: () => fetchAgreement(id ?? '') });
   const mine = useQuery({ queryKey: ['my-review', id], queryFn: () => myReviewFor(id ?? '', me), enabled: q.data?.status === 'completed' });
@@ -64,8 +66,10 @@ export default function AgreementScreen() {
   async function run(key: string, fn: () => Promise<unknown>, ok: string) {
     setBusy(key);
     try {
-      await fn();
-      toast(ok, 'success');
+      const result = await fn();
+      // Both sides have now confirmed: the exchange is done — the brand moment (P1).
+      if (key === 'done' && result === 'completed') setSealed(true);
+      else toast(ok, 'success');
       qc.invalidateQueries({ queryKey: ['agreement', id] });
       qc.invalidateQueries({ queryKey: ['agreements', a?.conversation_id] });
       qc.invalidateQueries({ queryKey: ['my-review', id] });
@@ -78,6 +82,7 @@ export default function AgreementScreen() {
 
   return (
     <Screen edges={['top', 'bottom']}>
+      <DealSealed visible={sealed} title="Échange fait !" subtitle={`Bravo. Laissez un avis à ${other.display_name} : c’est ce qui construit la confiance.`} onDone={() => setSealed(false)} />
       <Header title={t.kind === 'barter' ? 'Accord d’échange' : 'Accord de vente'} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -242,12 +242,12 @@ test.describe.serial('W1.4 desktop web', () => {
     await btn(b, 'Faire une offre').click();
     await field(b, 'Votre offre').fill('22000');
     await btn(b, 'Envoyer la proposition').click();
-    await expect(b.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible();
+    await expect(b.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
 
     // The seller accepts from their own desktop workspace (one pending proposal per article).
     await s.goto('/messages');
     await s.getByText(B.name).first().click();
-    await expect(s.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible({ timeout: 30_000 });
     await btn(s, 'Accepter').first().click();
     await expect(btn(s, 'Voir l’accord').first()).toBeVisible();
 
@@ -257,7 +257,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await field(b, 'Différence en argent (facultatif)').fill('5000');
     await b.getByRole('radio', { name: /Moi/ }).click();
     await btn(b, 'Envoyer la proposition').click();
-    await expect(b.getByText('PROPOSITION DE TROC', { exact: true }).last()).toBeVisible();
+    await expect(b.getByText(/^· (Troc|Contre-offre)$/).last()).toBeVisible();
 
     // Three panes at 1440: conversations, the thread, its context (article + both proposals).
     await expect(b.getByPlaceholder('Rechercher une conversation')).toBeVisible();
@@ -271,7 +271,7 @@ test.describe.serial('W1.4 desktop web', () => {
     // Below 1100 px the context pane folds away; the thread stays.
     await b.setViewportSize({ width: 1024, height: 768 });
     await expect(context).toHaveCount(0);
-    await expect(b.getByText('PROPOSITION DE TROC', { exact: true }).last()).toBeVisible();
+    await expect(b.getByText(/^· (Troc|Contre-offre)$/).last()).toBeVisible();
     expect(await overflowX(b)).toBeLessThanOrEqual(0);
     await b.setViewportSize(WIDE);
   });

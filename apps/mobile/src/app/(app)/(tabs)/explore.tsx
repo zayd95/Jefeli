@@ -15,16 +15,17 @@
 import { formatXOF, toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, ChevronDown, Flame, Globe2, MapPin, Navigation, PackageSearch, Search, SlidersHorizontal, UserPlus, type LucideIcon } from 'lucide-react-native';
+import { Check, ChevronDown, Flame, Globe2, LayoutGrid, MapPin, Megaphone, Navigation, PackageSearch, Search, SlidersHorizontal, UserPlus, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { gridItemWidth, ListingCard } from '@/components/ListingCard';
-import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, Eyebrow, light, Motif, radius, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
+import { Avatar, Button, colors, dark, DemoBadge, ErrorState, Eyebrow, light, Motif, radius, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
 import {
-  exploreProducts,
+  exploreMarket,
   fetchActiveCities,
   fetchCategories,
+  fetchMarketCounts,
   fetchSuggestedSellers,
   fetchTrendingProducts,
   PRODUCT_PAGE,
@@ -35,9 +36,9 @@ import {
 } from '@/lib/api/products';
 import { follow } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
-import { ALL_CATEGORIES_TILE, categoryTile } from '@/lib/categoryIcons';
 import { useDockSpace } from '@/lib/dock';
 import { useLayout } from '@/lib/layout';
+import { aisleCounts, LAUNCH_AISLES, otherAisles, type Aisle } from '@/lib/market';
 import { useDarkStatusBar } from '@/lib/statusBar';
 import type { ProductCard } from '@/lib/types';
 
@@ -96,7 +97,10 @@ export default function Explore() {
   const [contentWidth, setContentWidth] = useState(width);
   const params = useLocalSearchParams<{ kind?: string }>();
   const [kind, setKind] = useState<Kind>(isKind(params.kind) ? params.kind : 'all');
+  // P1 market: the aisle (« allée ») replaces the single category; « Près de moi » = my neighbourhood.
   const [category, setCategory] = useState<string | null>(null);
+  const [nearMe, setNearMe] = useState(false);
+  const hood = profile?.neighborhood?.trim() || null;
   const [city, setCity] = useState<string | null>(null);
   const [citySheet, setCitySheet] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
@@ -124,11 +128,17 @@ export default function Explore() {
   const { mode, condition } = browseArgs(kind);
   const range = PRICES.find((p) => p.key === price) ?? PRICES[0]!;
   const offerArg: ExploreOffer = offer === 'all' ? null : offer;
+  const cats = useMemo(() => categories.data ?? [], [categories.data]);
+  const aisles = useMemo(() => [...LAUNCH_AISLES, ...otherAisles(cats)], [cats]);
+  const aisle: Aisle | null = aisles.find((a) => a.key === category) ?? null;
+  const near = nearMe && hood ? hood : null;
+  const whereCity = near ? (profile?.city ?? city) : city;
+  const counts = useQuery({ queryKey: ['market-counts', whereCity, near], queryFn: () => fetchMarketCounts(whereCity, near), staleTime: 60_000 });
   const products = useInfiniteQuery({
-    queryKey: ['explore', kind, category, city, price, offer, sort],
+    queryKey: ['explore', kind, category, city, price, offer, sort, near],
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
-      exploreProducts({ mode, condition, category, city, minPrice: range.min, maxPrice: range.max, offer: offerArg, sort, offset: pageParam }),
+      exploreMarket({ categories: aisle?.categories ?? null, neighborhood: near, mode, condition, city: whereCity, minPrice: range.min, maxPrice: range.max, offer: offerArg, sort, offset: pageParam }),
     getNextPageParam: (last, all) => (last.length < PRODUCT_PAGE ? undefined : all.length * PRODUCT_PAGE),
   });
 
@@ -152,13 +162,12 @@ export default function Explore() {
     : gridItemWidth(width, 2, 14, 10);
   const leadW = Math.min(width, 720) - 28;
 
-  const cats = categories.data ?? [];
-  const selectedCat = cats.find((c) => c.slug === category);
   const extraFilters = (price !== 'any' ? 1 : 0) + (offer !== 'all' ? 1 : 0) + (sort !== 'recent' ? 1 : 0);
-  const filtered = kind !== 'all' || !!category || !!city || extraFilters > 0;
+  const filtered = kind !== 'all' || !!category || !!city || !!near || extraFilters > 0;
   const clear = () => {
     setKind('all');
     setCategory(null);
+    setNearMe(false);
     setCity(null);
     setPrice('any');
     setOffer('all');
@@ -170,7 +179,8 @@ export default function Explore() {
   const trendItems = filtered ? [] : (trending.data ?? []);
   const sellerItems = filtered ? [] : (sellers.data ?? []);
   const heading =
-    kind === 'trade' ? 'Wecci · Échange' : selectedCat ? selectedCat.name : kind === 'used' ? 'Occasions' : kind === 'new' ? 'Articles neufs' : city ? `À ${city}` : 'Nouveautés';
+    aisle ? `Allée ${aisle.label}` : kind === 'trade' ? 'Wecci · Échange' : near ? `Près de moi · ${near}` : kind === 'used' ? 'Occasions' : kind === 'new' ? 'Articles neufs' : city ? `À ${city}` : 'Nouveautés';
+  const countRows = counts.data ?? [];
 
   const header = (
     <View>
@@ -203,12 +213,21 @@ export default function Explore() {
         </Pressable>
       </View>
 
-      <ScrollView horizontal={!desktop} scrollEnabled={!desktop} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.tiles, desktop && styles.tilesWrap]} accessibilityLabel="Catégories">
-        <CategoryTile all icon={ALL_CATEGORIES_TILE.icon} label={ALL_CATEGORIES_TILE.short} a11y="Toutes les catégories" selected={!category} onPress={() => setCategory(null)} />
-        {cats.map((c) => {
-          const t = categoryTile(c.slug, c.name);
-          return <CategoryTile key={c.slug} icon={t.icon} label={t.short} a11y={c.name} selected={category === c.slug} onPress={() => setCategory(category === c.slug ? null : c.slug)} />;
-        })}
+      <View style={[styles.market, desktop && { paddingHorizontal: DESKTOP_PAD }]} accessibilityLabel="Les allées du marché">
+        <Eyebrow label="Les allées du marché" />
+        <View style={[styles.launchRow, desktop && { maxWidth: 760 }]}>
+          {LAUNCH_AISLES.map((a) => (
+            <AisleCard key={a.key} aisle={a} counts={aisleCounts(a, countRows)} selected={category === a.key} onPress={() => setCategory(category === a.key ? null : a.key)} />
+          ))}
+        </View>
+      </View>
+      <ScrollView horizontal={!desktop} scrollEnabled={!desktop} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.tiles, desktop && styles.tilesWrap]} accessibilityLabel="Autres allées">
+        <AisleChip icon={LayoutGrid} label="Tout le marché" selected={!category} onPress={() => setCategory(null)} />
+        {aisles
+          .filter((a) => !a.launch)
+          .map((a) => (
+            <AisleChip key={a.key} icon={a.icon} label={a.label} a11y={a.hint} count={aisleCounts(a, countRows).articles} selected={category === a.key} onPress={() => setCategory(category === a.key ? null : a.key)} />
+          ))}
       </ScrollView>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pills, desktop && { paddingHorizontal: DESKTOP_PAD }]} accessibilityRole="tablist">
@@ -222,6 +241,20 @@ export default function Explore() {
           <SlidersHorizontal size={15} color={extraFilters > 0 ? colors.onPrimary : light.ink} strokeWidth={2.2} />
           <Text variant="callout" weight="700" color={extraFilters > 0 ? colors.onPrimary : light.ink} style={{ fontSize: 13 }}>
             {extraFilters > 0 ? `Filtres · ${extraFilters}` : 'Filtres'}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => (hood ? setNearMe(!nearMe) : router.push('/edit-profile'))}
+          hitSlop={{ top: 4, bottom: 4 }}
+          style={({ pressed }) => [styles.pill, styles.filterPill, !!near && styles.pillOn, pressed && { transform: [{ scale: 0.96 }] }]}
+          accessibilityRole="button"
+          accessibilityState={{ selected: !!near }}
+          accessibilityLabel={hood ? `Près de moi, ${hood}` : 'Près de moi : ajoutez votre quartier à votre profil'}
+          testID="near-me"
+        >
+          <Navigation size={14} color={near ? colors.onPrimary : light.accent} strokeWidth={2.4} />
+          <Text variant="callout" weight="700" color={near ? colors.onPrimary : light.ink} style={{ fontSize: 13 }}>
+            {hood ? `Près de moi · ${hood}` : 'Près de moi'}
           </Text>
         </Pressable>
         {KINDS.map((k) => {
@@ -340,17 +373,11 @@ export default function Explore() {
           ) : products.isError ? (
             <ErrorState message={toFrenchError(products.error)} onRetry={() => products.refetch()} />
           ) : (
-            <View style={styles.empty}>
-              <EmptyState
-                tone="paper"
-                compact
-                icon={PackageSearch}
-                title="Rien pour ces filtres"
-                body={filtered ? 'Essayez un autre prix, une autre ville ou une autre catégorie.' : 'Les premiers articles arrivent bientôt.'}
-                actionLabel={filtered ? 'Effacer les filtres' : undefined}
-                onAction={filtered ? clear : undefined}
-              />
-            </View>
+            <SeekInvite
+              title={aisle ? `L’allée ${aisle.label} attend ses premiers articles` : near ? `Rien pour l’instant à ${near}` : filtered ? 'Rien pour ces filtres' : 'Le marché ouvre bientôt'}
+              onSeek={() => router.push({ pathname: '/publish/post', params: { intent: 'seek' } })}
+              onClear={filtered ? clear : undefined}
+            />
           )
         }
         onEndReached={() => products.hasNextPage && !products.isFetchingNextPage && products.fetchNextPage()}
@@ -501,26 +528,82 @@ function SellerCard({ seller }: { seller: SuggestedSeller }) {
 }
 
 /** Lovable 84-pt category tile: « Tous » on night with the motif, categories on paper. */
-function CategoryTile({ icon: Icon, label, a11y, selected, onPress, all }: { icon: LucideIcon; label: string; a11y: string; selected: boolean; onPress: () => void; all?: boolean }) {
+/** A launch aisle (Téléphones, Mode): large card with what the aisle holds right now. */
+function AisleCard({ aisle, counts, selected, onPress }: { aisle: Aisle; counts: { articles: number; sellers: number }; selected: boolean; onPress: () => void }) {
+  const Icon = aisle.icon;
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.tileRing, pressed && { transform: [{ scale: 0.96 }] }]}
+      style={({ pressed }) => [styles.aisle, selected ? styles.aisleOn : styles.aislePaper, pressed && { transform: [{ scale: 0.98 }] }]}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       aria-selected={selected}
-      accessibilityLabel={a11y}
+      accessibilityLabel={`Allée ${aisle.label}, ${counts.articles} articles`}
+      testID={`aisle-${aisle.key}`}
     >
-      {/* Active category: Senegalese gold with dark-green content; others: dark green with mint icons. */}
-      <View style={[styles.tile, selected ? styles.tileOn : styles.tilePaper]}>
-        <View style={[styles.tileIcon, selected && styles.tileIconOn]}>
-          <Icon size={17} color={selected ? colors.mintAccent : light.accent} strokeWidth={2} />
-        </View>
-        <Text weight="600" color={selected ? colors.onPrimary : light.ink} numberOfLines={1} style={{ fontSize: 13, lineHeight: 16 }}>
-          {label}
+      <View style={[styles.aisleIcon, selected && styles.tileIconOn]}>
+        <Icon size={20} color={selected ? colors.mintAccent : light.accent} strokeWidth={2} />
+      </View>
+      <View style={{ gap: 2, flexShrink: 1 }}>
+        <Text serif color={selected ? colors.onPrimary : light.ink} style={{ fontSize: 21, lineHeight: 25 }}>
+          {aisle.label}
+        </Text>
+        <Text variant="caption" weight="600" color={selected ? colors.onPrimary : light.textSecondary} numberOfLines={2}>
+          {counts.articles > 0 ? `${counts.articles} article${counts.articles > 1 ? 's' : ''}\n${counts.sellers} vendeur${counts.sellers > 1 ? 's' : ''}` : 'Bientôt ouverte'}
         </Text>
       </View>
     </Pressable>
+  );
+}
+
+function AisleChip({ icon: Icon, label, a11y, count, selected, onPress }: { icon: LucideIcon; label: string; a11y?: string; count?: number; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, selected ? styles.tileOn : styles.tilePaper, pressed && { transform: [{ scale: 0.96 }] }]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      aria-selected={selected}
+      accessibilityLabel={a11y ?? label}
+    >
+      <Icon size={16} color={selected ? colors.onPrimary : light.accent} strokeWidth={2} />
+      <Text weight="600" color={selected ? colors.onPrimary : light.ink} numberOfLines={1} style={{ fontSize: 13 }}>
+        {label}
+      </Text>
+      {count ? (
+        <Text variant="caption" weight="700" color={selected ? colors.onPrimary : light.textTertiary} style={{ fontSize: 11.5 }}>
+          {count}
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
+/**
+ * Never an empty aisle (P1): when nothing matches, the market asks what the member is looking for.
+ * « Je cherche » is a real publication (posts.intent = 'seek') that sellers can answer.
+ */
+function SeekInvite({ title, onSeek, onClear }: { title: string; onSeek: () => void; onClear?: () => void }) {
+  return (
+    <View style={styles.seek} testID="seek-invite">
+      <View style={styles.seekIcon}>
+        <Megaphone size={26} color={colors.onPrimary} strokeWidth={2.2} />
+      </View>
+      <Text serif color={light.ink} style={{ fontSize: 23, lineHeight: 28, textAlign: 'center' }}>
+        {title}
+      </Text>
+      <Text variant="callout" color={light.textSecondary} style={{ textAlign: 'center', maxWidth: 320 }}>
+        Dites ce que vous cherchez : les vendeurs du marché vous répondent, souvent dans la journée.
+      </Text>
+      <Button label="Publier « Je cherche »" variant="cta" icon={PackageSearch} onPress={onSeek} />
+      {onClear ? (
+        <Pressable onPress={onClear} hitSlop={10} accessibilityRole="button" style={{ minHeight: 40, justifyContent: 'center' }}>
+          <Text variant="callout" weight="600" color={light.textSecondary} style={{ textDecorationLine: 'underline' }}>
+            Voir tout le marché
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -530,7 +613,16 @@ const styles = StyleSheet.create({
   cityPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, height: 44, paddingLeft: 6, paddingRight: spacing.md, borderRadius: radius.pill, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
   cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
   search: { marginTop: spacing.lg, height: 48, borderRadius: 15, backgroundColor: light.surface, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
-  tiles: { paddingHorizontal: 14, paddingTop: spacing.lg, gap: 10 },
+  market: { paddingHorizontal: 14, paddingTop: spacing.lg, gap: spacing.md },
+  launchRow: { flexDirection: 'row', gap: 10 },
+  aisle: { flex: 1, minHeight: 104, borderRadius: 18, padding: 14, gap: 10, justifyContent: 'space-between' },
+  aisleOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },
+  aislePaper: { backgroundColor: light.surface, borderWidth: 1, borderColor: light.border },
+  aisleIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 7, height: 42, paddingHorizontal: 14, borderRadius: 14 },
+  seek: { marginHorizontal: 14, alignItems: 'center', gap: spacing.md, padding: spacing.xl, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: light.borderStrong, backgroundColor: light.surface },
+  seekIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  tiles: { paddingHorizontal: 14, paddingTop: spacing.md, gap: 8 },
   tileRing: { borderRadius: 16 },
   tile: { width: 112, height: 84, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10 },
   tileOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },

@@ -62,9 +62,9 @@ test.describe.serial('P1 resilience: network, double taps, restarts, expired ses
     await field(b, 'Votre offre').fill('17000');
     await btn(b, 'Envoyer la proposition').dblclick();
     await expect(b).toHaveURL(/\/chat\/[0-9a-f-]{36}/, { timeout: 30_000 });
-    await expect(visible(b.getByText('OFFRE DE PRIX', { exact: true }))).toBeVisible();
+    await expect(visible(b.getByText(/^· (Offre|Contre-offre)$/))).toBeVisible();
     await b.waitForTimeout(1500);
-    await expect(b.getByText('OFFRE DE PRIX', { exact: true }).filter({ visible: true })).toHaveCount(1);
+    await expect(b.getByText(/^· (Offre|Contre-offre)$/).filter({ visible: true })).toHaveCount(1);
     await expect(b.getByText('Vous avez déjà une proposition en attente pour cet article.')).toHaveCount(0);
     await shot(b, DIR, 'B-one-offer-after-double-tap');
   });
