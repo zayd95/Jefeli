@@ -141,7 +141,7 @@ if (args.has('--og')) {
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
     @font-face { font-family: 'Inter Variable'; src: url(data:font/woff2;base64,${font.toString('base64')}) format('woff2'); font-weight: 100 900; }
     html, body { margin: 0; width: 1200px; height: 630px; }
-    body { background: #061D18; color: #F6F5ED; font-family: 'Inter Variable'; display: flex; flex-direction: column; justify-content: center; padding: 0 96px; box-sizing: border-box; position: relative; }
+    body { background: #0B1311; color: #F6F5ED; font-family: 'Inter Variable'; display: flex; flex-direction: column; justify-content: center; padding: 0 96px; box-sizing: border-box; position: relative; }
     .wm { font-size: 168px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; display: flex; align-items: baseline; }
     .dot { width: 0.15em; height: 0.15em; margin-left: 0.06em; border-radius: 0.03em; background: #EFBD38; display: inline-block; }
     .tag { margin-top: 28px; font-size: 52px; font-weight: 800; letter-spacing: -0.03em; }

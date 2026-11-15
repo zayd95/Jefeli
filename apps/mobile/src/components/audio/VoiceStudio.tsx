@@ -171,7 +171,7 @@ function StudioBody({
                   aria-checked={on}
                   accessibilityLabel={l.label}
                 >
-                  <Text variant="caption" weight="700" color={on ? colors.night : dark.text}>
+                  <Text variant="caption" weight="700" color={dark.text}>
                     {l.label}
                   </Text>
                 </Pressable>
@@ -292,10 +292,10 @@ const styles = StyleSheet.create({
   langPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: dark.goldLine, backgroundColor: dark.goldSoft },
   langs: { gap: 6, paddingVertical: 2 },
   lang: { paddingHorizontal: 12, height: 36, borderRadius: 18, justifyContent: 'center', backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.borderStrong },
-  langOn: { backgroundColor: colors.gold, borderColor: colors.gold },
+  langOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   stage: { flex: 1, justifyContent: 'center', gap: spacing.md },
   denied: { padding: spacing.lg, borderRadius: radius.xl, backgroundColor: dark.surface },
-  photo: { width: '100%', aspectRatio: 0.86, alignSelf: 'center', borderRadius: 24, overflow: 'hidden', backgroundColor: dark.surface },
+  photo: { width: '100%', aspectRatio: 0.86, alignSelf: 'center', borderRadius: 24, overflow: 'hidden', backgroundColor: colors.mediaBackdrop },
   photoTimer: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: dark.glass },
   thumbs: { gap: 10, paddingHorizontal: 2, justifyContent: 'center', flexGrow: 1 },
   thumb: { width: 60, height: 60, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },

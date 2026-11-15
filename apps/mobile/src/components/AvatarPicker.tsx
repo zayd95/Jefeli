@@ -45,7 +45,7 @@ export function AvatarPicker({
     <Pressable onPress={choose} accessibilityRole="button" accessibilityLabel="Changer la photo de profil" style={styles.wrap}>
       <View>
         <Avatar path={path} name={name || 'J'} size={size} />
-        <View style={styles.cam}>{busy ? <ActivityIndicator size="small" color={colors.ink} /> : <Camera size={16} color={colors.ink} />}</View>
+        <View style={styles.cam}>{busy ? <ActivityIndicator size="small" color={colors.ink} /> : <Camera size={16} color={colors.gold} />}</View>
       </View>
       <Text variant="callout" weight="600" tone="accent">
         {path ? 'Changer la photo' : 'Ajouter une photo'}
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.action,
+    backgroundColor: colors.raised,
     borderWidth: 3,
     borderColor: colors.background,
     alignItems: 'center',

@@ -82,7 +82,7 @@ function ListingCardInner({
         accessibilityLabel={`${pinned ? 'Épinglé. ' : ''}${product.title}, ${formatListingPrice(product)}`}
       >
         <View>
-          <Thumb media={media} style={{ width, height: imageH, backgroundColor: colors.surfaceMuted }} />
+          <Thumb media={media} style={{ width, height: imageH, backgroundColor: colors.mediaBackdrop }} />
           {unavailable ? (
             <View style={styles.statusOverlay}>
               <Text variant="caption" weight="800" color={colors.white}>

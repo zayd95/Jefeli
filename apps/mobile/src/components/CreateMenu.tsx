@@ -172,7 +172,7 @@ export function CreateMenu({ visible, onClose }: { visible: boolean; onClose: ()
               return (
                 <Pressable key={c.key} onPress={() => choose(c)} style={({ pressed }) => [styles.row, pressed && styles.pressed]} accessibilityRole="button" accessibilityLabel={draft ? `${c.a11y}. Brouillon en cours` : c.a11y}>
                   <View style={styles.rowIcon}>
-                    <c.icon size={20} color={colors.night} />
+                    <c.icon size={20} color={colors.gold} />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text variant="bodyStrong" tone="fog">
@@ -244,7 +244,7 @@ export function CreateMenu({ visible, onClose }: { visible: boolean; onClose: ()
               accessibilityRole="button"
               accessibilityLabel={asking ? 'Retour aux choix' : 'Fermer'}
             >
-              <X size={26} color={colors.night} strokeWidth={2.4} />
+              <X size={26} color={colors.gold} strokeWidth={2.4} />
             </Pressable>
           </View>
         </View>
@@ -313,11 +313,11 @@ const styles = StyleSheet.create({
   badgeSlot: { position: 'absolute', top: -10, right: -6 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: colors.gold },
   choiceWrap: { width: '100%', paddingHorizontal: spacing.lg, alignItems: 'center', marginBottom: spacing.xl },
-  close: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  close: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   // List (narrow phones, large text, screen readers)
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: spacing.lg, gap: 4, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: dark.surface },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingVertical: 6, borderRadius: 14 },
-  rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.goldLine, alignItems: 'center', justifyContent: 'center' },
   // Card pictures
   picStatus: { width: 48, height: 70, borderRadius: 10, backgroundColor: colors.forest, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 8 },
   picStatusBars: { position: 'absolute', top: 6, left: 6, right: 6, flexDirection: 'row', gap: 3 },

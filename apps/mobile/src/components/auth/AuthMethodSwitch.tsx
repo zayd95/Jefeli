@@ -26,8 +26,8 @@ export function AuthMethodSwitch({ value, onChange }: { value: AuthMethod; onCha
             aria-selected={on}
             testID={`auth-method-${key}`}
           >
-            <Icon size={17} color={on ? colors.onPrimary : colors.ink} strokeWidth={2.2} />
-            <Text variant="callout" weight="700" color={on ? colors.onPrimary : colors.ink}>
+            <Icon size={17} color={on ? colors.gold : colors.ink} strokeWidth={2.2} />
+            <Text variant="callout" weight="700" color={colors.ink}>
               {label}
             </Text>
           </Pressable>
@@ -48,5 +48,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.sm,
   },
-  itemOn: { backgroundColor: colors.primary },
+  itemOn: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
 });

@@ -120,7 +120,7 @@ export function VideoPlayerInline({
   if (!started) {
     return (
       <Pressable style={StyleSheet.absoluteFill} onPress={start} accessibilityRole="button" accessibilityLabel="Lire la vidéo">
-        {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.night }]} />}
+        {posterUri ? <Image source={{ uri: posterUri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.mediaBackdrop }]} />}
         <View style={styles.playWrap}>
           <View style={styles.play}>
             <Play size={24} color={dark.text} fill={dark.text} />
@@ -198,7 +198,7 @@ export function MediaItem({
   const uri = media.local_uri ?? remote;
   const poster = media.local_uri ? (media.local_poster ?? null) : remotePoster;
   return (
-    <View style={{ width, height, backgroundColor: tone === 'dark' ? dark.surface : colors.surfaceMuted }}>
+    <View style={{ width, height, backgroundColor: colors.mediaBackdrop }}>
       {media.kind === 'video' ? (
         uri ? <VideoPlayerInline uri={uri} posterUri={poster} active={active} /> : null
       ) : uri ? (
@@ -308,7 +308,7 @@ export function Thumb({ media, bucket = 'public-media', style, label }: { media?
   const path = media ? (media.kind === 'video' ? (media.poster_path ?? null) : media.kind === 'audio' ? null : media.storage_path) : null;
   const uri = useMediaUrl(bucket, path);
   return (
-    <View style={[{ backgroundColor: colors.surfaceMuted, overflow: 'hidden' }, style]} accessibilityLabel={label} accessibilityRole="image">
+    <View style={[{ backgroundColor: colors.mediaBackdrop, overflow: 'hidden' }, style]} accessibilityLabel={label} accessibilityRole="image">
       {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} recyclingKey={uri} /> : null}
       {media?.kind === 'video' ? (
         <View style={styles.videoTag}>
@@ -333,6 +333,6 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.mediaLine },
   dotOn: { backgroundColor: colors.white, width: 16 },
   errorPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: dark.glass },
-  audioTile: { ...fill, backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center' },
+  audioTile: { ...fill, backgroundColor: colors.mediaBackdrop, alignItems: 'center', justifyContent: 'center' },
   videoTag: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.mediaPanel, alignItems: 'center', justifyContent: 'center' },
 });

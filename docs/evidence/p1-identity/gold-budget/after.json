@@ -1,0 +1,194 @@
+{
+  "accueil": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "explorer": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "messages": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "profil-perso": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "boutique-autre": [
+    {
+      "tag": "button",
+      "text": "Message",
+      "w": 165,
+      "h": 46
+    }
+  ],
+  "article-acheteur": [
+    {
+      "tag": "button",
+      "text": "Envoyer un message",
+      "w": 193,
+      "h": 52
+    }
+  ],
+  "article-vendeur": [
+    {
+      "tag": "button",
+      "text": "Marquer vendu",
+      "w": 180,
+      "h": 52
+    }
+  ],
+  "offre": [
+    {
+      "tag": "button",
+      "text": "Envoyer la proposition",
+      "w": 358,
+      "h": 52
+    }
+  ],
+  "discussion": [],
+  "accord-acheteur": [
+    {
+      "tag": "button",
+      "text": "Déclarer l’échange terminé",
+      "w": 324,
+      "h": 46
+    }
+  ],
+  "discussion-offres": [
+    {
+      "tag": "div",
+      "text": "Acceptée",
+      "w": 66,
+      "h": 28
+    }
+  ],
+  "notifications": [],
+  "recherche": [],
+  "enregistres": [],
+  "amis": [
+    {
+      "tag": "button",
+      "text": "Inviter des proches",
+      "w": 168,
+      "h": 46
+    }
+  ],
+  "inviter": [
+    {
+      "tag": "button",
+      "text": "Partager mon profil",
+      "w": 358,
+      "h": 46
+    }
+  ],
+  "reglages": [],
+  "reglages-compte": [],
+  "reglages-confidentialite": [],
+  "modifier-profil": [
+    {
+      "tag": "button",
+      "text": "Enregistrer",
+      "w": 92,
+      "h": 36
+    }
+  ],
+  "modifier-boutique": [
+    {
+      "tag": "button",
+      "text": "Enregistrer",
+      "w": 92,
+      "h": 36
+    }
+  ],
+  "publier-article": [
+    {
+      "tag": "button",
+      "text": "Mettre en vente",
+      "w": 358,
+      "h": 56
+    }
+  ],
+  "publier-publication": [
+    {
+      "tag": "button",
+      "text": "Publier",
+      "w": 78,
+      "h": 40
+    }
+  ],
+  "publier-statut": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 44,
+      "h": 44
+    }
+  ],
+  "accords": [],
+  "menu-plus": [
+    {
+      "tag": "button",
+      "text": "Publication photos · voix · texte",
+      "w": 124,
+      "h": 172
+    }
+  ],
+  "explorer-filtres": [
+    {
+      "tag": "button",
+      "text": "Voir les articles",
+      "w": 232,
+      "h": 46
+    }
+  ],
+  "connexion": [
+    {
+      "tag": "button",
+      "text": "Se connecter",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "inscription": [
+    {
+      "tag": "button",
+      "text": "Créer mon compte",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "accueil-visiteur": [
+    {
+      "tag": "button",
+      "text": "Créer un compte",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "mot-de-passe-oublie": [
+    {
+      "tag": "button",
+      "text": "Envoyer le lien",
+      "w": 342,
+      "h": 46
+    }
+  ]
+}

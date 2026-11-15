@@ -174,7 +174,7 @@ function PostCardInner({
       accessibilityRole="button"
       accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
     >
-      <Text variant="callout" weight="700" color={cta.tone === 'outline' ? dark.text : colors.night}>
+      <Text variant="callout" weight="700" color={dark.text}>
         {cta.label}
       </Text>
     </Pressable>
@@ -434,8 +434,8 @@ const styles = StyleSheet.create({
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   cta: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
-  ctaGold: { backgroundColor: dark.gold },
-  ctaMint: { backgroundColor: dark.gold },
+  ctaGold: { borderWidth: 1, borderColor: dark.gold },
+  ctaMint: { borderWidth: 1, borderColor: dark.gold },
   ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
   ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   productRow: {

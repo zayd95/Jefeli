@@ -295,7 +295,7 @@ function Handover({
           ) : null}
           <Button
             label="Proposer la remise"
-            variant="cta"
+            variant="outline"
             disabled={past || place.trim().length < 2}
             loading={busy}
             onPress={() => {

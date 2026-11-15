@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   dScroll: { width: '100%', maxWidth: 1180, alignSelf: 'center', paddingHorizontal: 32, paddingBottom: 48 },
   dToolbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md },
   dRow: { flexDirection: 'row', gap: 40, alignItems: 'flex-start' },
-  dMedia: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.night, alignItems: 'center' },
+  dMedia: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.mediaBackdrop, alignItems: 'center' },
   dPanel: { gap: spacing.md },
   dPanelSide: { width: 380, position: 'sticky' as never, top: 16 },
   dCard: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: 20, gap: 4 },

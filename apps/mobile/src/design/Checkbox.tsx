@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   boxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingVertical: spacing.sm },
   track: { width: 48, height: 28, borderRadius: 14, backgroundColor: colors.surfaceMuted, padding: 3, borderWidth: 1, borderColor: colors.border },
-  trackOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  trackOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   thumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.white },
-  thumbOn: { transform: [{ translateX: 20 }], backgroundColor: colors.onPrimary },
+  thumbOn: { transform: [{ translateX: 20 }], backgroundColor: colors.gold },
 });

@@ -485,7 +485,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
             accessibilityState={{ disabled: hasVideo }}
           >
             <View style={styles.presentIcon}>
-              <Mic size={20} color={colors.night} />
+              <Mic size={20} color={colors.gold} />
             </View>
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">Présenter en voix</Text>
@@ -641,13 +641,13 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.serifSemibold, fontSize: 28, lineHeight: 34, color: colors.ink, paddingVertical: 4 },
   segment: { flexDirection: 'row', padding: 4, borderRadius: radius.pill, backgroundColor: colors.surfaceSubtle, gap: 4 },
   segmentItem: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  segmentOn: { backgroundColor: colors.night },
+  segmentOn: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56 },
   priceField: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: 6, borderBottomWidth: 2, borderBottomColor: colors.border },
   price: { flex: 1, minWidth: 0, fontFamily: fonts.extrabold, fontSize: 28, lineHeight: 36, color: colors.ink, paddingVertical: 4 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
   present: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: 20, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.surface },
-  presentIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  presentIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.goldLine, alignItems: 'center', justifyContent: 'center' },
   voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: spacing.md, borderRadius: 18, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.goldSoft },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   detail: { minWidth: 96, maxWidth: '48%', flexGrow: 1, minHeight: 56, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, justifyContent: 'center' },

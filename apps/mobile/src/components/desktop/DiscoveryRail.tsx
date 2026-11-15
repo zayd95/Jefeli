@@ -181,5 +181,5 @@ const styles = StyleSheet.create({
   thumb: { width: 52, height: 52, borderRadius: 10, backgroundColor: dark.raised },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   tile: { width: '47%', gap: 4 },
-  tileImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: colors.night },
+  tileImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: colors.mediaBackdrop },
 });

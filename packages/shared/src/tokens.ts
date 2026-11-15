@@ -9,8 +9,9 @@
  * This file is the ONLY place a colour value may be written (tests/no-raw-colors.test.ts).
  */
 export const palette = {
-  canvas: '#061D18', // the one background
-  surface: '#0B2922', // cards, panels, fields
+  canvas: '#0B1311', // the one background: near-black with a slight green, so photos read true (owner, 15 Nov 2026)
+  media: '#0B1311', // backdrop of every photo / media container: neutral, never tinted green
+  surface: '#0B2922', // headers, sheets, panels, fields: the green surfaces stay for brand moments
   raised: '#12382F', // raised surfaces, active rows, own chat bubbles
   ink: '#F6F5ED', // primary text: warm off-white
   slate: '#9BADA7', // supporting copy
@@ -74,7 +75,7 @@ export const colors = {
   logoMint: palette.logoMint,
   white: palette.white,
   black: palette.black,
-  overlay: 'rgba(2, 14, 11, 0.62)',
+  overlay: 'rgba(5, 9, 8, 0.62)',
   inkWash: 'rgba(246, 245, 237, 0.04)',
   glassLight: 'rgba(7, 31, 26, 0.95)',
   dockLight: 'rgba(7, 31, 26, 0.95)',
@@ -87,7 +88,8 @@ export const colors = {
   mediaTextSoft: 'rgba(255, 255, 255, 0.75)',
   mediaLine: 'rgba(255, 255, 255, 0.35)',
   mediaChip: 'rgba(246, 245, 237, 0.94)', // light chip on a photo (favourite heart, badges)
-  mediaPanel: 'rgba(6, 29, 24, 0.65)', // dark band over a photo
+  mediaPanel: 'rgba(11, 19, 17, 0.65)', // dark band over a photo
+  mediaBackdrop: palette.media, // behind photos and videos (letterboxing, loading, empty)
 } as const;
 
 /** The same system under the names the screens already use. */
@@ -102,13 +104,13 @@ export const dark = {
   border: palette.line,
   borderStrong: palette.lineStrong,
   subtle: 'rgba(246, 245, 237, 0.05)',
-  glass: 'rgba(6, 29, 24, 0.66)',
+  glass: 'rgba(11, 19, 17, 0.66)',
   glassBorder: 'rgba(214, 236, 228, 0.14)',
   dock: 'rgba(7, 31, 26, 0.95)',
   dockBorder: 'rgba(214, 236, 228, 0.14)',
-  header: 'rgba(6, 29, 24, 0.94)',
-  scrim: 'rgba(2, 14, 11, 0.9)',
-  scrimSoft: 'rgba(2, 14, 11, 0.6)',
+  header: 'rgba(11, 19, 17, 0.94)',
+  scrim: 'rgba(5, 9, 8, 0.9)',
+  scrimSoft: 'rgba(5, 9, 8, 0.6)',
   gold: palette.gold,
   goldSoft: 'rgba(239, 189, 56, 0.15)',
   goldLine: 'rgba(239, 189, 56, 0.3)',

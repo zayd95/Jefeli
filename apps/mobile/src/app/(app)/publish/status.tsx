@@ -313,8 +313,8 @@ function ChooseRow({ icon: Icon, label, hint, onPress }: { icon: typeof Mic; lab
 function SideTool({ icon: Icon, label, a11y, on, onPress }: { icon: typeof Mic; label: string; a11y: string; on: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={styles.sideTool} accessibilityRole="button" accessibilityLabel={a11y} accessibilityState={{ selected: on }}>
-      <View style={[styles.sideIcon, on && { backgroundColor: colors.gold }]}>
-        <Icon size={20} color={on ? colors.night : colors.white} />
+      <View style={[styles.sideIcon, on && { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold }]}>
+        <Icon size={20} color={on ? colors.gold : colors.white} />
       </View>
       <Text variant="micro" weight="700" color={colors.white}>
         {label}

@@ -357,7 +357,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         {isSelf ? (
           <View style={styles.actions}>
             <Button label="Modifier le profil" variant="outlineDark" pill style={{ flex: 1 }} onPress={() => router.push('/edit-profile')} />
-            <Button label="Publier" variant="cta" pill icon={Plus} style={{ flex: 1 }} onPress={() => router.push('/publish/post')} />
+            <Button label="Publier" variant="outline" pill icon={Plus} style={{ flex: 1 }} onPress={() => router.push('/publish/post')} />
           </View>
         ) : r.blocked ? (
           <Text tone="fogSecondary" style={{ marginTop: spacing.lg }}>
@@ -546,7 +546,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                 <Text variant="callout" tone="fogSecondary" align="center">
                   Aucune publication pour l’instant.
                 </Text>
-                {isSelf ? <Button label="Publier" variant="cta" pill size="sm" onPress={() => router.push('/publish/post')} style={{ marginTop: spacing.md }} /> : null}
+                {isSelf ? <Button label="Publier" variant="outline" pill size="sm" onPress={() => router.push('/publish/post')} style={{ marginTop: spacing.md }} /> : null}
               </View>
             )
           ) : (
@@ -554,7 +554,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
               <Text variant="callout" tone="fogSecondary" align="center">
                 {isSelf ? 'Votre boutique apparaît avec votre premier article. Gratuite, sans abonnement.' : 'Pas encore d’article.'}
               </Text>
-              {isSelf ? <Button label="Ajouter un article" variant="cta" pill size="sm" icon={Plus} onPress={() => router.push('/publish/listing')} style={{ marginTop: spacing.md }} /> : null}
+              {isSelf ? <Button label="Ajouter un article" variant="outline" pill size="sm" icon={Plus} onPress={() => router.push('/publish/listing')} style={{ marginTop: spacing.md }} /> : null}
             </View>
           );
         }}

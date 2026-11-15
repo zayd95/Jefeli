@@ -133,11 +133,11 @@ export function OfferCard({
     <View testID="waxaale-card" style={[styles.card, fromMe ? styles.cardMine : null]} accessibilityLabel={`Waxaale, ${kindLabel}, ${statusLabel}`}>
       <View style={styles.band}>
         <View style={styles.bandLeft}>
-          <Handshake size={15} color={colors.onPrimary} strokeWidth={2.4} />
-          <Text weight="800" color={colors.onPrimary} style={{ fontSize: 11.5, letterSpacing: 1.4 }}>
+          <Handshake size={15} color={colors.gold} strokeWidth={2.4} />
+          <Text weight="800" color={colors.gold} style={{ fontSize: 11.5, letterSpacing: 1.4 }}>
             WAXAALE
           </Text>
-          <Text weight="700" color={colors.onPrimary} style={{ fontSize: 12, opacity: 0.75 }}>
+          <Text weight="700" color={dark.textSecondary} style={{ fontSize: 12 }}>
             · {kindLabel}
           </Text>
         </View>
@@ -228,7 +228,7 @@ export function OfferCard({
           <Button label="Retirer ma proposition" variant="ghost" size="sm" loading={busy === 'withdraw'} onPress={() => run('withdraw', () => withdrawOffer(offer.id), 'Proposition retirée')} />
         ) : null}
         {agreement ? (
-          <Button label={agreement.status === 'completed' ? 'Voir l’échange' : 'Voir l’accord'} variant="primary" size="sm" onPress={() => router.push(`/agreement/${agreement.id}`)} />
+          <Button label={agreement.status === 'completed' ? 'Voir l’échange' : 'Voir l’accord'} variant="outline" size="sm" onPress={() => router.push(`/agreement/${agreement.id}`)} />
         ) : null}
       </View>
     </View>
@@ -239,10 +239,10 @@ export function OfferCard({
 const styles = StyleSheet.create({
   card: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, borderRadius: radius.xl, overflow: 'hidden', width: '88%', maxWidth: 420 },
   cardMine: { borderColor: dark.goldSoft },
-  band: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.gold, paddingHorizontal: spacing.md, paddingVertical: 8 },
+  band: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.raised, borderBottomWidth: 1, borderBottomColor: colors.goldLine, paddingHorizontal: spacing.md, paddingVertical: 8 },
   bandLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   pill: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: dark.background },
-  pillOk: { backgroundColor: colors.ink },
+  pillOk: { backgroundColor: colors.gold },
   pillOff: { backgroundColor: dark.background, opacity: 0.7 },
   body: { padding: spacing.md, gap: spacing.sm },
   amountRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm, flexWrap: 'wrap' },

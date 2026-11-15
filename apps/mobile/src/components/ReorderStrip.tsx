@@ -154,7 +154,7 @@ function DraggableThumb({
           if (e.nativeEvent.actionName === 'remove') onRemove();
         }}
       >
-        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.night }]} />}
+        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.mediaBackdrop }]} />}
         {item.kind === 'video' ? (
           <View style={styles.video}>
             <Play size={12} color={colors.white} fill={colors.white} />
@@ -172,7 +172,7 @@ function DraggableThumb({
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, rowGap: GAP },
   cell: { width: SIZE, height: ROW, alignItems: 'center', gap: 4 },
-  thumb: { width: SIZE, height: SIZE, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', backgroundColor: dark.surface },
+  thumb: { width: SIZE, height: SIZE, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', backgroundColor: colors.mediaBackdrop },
   thumbOn: { borderColor: colors.gold },
   coverMark: { position: 'absolute', left: 6, right: 6, bottom: 5, height: 3, borderRadius: 2, backgroundColor: colors.gold },
   video: { position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: dark.glass, alignItems: 'center', justifyContent: 'center' },

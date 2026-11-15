@@ -197,7 +197,7 @@ export default function Explore() {
             accessibilityLabel={`Ville : ${city ?? 'toutes les villes'}. Changer`}
           >
             <View style={styles.cityIcon}>
-              <MapPin size={16} color={colors.night} strokeWidth={2.2} />
+              <MapPin size={16} color={colors.gold} strokeWidth={2.2} />
             </View>
             <Text variant="callout" weight="600" tone="fog" numberOfLines={1} style={{ flexShrink: 1, fontSize: 13 }}>
               {city ?? 'Tout le Sénégal'}
@@ -238,8 +238,8 @@ export default function Explore() {
           accessibilityRole="button"
           accessibilityLabel={extraFilters > 0 ? `Filtres, ${extraFilters} actif${extraFilters > 1 ? 's' : ''}` : 'Filtres : prix, achat ou Wecci, tri'}
         >
-          <SlidersHorizontal size={15} color={extraFilters > 0 ? colors.onPrimary : colors.ink} strokeWidth={2.2} />
-          <Text variant="callout" weight="700" color={extraFilters > 0 ? colors.onPrimary : colors.ink} style={{ fontSize: 13 }}>
+          <SlidersHorizontal size={15} color={extraFilters > 0 ? colors.ink : colors.ink} strokeWidth={2.2} />
+          <Text variant="callout" weight="700" color={extraFilters > 0 ? colors.ink : colors.ink} style={{ fontSize: 13 }}>
             {extraFilters > 0 ? `Filtres · ${extraFilters}` : 'Filtres'}
           </Text>
         </Pressable>
@@ -252,8 +252,8 @@ export default function Explore() {
           accessibilityLabel={hood ? `Près de moi, ${hood}` : 'Près de moi : ajoutez votre quartier à votre profil'}
           testID="near-me"
         >
-          <Navigation size={14} color={near ? colors.onPrimary : dark.wecci} strokeWidth={2.4} />
-          <Text variant="callout" weight="700" color={near ? colors.onPrimary : colors.ink} style={{ fontSize: 13 }}>
+          <Navigation size={14} color={near ? colors.ink : dark.wecci} strokeWidth={2.4} />
+          <Text variant="callout" weight="700" color={near ? colors.ink : colors.ink} style={{ fontSize: 13 }}>
             {hood ? `Près de moi · ${hood}` : 'Près de moi'}
           </Text>
         </Pressable>
@@ -270,7 +270,7 @@ export default function Explore() {
               aria-selected={on}
               accessibilityLabel={k.label}
             >
-              <Text variant="callout" weight="600" color={on ? colors.onPrimary : dark.textSecondary} style={{ fontSize: 13 }}>
+              <Text variant="callout" weight="600" color={on ? colors.ink : dark.textSecondary} style={{ fontSize: 13 }}>
                 {k.label}
               </Text>
             </Pressable>
@@ -465,8 +465,8 @@ function FilterGroup<K extends string>({ title, options, value, onChange }: { ti
               aria-checked={on}
               accessibilityLabel={o.label}
             >
-              {on ? <Check size={15} color={colors.onPrimary} strokeWidth={2.6} /> : null}
-              <Text variant="callout" weight="700" color={on ? colors.onPrimary : dark.text} style={{ fontSize: 14 }}>
+              {on ? <Check size={15} color={colors.ink} strokeWidth={2.6} /> : null}
+              <Text variant="callout" weight="700" color={on ? colors.ink : dark.text} style={{ fontSize: 14 }}>
                 {o.label}
               </Text>
             </Pressable>
@@ -519,7 +519,7 @@ function SellerCard({ seller }: { seller: SuggestedSeller }) {
         accessibilityRole="button"
         accessibilityLabel={done ? `Vous suivez ${seller.display_name}` : `Suivre ${seller.display_name}`}
       >
-        <Text variant="callout" weight="700" color={done ? colors.ink : colors.onPrimary} style={{ fontSize: 13 }}>
+        <Text variant="callout" weight="700" color={done ? colors.ink : colors.ink} style={{ fontSize: 13 }}>
           {done ? 'Suivi' : 'Suivre'}
         </Text>
       </Pressable>
@@ -545,10 +545,10 @@ function AisleCard({ aisle, counts, selected, onPress }: { aisle: Aisle; counts:
         <Icon size={20} color={selected ? colors.gold : dark.wecci} strokeWidth={2} />
       </View>
       <View style={{ gap: 2, flexShrink: 1 }}>
-        <Text serif color={selected ? colors.onPrimary : colors.ink} style={{ fontSize: 21, lineHeight: 25 }}>
+        <Text serif color={selected ? colors.ink : colors.ink} style={{ fontSize: 21, lineHeight: 25 }}>
           {aisle.label}
         </Text>
-        <Text variant="caption" weight="600" color={selected ? colors.onPrimary : dark.textSecondary} numberOfLines={2}>
+        <Text variant="caption" weight="600" color={selected ? colors.ink : dark.textSecondary} numberOfLines={2}>
           {counts.articles > 0 ? `${counts.articles} article${counts.articles > 1 ? 's' : ''}\n${counts.sellers} vendeur${counts.sellers > 1 ? 's' : ''}` : 'Bientôt ouverte'}
         </Text>
       </View>
@@ -566,12 +566,12 @@ function AisleChip({ icon: Icon, label, a11y, count, selected, onPress }: { icon
       aria-selected={selected}
       accessibilityLabel={a11y ?? label}
     >
-      <Icon size={16} color={selected ? colors.onPrimary : dark.wecci} strokeWidth={2} />
-      <Text weight="600" color={selected ? colors.onPrimary : colors.ink} numberOfLines={1} style={{ fontSize: 13 }}>
+      <Icon size={16} color={selected ? colors.ink : dark.wecci} strokeWidth={2} />
+      <Text weight="600" color={selected ? colors.ink : colors.ink} numberOfLines={1} style={{ fontSize: 13 }}>
         {label}
       </Text>
       {count ? (
-        <Text variant="caption" weight="700" color={selected ? colors.onPrimary : dark.textTertiary} style={{ fontSize: 11.5 }}>
+        <Text variant="caption" weight="700" color={selected ? colors.ink : dark.textTertiary} style={{ fontSize: 11.5 }}>
           {count}
         </Text>
       ) : null}
@@ -587,7 +587,7 @@ function SeekInvite({ title, onSeek, onClear }: { title: string; onSeek: () => v
   return (
     <View style={styles.seek} testID="seek-invite">
       <View style={styles.seekIcon}>
-        <Megaphone size={26} color={colors.onPrimary} strokeWidth={2.2} />
+        <Megaphone size={26} color={colors.gold} strokeWidth={2.2} />
       </View>
       <Text serif color={colors.ink} style={{ fontSize: 23, lineHeight: 28, textAlign: 'center' }}>
         {title}
@@ -611,21 +611,21 @@ const styles = StyleSheet.create({
   intro: { backgroundColor: dark.background, paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xl, overflow: 'hidden' },
   introTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   cityPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, height: 44, paddingLeft: 6, paddingRight: spacing.md, borderRadius: radius.pill, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
-  cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.raised, alignItems: 'center', justifyContent: 'center' },
   search: { marginTop: spacing.lg, height: 48, borderRadius: 15, backgroundColor: dark.surface, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
   market: { paddingHorizontal: 14, paddingTop: spacing.lg, gap: spacing.md },
   launchRow: { flexDirection: 'row', gap: 10 },
   aisle: { flex: 1, minHeight: 104, borderRadius: radius.card, padding: 14, gap: 10, justifyContent: 'space-between' },
-  aisleOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },
+  aisleOn: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
   aislePaper: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
   aisleIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: dark.wecciSoft, alignItems: 'center', justifyContent: 'center' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 7, height: 42, paddingHorizontal: 14, borderRadius: 14 },
   seek: { marginHorizontal: 14, alignItems: 'center', gap: spacing.md, padding: spacing.xl, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: dark.borderStrong, backgroundColor: dark.surface },
-  seekIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  seekIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   tiles: { paddingHorizontal: 14, paddingTop: spacing.md, gap: 8 },
   tileRing: { borderRadius: 16 },
   tile: { width: 112, height: 84, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10 },
-  tileOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },
+  tileOn: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
   tilePaper: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
   tileIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: dark.wecciSoft, alignItems: 'center', justifyContent: 'center' },
   tileIconOn: { backgroundColor: colors.night },
@@ -637,11 +637,11 @@ const styles = StyleSheet.create({
   rowSub: { paddingHorizontal: 14, marginTop: 2 },
   rowScroll: { paddingHorizontal: 14, gap: 10, paddingTop: spacing.md },
   seller: { width: 156, padding: 12, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, alignItems: 'center', gap: 10 },
-  follow: { alignSelf: 'stretch', height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  follow: { alignSelf: 'stretch', height: 40, borderRadius: 12, borderWidth: 1, borderColor: dark.borderStrong, alignItems: 'center', justifyContent: 'center' },
   followDone: { backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: dark.border },
   choice: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.surface },
-  choiceOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  choiceOn: { backgroundColor: colors.raised, borderColor: colors.gold },
+  pillOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: spacing.md, paddingHorizontal: 14, paddingTop: spacing.xl, paddingBottom: spacing.lg },
   leadRow: { paddingHorizontal: 14, marginBottom: 10, alignItems: 'center' },
   gridRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, marginBottom: 10 },

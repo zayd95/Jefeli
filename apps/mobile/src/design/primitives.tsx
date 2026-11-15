@@ -40,7 +40,7 @@ export function Chip({
   style?: StyleProp<ViewStyle>;
   tone?: 'light' | 'dark';
 }) {
-  const fg = selected ? colors.onPrimary : tone === 'dark' ? colors.ink : colors.textSecondary;
+  const fg = selected ? colors.ink : tone === 'dark' ? colors.ink : colors.textSecondary;
   return (
     <Pressable
       onPress={onPress}
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   chipIdle: { backgroundColor: 'transparent' },
-  chipSelected: { backgroundColor: colors.primary },
+  chipSelected: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
   tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, alignSelf: 'flex-start' },
   demo: {
     backgroundColor: colors.warningSoft,

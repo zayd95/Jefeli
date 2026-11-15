@@ -1,0 +1,414 @@
+{
+  "accueil": [
+    {
+      "tag": "button",
+      "text": "Écrire à Khadija",
+      "w": 141,
+      "h": 44
+    },
+    {
+      "tag": "button",
+      "text": "Je peux aider",
+      "w": 125,
+      "h": 44
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "explorer": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 32,
+      "h": 32
+    },
+    {
+      "tag": "button",
+      "text": "Tout le marché",
+      "w": 141,
+      "h": 42
+    },
+    {
+      "tag": "div",
+      "text": "Tout",
+      "w": 56,
+      "h": 40
+    },
+    {
+      "tag": "button",
+      "text": "Suivre",
+      "w": 130,
+      "h": 40
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "messages": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "profil-perso": [
+    {
+      "tag": "button",
+      "text": "Publier",
+      "w": 174,
+      "h": 46
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "boutique-autre": [
+    {
+      "tag": "button",
+      "text": "Message",
+      "w": 165,
+      "h": 46
+    }
+  ],
+  "article-acheteur": [
+    {
+      "tag": "button",
+      "text": "Envoyer un message",
+      "w": 193,
+      "h": 52
+    }
+  ],
+  "article-vendeur": [
+    {
+      "tag": "button",
+      "text": "Marquer vendu",
+      "w": 180,
+      "h": 52
+    }
+  ],
+  "offre": [
+    {
+      "tag": "button",
+      "text": "Envoyer la proposition",
+      "w": 358,
+      "h": 52
+    }
+  ],
+  "discussion": [
+    {
+      "tag": "div",
+      "text": "WAXAALE · Troc En attente",
+      "w": 320,
+      "h": 44
+    }
+  ],
+  "accord-acheteur": [
+    {
+      "tag": "button",
+      "text": "Demain",
+      "w": 78,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "18 h",
+      "w": 57,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "Proposer la remise",
+      "w": 324,
+      "h": 46
+    },
+    {
+      "tag": "button",
+      "text": "Déclarer l’échange terminé",
+      "w": 324,
+      "h": 46
+    }
+  ],
+  "discussion-offres": [
+    {
+      "tag": "div",
+      "text": "WAXAALE · Contre-offre Acceptée",
+      "w": 320,
+      "h": 44
+    },
+    {
+      "tag": "button",
+      "text": "Voir l’accord",
+      "w": 296,
+      "h": 36
+    },
+    {
+      "tag": "div",
+      "text": "WAXAALE · Offre Contre-proposition faite",
+      "w": 320,
+      "h": 44
+    }
+  ],
+  "notifications": [],
+  "recherche": [
+    {
+      "tag": "button",
+      "text": "Articles",
+      "w": 79,
+      "h": 36
+    }
+  ],
+  "enregistres": [
+    {
+      "tag": "button",
+      "text": "Articles favoris",
+      "w": 126,
+      "h": 36
+    }
+  ],
+  "amis": [
+    {
+      "tag": "button",
+      "text": "Inviter des proches",
+      "w": 168,
+      "h": 46
+    }
+  ],
+  "inviter": [
+    {
+      "tag": "button",
+      "text": "Partager mon profil",
+      "w": 358,
+      "h": 46
+    }
+  ],
+  "reglages": [],
+  "reglages-compte": [],
+  "reglages-confidentialite": [
+    {
+      "tag": "div",
+      "text": "Mes abonnés",
+      "w": 113,
+      "h": 42
+    },
+    {
+      "tag": "div",
+      "text": "Tout le monde",
+      "w": 113,
+      "h": 42
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 48,
+      "h": 28
+    }
+  ],
+  "modifier-profil": [
+    {
+      "tag": "button",
+      "text": "Enregistrer",
+      "w": 92,
+      "h": 36
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 32,
+      "h": 32
+    },
+    {
+      "tag": "button",
+      "text": "Mode femme",
+      "w": 113,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "Sacs & accessoires",
+      "w": 149,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "Beauté & soins",
+      "w": 125,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "Dakar",
+      "w": 67,
+      "h": 36
+    },
+    {
+      "tag": "button",
+      "text": "Mermoz",
+      "w": 80,
+      "h": 36
+    }
+  ],
+  "modifier-boutique": [
+    {
+      "tag": "button",
+      "text": "Enregistrer",
+      "w": 92,
+      "h": 36
+    }
+  ],
+  "publier-article": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 44,
+      "h": 44
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 48,
+      "h": 28
+    },
+    {
+      "tag": "button",
+      "text": "Mettre en vente",
+      "w": 358,
+      "h": 56
+    }
+  ],
+  "publier-publication": [
+    {
+      "tag": "button",
+      "text": "Publier",
+      "w": 78,
+      "h": 40
+    }
+  ],
+  "publier-statut": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 44,
+      "h": 44
+    }
+  ],
+  "accords": [],
+  "menu-plus": [
+    {
+      "tag": "button",
+      "text": "Écrire à Khadija",
+      "w": 141,
+      "h": 44
+    },
+    {
+      "tag": "button",
+      "text": "Je peux aider",
+      "w": 125,
+      "h": 44
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "explorer-filtres": [
+    {
+      "tag": "div",
+      "text": "",
+      "w": 32,
+      "h": 32
+    },
+    {
+      "tag": "button",
+      "text": "Tout le marché",
+      "w": 141,
+      "h": 42
+    },
+    {
+      "tag": "div",
+      "text": "Tout",
+      "w": 56,
+      "h": 40
+    },
+    {
+      "tag": "button",
+      "text": "Suivre",
+      "w": 130,
+      "h": 40
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "w": 42,
+      "h": 42
+    },
+    {
+      "tag": "div",
+      "text": "Tous les prix",
+      "w": 133,
+      "h": 44
+    },
+    {
+      "tag": "div",
+      "text": "Tout",
+      "w": 80,
+      "h": 44
+    },
+    {
+      "tag": "div",
+      "text": "Les plus récents",
+      "w": 156,
+      "h": 44
+    },
+    {
+      "tag": "button",
+      "text": "Voir les articles",
+      "w": 232,
+      "h": 46
+    }
+  ],
+  "connexion": [
+    {
+      "tag": "button",
+      "text": "Se connecter",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "inscription": [
+    {
+      "tag": "button",
+      "text": "Créer mon compte",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "accueil-visiteur": [
+    {
+      "tag": "button",
+      "text": "Créer un compte",
+      "w": 342,
+      "h": 52
+    }
+  ],
+  "mot-de-passe-oublie": [
+    {
+      "tag": "button",
+      "text": "Envoyer le lien",
+      "w": 342,
+      "h": 46
+    }
+  ]
+}
