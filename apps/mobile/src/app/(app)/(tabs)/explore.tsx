@@ -47,7 +47,7 @@ const KINDS: { key: Kind; label: string }[] = [
   { key: 'all', label: 'Tout' },
   { key: 'new', label: 'Neuf' },
   { key: 'used', label: 'Occasion' },
-  { key: 'trade', label: 'Wecci · Troc' },
+  { key: 'trade', label: 'Troquer' },
 ];
 const isKind = (v: unknown): v is Kind => v === 'all' || v === 'new' || v === 'used' || v === 'trade';
 

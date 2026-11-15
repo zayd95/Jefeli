@@ -169,7 +169,8 @@ describe('formatListingPrice (flexible pricing)', () => {
   });
   it('never shows 0 F or an invented price', () => {
     expect(formatListingPrice({ price_xof: 0, price_mode: 'fixed', listing_mode: 'sale' })).toBe('Prix sur demande');
-    expect(formatListingPrice({ price_xof: null, price_mode: 'fixed', listing_mode: 'trade' })).toBe('À échanger');
+    expect(formatListingPrice({ price_xof: null, price_mode: 'fixed', listing_mode: 'trade' })).toBe('À troquer');
+    expect(formatListingPrice({ price_xof: 0, price_mode: 'fixed', listing_mode: 'give' })).toBe('À donner');
     expect(formatListingPrice({ price_xof: null, price_mode: null, listing_mode: 'sale' })).toBe('Prix sur demande');
   });
   it('« Prix sur demande » hides any amount', () => {

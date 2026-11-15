@@ -233,7 +233,7 @@ export interface ListingInput {
   price?: number | null;
   category?: string;
   condition?: string;
-  mode?: 'sale' | 'trade' | 'sale_or_trade';
+  mode?: 'sale' | 'trade' | 'sale_or_trade' | 'give';
   /** How the price is shown. Omitted: `p_price_mode` is not sent (the RPC defaults to 'fixed'). */
   priceMode?: 'fixed' | 'on_request' | 'negotiable' | null;
   city?: string | null;

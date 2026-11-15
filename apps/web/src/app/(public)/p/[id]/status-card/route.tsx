@@ -48,7 +48,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const media = [...(product.product_media ?? [])].sort((a, b) => a.position - b.position)[0];
   const img = await photo(publicMediaUrl(media ? (media.kind === 'video' ? media.poster_path : media.storage_path) : null));
-  const swap = product.listing_mode !== 'sale';
+  const swap = product.listing_mode === 'trade' || product.listing_mode === 'sale_or_trade';
+  const gift = product.listing_mode === 'give';
   const price = product.listing_mode === 'trade' ? 'À troquer' : formatListingPrice(product, { compact: true });
   const link = `${env.siteUrl.replace(/^https?:\/\//, '')}/p/${product.id}`;
   const [bold, extra, black] = await Promise.all([font('Nunito_700Bold.ttf'), font('Nunito_800ExtraBold.ttf'), font('Nunito_900Black.ttf')]);
@@ -74,8 +75,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         <div style={{ display: 'flex', flexDirection: 'column', padding: '48px 72px 0', gap: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <div style={{ display: 'flex', fontSize: 84, fontWeight: 900, color: palette.gold, lineHeight: 1.05 }}>{price}</div>
-            {swap && product.listing_mode !== 'trade' ? (
-              <div style={{ display: 'flex', fontSize: 40, fontWeight: 800, color: palette.onGold, background: palette.mint, borderRadius: 999, padding: '10px 30px' }}>Troquer</div>
+            {(swap && product.listing_mode !== 'trade') || gift ? (
+              <div style={{ display: 'flex', fontSize: 40, fontWeight: 800, color: palette.onGold, background: palette.mint, borderRadius: 999, padding: '10px 30px' }}>{gift ? 'Gratuit' : 'Troquer'}</div>
             ) : null}
           </div>
           <div style={{ display: 'flex', fontSize: 56, fontWeight: 800, color: palette.ink, lineHeight: 1.15, maxHeight: 136, overflow: 'hidden' }}>{product.title}</div>

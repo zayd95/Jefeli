@@ -25,7 +25,9 @@
     "20261113000100_explore_discovery.sql",
     "20261114000100_waxaale_voice_offer.sql",
     "20261114000200_market_aisles.sql",
-    "20261115000100_waxaale_reserve_handover.sql"
+    "20261115000100_waxaale_reserve_handover.sql",
+    "20261115000200_wecci_give_mode_enum.sql",
+    "20261115000300_wecci_give_mode.sql"
   ],
   "tables": {
     "account_settings": [

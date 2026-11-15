@@ -33,17 +33,19 @@ export function hasDisplayedPrice(p: PricedListing): boolean {
 /**
  * How a listing's price reads everywhere: cards, product pages, share pages, chat cards and
  * offers. Never invents a price and never shows 0 F.
- *   fixed       → « 28 000 F CFA » (trade-only listings without a value: « À échanger »)
+ *   fixed       → « 28 000 F CFA » (trade-only listings without a value: « À troquer »)
+ *   give        → « À donner » (Wecci « Donner », the only 0 F listing)
  *   on_request  → « Prix sur demande »
  *   negotiable  → « 25 000 F CFA · à discuter », or « Prix à discuter » without a starting price
  */
 export function formatListingPrice(p: PricedListing, opts: { compact?: boolean } = {}): string {
+  if (p.listing_mode === 'give') return 'À donner';
   const mode: PriceMode = isPriceMode(p.price_mode) ? p.price_mode : 'fixed';
   const amount = hasDisplayedPrice(p) ? formatXOF(p.price_xof, opts) : null;
   if (mode === 'on_request') return 'Prix sur demande';
   if (mode === 'negotiable') return amount ? `${amount} · à discuter` : 'Prix à discuter';
   if (amount) return amount;
-  return p.listing_mode === 'trade' ? 'À échanger' : 'Prix sur demande';
+  return p.listing_mode === 'trade' ? 'À troquer' : 'Prix sur demande';
 }
 
 /** Parse user input such as "25 000", "25.000", "25000 F" into an integer, or null. */

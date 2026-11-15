@@ -23,8 +23,9 @@ export const CONDITION_OPTIONS: ItemCondition[] = ['new', 'like_new', 'very_good
 
 export const LISTING_MODE_LABELS: Record<ListingMode, string> = {
   sale: 'À vendre',
-  trade: 'À échanger',
+  trade: 'À troquer',
   sale_or_trade: 'Vente ou troc',
+  give: 'À donner',
 };
 
 export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {

@@ -73,7 +73,7 @@ export function ChatContext({ conversationId, aboutId }: { conversationId: strin
                 <Icon size={16} color={barter ? dark.gold : dark.gold} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text weight="700" color={dark.text} style={{ fontSize: 13.5 }}>
-                    {barter ? 'Wecci (troc)' : 'Offre de prix'}
+                    {barter ? 'Troquer' : 'Offre de prix'}
                     {o.amount_xof ? ` · ${formatXOF(o.amount_xof)}` : ''}
                   </Text>
                   <Text variant="caption" color={dark.textSecondary}>

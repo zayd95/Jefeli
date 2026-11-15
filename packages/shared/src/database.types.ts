@@ -1582,7 +1582,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "account_status": "active"|"suspended","item_condition": "new"|"like_new"|"very_good"|"good"|"fair"|"refurbished","listing_mode": "sale"|"trade"|"sale_or_trade","moderation_state": "active"|"hidden"|"removed","product_status": "active"|"reserved"|"sold"|"archived","verification_level": "none"|"merchant_verified"
+            "account_status": "active"|"suspended","item_condition": "new"|"like_new"|"very_good"|"good"|"fair"|"refurbished","listing_mode": "sale"|"trade"|"sale_or_trade"|"give","moderation_state": "active"|"hidden"|"removed","product_status": "active"|"reserved"|"sold"|"archived","verification_level": "none"|"merchant_verified"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1702,7 +1702,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "account_status": ["active", "suspended"],"item_condition": ["new", "like_new", "very_good", "good", "fair", "refurbished"],"listing_mode": ["sale", "trade", "sale_or_trade"],"moderation_state": ["active", "hidden", "removed"],"product_status": ["active", "reserved", "sold", "archived"],"verification_level": ["none", "merchant_verified"]
+            "account_status": ["active", "suspended"],"item_condition": ["new", "like_new", "very_good", "good", "fair", "refurbished"],"listing_mode": ["sale", "trade", "sale_or_trade", "give"],"moderation_state": ["active", "hidden", "removed"],"product_status": ["active", "reserved", "sold", "archived"],"verification_level": ["none", "merchant_verified"]
           }
         }
 } as const

@@ -3,7 +3,7 @@
  *
  * - The cover comes first, rendered by the same media block as the article page (PostMedia), so
  *   the seller sees what buyers will see; the gallery reorders by dragging or with buttons.
- * - Name and price are written in large type on the window itself; Vendre · Wecci (troc) · Les deux.
+ * - Name and price are written in large type on the window itself; Vendre · Troquer · Les deux · Donner.
  * - « Présenter en voix »: the same full-screen studio as publications; with several photos the
  *   seller taps the one being described. The voice is stored with the article (product_media,
  *   kind 'audio'): no publication is created behind the seller's back.
@@ -59,8 +59,10 @@ import { keepForDraft, restoreVoice, uploadVoice, type NarrationCue, type Record
 
 const MODES: { key: ListingMode; label: string }[] = [
   { key: 'sale', label: 'Vendre' },
-  { key: 'trade', label: 'Wecci (troc)' },
+  { key: 'trade', label: 'Troquer' },
   { key: 'sale_or_trade', label: 'Les deux' },
+  // Pilot cut (f): Wecci « Donner » — the one mode where the article costs 0 F.
+  { key: 'give', label: 'Donner' },
 ];
 const PRICES: { key: PriceMode; label: string; a11y: string; hint: string }[] = [
   { key: 'fixed', label: 'Prix affiché', a11y: 'Prix affiché', hint: 'Le prix est visible par tous.' },
@@ -147,13 +149,14 @@ function ListingEditor({ continued }: { continued: boolean }) {
   const photos = v.media.filter((m) => m.kind === 'image');
   const hasVideo = v.media.some((m) => m.kind === 'video');
   const isTrade = v.mode === 'trade';
+  const isGift = v.mode === 'give';
   const price = parseXOF(v.price);
   // What is sent: no hidden price for « Sur demande »; trade listings may carry a value.
   const sentPrice = !isTrade && priceMode === 'on_request' ? null : price && price > 0 ? price : null;
   const errors = {
     media: v.media.length === 0 ? 'Ajoutez au moins une photo ou une vidéo.' : null,
     title: v.title.trim().length < 3 ? 'Donnez un nom (3 caractères minimum).' : null,
-    price: !isTrade && priceMode === 'fixed' && !sentPrice ? 'Indiquez un prix, ou choisissez « Sur demande » ou « À discuter ».' : null,
+    price: !isTrade && !isGift && priceMode === 'fixed' && !sentPrice ? 'Indiquez un prix, ou choisissez « Sur demande » ou « À discuter ».' : null,
     category: !v.category ? 'Choisissez une catégorie.' : null,
     city: !v.city.trim() ? 'Indiquez une ville.' : null,
     delivery: v.delivery.length === 0 ? 'Choisissez au moins un mode de remise.' : null,
@@ -261,8 +264,8 @@ function ListingEditor({ continued }: { continued: boolean }) {
         {
           title: v.title.trim(),
           description: v.description.trim(),
-          price_xof: sentPrice,
-          price_mode: isTrade ? 'fixed' : priceMode,
+          price_xof: isGift ? 0 : sentPrice,
+          price_mode: isTrade || isGift ? 'fixed' : priceMode,
           category_slug: v.category,
           condition: v.condition,
           listing_mode: v.mode,
@@ -411,7 +414,11 @@ function ListingEditor({ continued }: { continued: boolean }) {
 
         <View style={{ gap: 4 }}>
           <View style={styles.priceRow}>
-            {isTrade || priceMode !== 'on_request' ? (
+            {isGift ? (
+              <Text variant="callout" weight="700" style={{ flex: 1 }}>
+                Gratuit · à donner
+              </Text>
+            ) : isTrade || priceMode !== 'on_request' ? (
               <View style={styles.priceField}>
                 <TextInput
                   value={v.price}
@@ -431,7 +438,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
                 Aucun prix affiché : les acheteurs vous écrivent.
               </Text>
             )}
-            {!isTrade ? (
+            {!isTrade && !isGift ? (
               <Pressable onPress={() => setSheet('price')} style={styles.pill} accessibilityRole="button" accessibilityLabel={`Mode de prix : ${priceInfo.a11y}. Changer`}>
                 <Text variant="caption" weight="700">
                   {priceInfo.label}
@@ -442,7 +449,12 @@ function ListingEditor({ continued }: { continued: boolean }) {
           </View>
           {isTrade ? (
             <Text variant="caption" tone="secondary">
-              Wecci : pas de prix à indiquer. Une valeur aide à équilibrer un troc.
+              Troquer : pas de prix à indiquer. Une valeur aide à équilibrer un troc.
+            </Text>
+          ) : null}
+          {isGift ? (
+            <Text variant="caption" tone="secondary">
+              Donner : l’article part gratuitement. Les intéressés vous écrivent ; vous choisissez à qui le donner.
             </Text>
           ) : null}
           {err('price') ? (
@@ -514,7 +526,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Button label={isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56, width: '100%', maxWidth: 640, alignSelf: 'center' }} />
+        <Button label={isGift ? 'Donner cet article' : isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56, width: '100%', maxWidth: 640, alignSelf: 'center' }} />
       </View>
 
       <VoiceStudio

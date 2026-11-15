@@ -217,3 +217,45 @@ test('PC-E1 · first listing → « Partage ta boutique » moment → WhatsApp s
   await expect(page.getByTestId('share-boutique-moment')).toHaveCount(0);
   await ctx.close();
 });
+
+/**
+ * PC-F1 Wecci « Donner »: the seller gives an article (no price field; 0 F only in this mode). It
+ * reads « À donner » on the card, the article and the public page; nobody can make an offer on it,
+ * the taker writes to the giver. The swap mode is now labelled « Troquer ».
+ */
+test('PC-F1 · « Donner »: 0 F gift, no offer, the taker writes; « Troquer » label', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const G = { name: `Donneuse ${RUN}`, email: `don-${RUN}@e2e.jefeli.test`, handle: `don_${RUN}`, password: PASSWORD };
+  const T = { name: `Preneur ${RUN}`, email: `pre-${RUN}@e2e.jefeli.test`, handle: `pre_${RUN}`, password: PASSWORD };
+  const TITLE = `Poussette à donner ${RUN}`;
+  const { ctx: cg, page: g } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await signUp(g, G);
+  await g.goto('/publish/listing');
+  await expect(g.getByRole('radio', { name: 'Troquer', exact: true })).toBeVisible();
+  await publishListing(g, { file: FIXTURE('bag.jpg'), title: TITLE, mode: 'Donner', category: 'Sacs & accessoires', condition: 'Bon état' });
+  await expect(g.getByText('À donner').first()).toBeVisible();
+  const url = g.url().replace(/\?first=1$/, '');
+  const id = url.match(/\/p\/([0-9a-f-]{36})/)![1]!;
+  await shot(g, DIR, 'f1-giver-article-a-donner');
+
+  const { ctx: ct, page: t } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await signUp(t, T);
+  await t.goto(`/p/${id}`);
+  await expect(t.getByText('À donner').first()).toBeVisible();
+  await expect(t.getByText(/Donner : cet article est offert/)).toBeVisible();
+  await expect(btn(t, 'Faire une offre')).toHaveCount(0);
+  await expect(t.getByRole('button', { name: /Proposer un échange/ })).toHaveCount(0);
+  await shot(t, DIR, 'f2-taker-sees-gift-no-offer');
+  await btn(t, 'Envoyer un message').click();
+  await t.getByRole('textbox', { name: 'Message' }).fill('Bonjour, je peux passer la récupérer ?');
+  await btn(t, 'Envoyer').click();
+  await expect(t.getByText('Bonjour, je peux passer la récupérer ?', { exact: true }).last()).toBeVisible();
+
+  // Public web page: « À donner », no offer buttons.
+  await t.goto(`${WEB_URL}/p/${id}`);
+  await expect(t.getByText('À donner').first()).toBeVisible();
+  await expect(t.getByTestId('web-make-offer')).toHaveCount(0);
+  await expect(t.getByTestId('web-propose-trade')).toHaveCount(0);
+  await shot(t, DIR, 'f3-web-page-a-donner');
+  await Promise.all([cg.close(), ct.close()]);
+});

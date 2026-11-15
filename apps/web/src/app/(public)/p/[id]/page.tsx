@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: Props) {
   const sellerRating = seller ? ratingAverage(seller.rating_sum, seller.rating_count) : null;
   const isAvailable = product.status === 'active';
   const price = priceLabel(product);
-  // No amount shown (« Prix sur demande », « Prix à discuter », « À échanger »): a word label.
+  // No amount shown (« Prix sur demande », « Prix à discuter », « À troquer », « À donner »): a word label.
   const wordPrice = !hasDisplayedPrice(product);
   const askPrice = product.price_mode === 'on_request' || product.price_mode === 'negotiable';
   const shareMessage = `À voir sur Jëfëli\u00A0: ${product.title} — ${price}${isAvailable ? '' : ` (${PRODUCT_STATUS_LABELS[product.status].toLowerCase()})`}`;
@@ -169,12 +169,12 @@ export default async function ProductPage({ params }: Props) {
               // App Links on the app host); otherwise the web app asks to sign up, then comes back
               // to this offer (apps/mobile/src/lib/returnTo.ts).
               <div className="offer-row">
-                {product.listing_mode !== 'trade' ? (
+                {product.listing_mode === 'sale' || product.listing_mode === 'sale_or_trade' ? (
                   <a className="btn btn-outline" href={appLinks.offer(product.id)} data-testid="web-make-offer">
                     Faire une offre
                   </a>
                 ) : null}
-                {product.listing_mode !== 'sale' ? (
+                {product.listing_mode === 'trade' || product.listing_mode === 'sale_or_trade' ? (
                   <a className="btn btn-outline" href={appLinks.offer(product.id, 'barter')} data-testid="web-propose-trade">
                     Proposer un troc
                   </a>

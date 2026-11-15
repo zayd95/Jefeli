@@ -10,7 +10,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ArrowRight, Heart, MapPin, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Heart, MapPin, Gift, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -85,8 +85,10 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
   const category = categories.data?.find((c) => c.slug === product.category_slug);
   const seller = product.seller;
   const unavailable = product.status !== 'active';
-  const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade';
-  const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale';
+  // A gift (Wecci « Donner ») takes no offer: the taker writes to the giver.
+  const gift = product.listing_mode === 'give';
+  const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade' && !gift;
+  const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale' && !gift;
   const { desktop } = useLayout();
   const [contentW, setContentW] = useState(width);
   // Desktop (W1.4): gallery left, a fixed action panel right; one column below 940 px of content.
@@ -230,7 +232,8 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
             {[
               product.city ? { key: 'where', icon: MapPin, label: [product.neighborhood, product.city].filter(Boolean).join(', '), hint: 'Localisation approximative' } : null,
               { key: 'handover', icon: Truck, label: product.delivery_options.map((d) => DELIVERY_LABELS[d] ?? d).join(' · '), hint: product.delivery_notes || undefined },
-              wecci ? { key: 'trade', icon: Repeat, label: 'Wecci : le vendeur accepte les propositions d’échange', hint: undefined } : null,
+              wecci && !gift ? { key: 'trade', icon: Repeat, label: 'Troquer : le vendeur accepte les propositions d’échange', hint: undefined } : null,
+              gift ? { key: 'give', icon: Gift, label: 'Donner : cet article est offert. Écrivez au donneur pour le demander.', hint: undefined } : null,
             ]
               .filter((d): d is NonNullable<typeof d> => d !== null)
               .map((d, i) => (

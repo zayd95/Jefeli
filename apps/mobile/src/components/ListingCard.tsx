@@ -1,6 +1,6 @@
 import { CONDITION_LABELS, formatListingPrice } from '@jefeli/shared';
 import { router } from 'expo-router';
-import { MapPin, Pin, Repeat } from 'lucide-react-native';
+import { Gift, MapPin, Pin, Repeat } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -49,10 +49,12 @@ function ListingCardInner({
   const where = product.neighborhood ?? product.city;
   const badge = pinned
     ? 'ÉPINGLÉ'
-    : product.listing_mode === 'trade'
-      ? 'WECCI'
+    : product.listing_mode === 'give'
+      ? 'À DONNER'
+      : product.listing_mode === 'trade'
+      ? 'TROQUER'
       : product.listing_mode !== 'sale'
-        ? 'VENTE OU WECCI'
+        ? 'VENTE OU TROC'
         : product.condition === 'new'
           ? 'NEUF'
           : CONDITION_LABELS[product.condition].toUpperCase();
@@ -82,10 +84,12 @@ function ListingCardInner({
               </Text>
             </View>
           ) : null}
-          {/* Wecci (troc) is the one mint badge; every other badge is the neutral chip. */}
+          {/* Wecci (Troquer, Donner) is the one mint badge; every other badge is the neutral chip. */}
           <View style={[styles.badge, !pinned && product.listing_mode !== 'sale' && { backgroundColor: colors.wecci }]}>
             {pinned ? (
               <Pin size={10} color={colors.onPrimary} strokeWidth={2.6} />
+            ) : product.listing_mode === 'give' ? (
+              <Gift size={10} color={colors.onPrimary} strokeWidth={2.6} />
             ) : product.listing_mode !== 'sale' ? (
               <Repeat size={10} color={colors.onPrimary} strokeWidth={2.6} />
             ) : null}
