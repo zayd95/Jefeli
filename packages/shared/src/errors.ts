@@ -1,0 +1,173 @@
+/**
+ * Maps machine error keys raised by the database (RAISE EXCEPTION '<key>') and common
+ * Supabase Auth errors to French, user-facing copy.
+ */
+const DB_ERRORS: Record<string, string> = {
+  not_authenticated: 'Connectez-vous pour continuer.',
+  account_suspended: 'Votre compte est suspendu. Vous pouvez contester la décision depuis vos réglages.',
+  rate_limited: 'Vous allez un peu vite. Réessayez dans quelques instants.',
+  blocked: 'Action impossible : un blocage existe entre vous et ce membre.',
+  not_found: 'Ce contenu n’est plus disponible.',
+  not_allowed: 'Vous n’avez pas l’autorisation de faire cela.',
+  invalid_target: 'Action impossible sur ce contenu.',
+  invalid_transition: 'Cette action n’est plus possible : la situation a changé.',
+  handle_reserved: 'Ce nom d’utilisateur est réservé.',
+  prohibited_item: 'Cet article fait partie des produits interdits sur Jëfëli.',
+  media_required: 'Ajoutez au moins une photo ou une vidéo.',
+  media_not_found: 'Un fichier n’a pas été envoyé correctement. Réessayez l’envoi.',
+  too_many_media: 'Maximum 10 photos ou vidéos.',
+  invalid_media: 'Format de fichier non pris en charge.',
+  video_too_long: 'Vidéo trop longue : 3 minutes maximum.',
+  video_duration_required: 'Durée de la vidéo illisible. Essayez avec une autre vidéo.',
+  audio_too_long: 'Enregistrement trop long : 3 minutes maximum.',
+  too_many_audio: 'Une seule voix par publication.',
+  audio_with_video: 'La vidéo garde son propre son : retirez la voix ou la vidéo.',
+  invalid_cues: 'La visite guidée ne correspond plus aux photos. Réenregistrez la voix.',
+  invalid_reference: 'Cette publication n’est plus disponible.',
+  audience_wider_than_post: 'Ce statut ne peut pas être plus visible que la publication partagée.',
+  caption_too_long: 'Légende trop longue : 200 caractères maximum.',
+  empty_post: 'Écrivez quelque chose ou ajoutez une photo.',
+  empty_message: 'Le message est vide.',
+  invalid_visibility: 'Choisissez qui peut voir ce contenu.',
+  invalid_product: 'Cet article ne peut pas être utilisé ici.',
+  invalid_collection: 'Collection introuvable.',
+  own_product: 'C’est votre propre article.',
+  product_unavailable: 'Cet article n’est plus disponible.',
+  not_for_sale: 'Cet article est proposé uniquement à l’échange.',
+  not_for_trade: 'Ce vendeur n’accepte pas le troc pour cet article.',
+  invalid_amount: 'Montant invalide.',
+  invalid_offered_product: 'Choisissez un de vos articles disponibles à proposer.',
+  invalid_cash_payer: 'Indiquez qui paie la différence.',
+  offer_pending: 'Vous avez déjà une proposition en attente pour cet article.',
+  offer_expired: 'Cette proposition a expiré.',
+  messages_restricted: 'Ce membre n’accepte pas les messages de tout le monde.',
+  attachment_required: 'Pièce jointe manquante.',
+  agreement_terms_immutable: 'Les termes d’un accord ne peuvent pas être modifiés.',
+  review_not_allowed: 'Un avis n’est possible qu’après un échange déclaré terminé par les deux membres.',
+  already_reviewed: 'Vous avez déjà laissé un avis pour cet échange.',
+  invalid_rating: 'Choisissez une note entre 1 et 5.',
+  invalid_parent: 'Impossible de répondre à ce commentaire.',
+  live_not_active: 'Ce live n’est pas en cours.',
+  muted_in_live: 'L’hôte a désactivé vos commentaires pour ce live.',
+  already_appealed: 'Vous avez déjà contesté cette décision.',
+  already_friends: 'Vous êtes déjà amis.',
+  provider_not_configured: 'Le direct n’est pas encore activé sur Jëfëli.',
+  invalid_vote: 'Vote invalide.',
+  own_post_vote: 'Vous ne pouvez pas voter pour votre propre publication.',
+  invalid_intent: 'Choisissez le type de publication.',
+  empty_request: 'Décrivez en quelques mots ce que vous cherchez ou votre question.',
+  price_required: 'Indiquez un prix, ou choisissez « Prix sur demande » ou « À discuter ».',
+  invalid_price_mode: 'Choisissez comment afficher le prix.',
+  pin_limit: 'Vous pouvez épingler 3 éléments au maximum. Retirez-en un d’abord.',
+  // Phone codes (send-sms hook, docs/PHONE_AUTH.md)
+  sms_disabled: 'La connexion par SMS est momentanément fermée. Utilisez votre e-mail.',
+  sms_provider_unavailable: 'L’envoi des SMS est momentanément indisponible. Réessayez dans un instant ou utilisez votre e-mail.',
+  sms_destination_not_allowed: 'Ce numéro ne peut pas recevoir de code : seuls les mobiles du Sénégal (+221) sont acceptés pour l’instant.',
+  sms_limit_number: 'Trop de codes demandés pour ce numéro. Réessayez dans une heure.',
+  sms_limit_ip: 'Trop de codes demandés depuis cette connexion. Réessayez plus tard.',
+  sms_daily_budget: 'Les SMS de connexion sont suspendus pour aujourd’hui. Utilisez votre e-mail ou réessayez demain.',
+  sms_send_failed: 'Le SMS n’a pas pu partir. Vérifiez le numéro et réessayez.',
+  sms_invalid_request: 'Numéro invalide. Vérifiez-le.',
+};
+
+const AUTH_ERRORS: Array<[RegExp, string]> = [
+  // Phone codes first: their wording overlaps the generic rate-limit and token rules below.
+  [/you can only request this after (\d+) seconds?/i, 'Patientez un peu avant de demander un nouveau code.'],
+  [/sms rate limit exceeded/i, 'Trop de codes demandés en ce moment sur Jëfëli. Réessayez dans quelques minutes.'],
+  [/signups not allowed for otp/i, 'Aucun compte n’utilise ce numéro. Créez un compte avec ce numéro.'],
+  [/phone number has already been registered|phone_exists/i, 'Ce numéro est déjà utilisé par un autre compte Jëfëli.'],
+  [/invalid phone number|phone number.*(format|invalid)/i, 'Numéro invalide. Vérifiez-le.'],
+  [/unsupported phone provider|phone signups are disabled|phone_provider_disabled/i, 'La connexion par SMS est momentanément fermée. Utilisez votre e-mail.'],
+  [/error sending sms|sms_send_failed/i, 'Le SMS n’a pas pu partir. Réessayez dans un instant.'],
+  [/captcha/i, 'La vérification anti-robot a échoué. Réessayez.'],
+  [/invalid login credentials/i, 'E-mail ou mot de passe incorrect.'],
+  [/user already registered/i, 'Un compte existe déjà avec cet e-mail.'],
+  [/password should be at least/i, 'Le mot de passe doit contenir au moins 8 caractères.'],
+  [/should be different from the old password/i, 'Choisissez un mot de passe différent de l’ancien.'],
+  [/email not confirmed/i, 'Confirmez votre e-mail avant de vous connecter.'],
+  [/rate limit|too many requests/i, 'Trop de tentatives. Réessayez dans quelques minutes.'],
+  [/invalid.*(otp|token)|token has expired/i, 'Code incorrect ou expiré. Vérifiez-le ou demandez un nouveau code.'],
+  [/unable to validate email|invalid email|email address .* is invalid|email_address_invalid/i, 'Adresse e-mail invalide. Vérifiez-la.'],
+  [/error sending (confirmation|magic link|recovery|invite)|email address not authorized/i, 'Inscription momentanément impossible : l’e-mail de confirmation n’a pas pu être envoyé. Réessayez plus tard.'],
+  [/duplicate key value.*handle|profiles_handle_key/i, 'Ce nom d’utilisateur est déjà pris.'],
+  [/network request failed|failed to fetch|fetch failed|network error/i, 'Connexion impossible. Vérifiez votre réseau et réessayez.'],
+];
+
+export function errorKey(err: unknown): string | null {
+  const msg = errorMessageRaw(err);
+  if (!msg) return null;
+  const key = msg.trim().split(/\s/)[0] ?? '';
+  return key in DB_ERRORS ? key : null;
+}
+
+function errorMessageRaw(err: unknown): string {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    return String((err as { message: unknown }).message ?? '');
+  }
+  return String(err);
+}
+
+/** French message for any error coming from Supabase / fetch / our RPCs. */
+/** Table checks whose violation deserves a precise message (matched on the constraint name). */
+const CONSTRAINT_ERRORS: [string, string][] = [
+  // Two taps in the same instant: the unique index (not the RPC check) rejects the second one.
+  ['offers_one_pending_per_pair', 'Vous avez déjà une proposition en attente pour cet article.'],
+  ['feedback_message_length', 'Écrivez entre 3 et 1 000 caractères.'],
+  ['profiles_boutique_identity_required', 'Pour être affiché comme vendeur, indiquez le nom et la catégorie de votre boutique.'],
+  ['profiles_boutique_name_length', 'Le nom de la boutique doit compter entre 2 et 60 caractères.'],
+];
+
+export function toFrenchError(err: unknown, fallback = 'Une erreur est survenue. Réessayez.'): string {
+  const msg = errorMessageRaw(err);
+  if (!msg) return fallback;
+  const key = errorKey(err);
+  if (key) return DB_ERRORS[key] ?? fallback;
+  for (const [re, fr] of AUTH_ERRORS) if (re.test(msg)) return fr;
+  for (const [name, fr] of CONSTRAINT_ERRORS) if (msg.includes(name)) return fr;
+  if (/check constraint|violates/i.test(msg)) return 'Certaines informations sont invalides. Vérifiez le formulaire.';
+  return fallback;
+}
+
+export type FailureKind = 'network' | 'service' | 'outdated' | 'session' | 'other';
+
+export interface Failure {
+  kind: FailureKind;
+  title: string;
+  message: string;
+  /** Short, copyable reference for support (« 42703 », « réseau »…). */
+  code: string;
+  /** Worth retrying automatically (network, server hiccup); not a schema mismatch or a bad request. */
+  retryable: boolean;
+}
+
+/**
+ * What went wrong with a request, in words a member can act on (W1.3). A database that is behind
+ * the app (missing column/function/table) is reported as an update in progress — never hidden —
+ * and is not retried in a loop; the code stays visible for support.
+ */
+export function describeFailure(err: unknown): Failure {
+  const raw = errorMessageRaw(err);
+  const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code ?? '') : '';
+  const status = typeof err === 'object' && err !== null && 'status' in err ? Number((err as { status: unknown }).status) : NaN;
+  if (/failed to fetch|network ?request failed|networkerror|load failed|err_internet|timeout|aborted/i.test(raw)) {
+    return { kind: 'network', title: 'Connexion impossible', message: 'Vérifiez votre connexion internet, puis réessayez.', code: 'réseau', retryable: true };
+  }
+  if (['42703', '42P01', '42883', 'PGRST200', 'PGRST202', 'PGRST204', 'PGRST205'].includes(code)) {
+    return {
+      kind: 'outdated',
+      title: 'Mise à jour en cours',
+      message: 'Jëfëli est en cours de mise à jour. Réessayez dans quelques minutes ; vos données ne sont pas perdues.',
+      code,
+      retryable: false,
+    };
+  }
+  if (/jwt expired|invalid jwt|not_authenticated|refresh token/i.test(raw) || code === 'PGRST301' || code === 'PGRST303') {
+    return { kind: 'session', title: 'Session expirée', message: 'Reconnectez-vous pour continuer.', code: code || 'session', retryable: false };
+  }
+  if ((Number.isFinite(status) && status >= 500) || code === 'PGRST002' || code === '57014' || code === '53300') {
+    return { kind: 'service', title: 'Service indisponible', message: 'Le service ne répond pas pour le moment. Réessayez dans un instant.', code: code || String(status), retryable: true };
+  }
+  return { kind: 'other', title: 'Oups', message: toFrenchError(err), code: code || errorKey(err) || 'inconnu', retryable: true };
+}

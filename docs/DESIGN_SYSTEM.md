@@ -1,21 +1,108 @@
-# Jëfëli — Atlantic Sand design system
+# Jëfëli — design system
 
-## Authority
-Owner explicitly selected **Palette 4: Atlantic Sand**. This file overrides all alternative palette explorations. Brand is **Jëfëli**; correct two diaereses matter. ASCII `jefeli` is only a technical fallback.
+## Current direction (owner, 12 Nov 2026): « Dakar after dark »
+
+**This section supersedes the palette and surface rules below wherever they conflict.** A premium
+dark marketplace inspired by Senegal: deep forest greens, Senegalese gold for anything active or
+commerce-related, mint for discovery, red only for attention, warm off-white text, rounded cards,
+DM Serif Display headings with DM Sans for the interface. Screens, flows and layouts are unchanged:
+only the visual direction moved. Every screen is dark **except Explorer**, which stays white: it is
+the commercial page (owner, 12 Nov 2026). Explorer uses the `light` tokens below with the same gold
+for active states, white product cards (`ListingCard surface="paper"`) and a dark intro band.
+
+| Token (`@jefeli/shared`) | Value | Use |
+|---|---|---|
+| `colors.background` / `palette.night` | `#061D18` | page background |
+| `colors.surface` | `#0B2922` | product cards, panels |
+| `colors.surfaceSubtle` | `#0C2A23` | search fields, chips |
+| `colors.surfaceMuted` / `dark.raised` | `#12382F` | secondary active surfaces (active dock item, toasts) |
+| `colors.forest` | `#0D3A30` | deep green buttons |
+| `colors.primary` / `colors.gold` | `#EFBD38` | active category, publish button, primary actions, eyebrows, active nav |
+| `colors.onPrimary` | `#0A2922` | text and icons on gold |
+| `colors.mintAccent` / `dark.mint` | `#7ED8BD` | italic highlights, category and meta icons, links |
+| `colors.mint` | `#A3E4D7` | logo letters only |
+| `colors.red` | `#DB4A35` | notification dots, favourites, identity details |
+| `colors.ink` | `#F6F5ED` | primary text (warm off-white, never `#FFFFFF`) |
+| `colors.textSecondary` / `textTertiary` | `#9BADA7` / `#91A59F` | supporting copy, metadata |
+| `colors.border` / `borderStrong` | `#1C4137` / `#21463D` | card and input borders |
+| `colors.live` | `#D93A44` | a real « EN DIRECT » state only |
+
+`light` (Explorer only): background `#FAFBFA`, cards `#FFFFFF`, text `#10252C` / `#607071`,
+borders `#E2E6E4`, accent icons `#2E8C73` on `#D7F1E9`.
+
+Explorer discovery (real data only, each row hidden when empty or when a filter is active):
+- « Filtres » sheet: price range, « Je veux » (to buy / Wecci), sort (recent, price up, price down),
+  through `explore_products`;
+- « Tendances cette semaine »: articles saved by the most different members in 7 days
+  (`trending_products`; a seller's own save never counts, savers are never revealed);
+- « Vendeurs à suivre »: active sellers the member does not follow, same city first
+  (`suggested_sellers`), with a one-tap « Suivre ».
+
+Rules:
+- `colors.ink` is a **text** colour. Filled primary actions use `primary` + `onPrimary`; selected
+  segments, chips, pills and checkboxes are gold with dark-green content.
+- Gold is selective: the active state, the main action, the publish button, eyebrow rules. Not
+  every surface.
+- Red is reserved for notification counts, favourites and attention details.
+- Radii: product card 16 (phone) / 20 (wider grids), category 16, search 15, modal 25, buttons 12–13,
+  dock 23; pills only for small statuses and controls.
+- Product card: full-bleed photo (≈ 4:5 phone, 4:4.6 wide), status badge top-left, the real
+  favourite heart top-right (`product_saves`), seller, serif title, place · condition, thin divider,
+  price.
+- Phone dock: floating 23-pt capsule; active item gold on `#12382F`; « Publier » a raised 42-pt gold
+  button. Desktop keeps the approved W1.4 sidebar (active item and « Créer » in gold).
+- Logo: the approved « Jëfëli. » geometric logo (`brand/`) stays the logo; the in-app text wordmark
+  is now set in DM Serif Display.
+
+## Authority (history)
+Owner initially selected Palette 4, then approved Lovable's **Atlantic After Dark** Home and member Profile alongside clean **near-white** commerce screens. The latest approved visual authority is docs/LOVABLE_NATIVE_HANDOFF.md and the pinned Lovable implementation in that file; older UI/layout guidance below is historical when it conflicts. Brand is **Jëfëli** (two diaereses); ASCII jefeli is a technical fallback.
 
 ## Design tokens
 
 | Token | Hex | Purpose |
 |---|---|---|
-| `color.canvas` | `#F6F5F1` | light-mode app canvas |
+| `color.canvas` | `#FAFBFA` | near-white Explorer, product, onboarding and forms |
 | `color.ink` | `#10252C` | main text, primary dark surfaces, graphic identity |
 | `color.mint` | `#A3E4D7` | follow, CTA, selected state, interactive highlights |
 | `color.slate` | `#607071` | secondary metadata, locations, time |
 | `color.surface` | `#FFFFFF` | cards, sheets and readable media framing |
-| `color.night` | `#0D1B2A` | optional dark mode foundation |
+| `color.night` | `#091B19` | approved dark Home and member Profile surface |
 | `color.live` | accessible red | streaming status ONLY; don't use mint as LIVE status |
 
 Implement semantic tokens: background, surface, subtle surface, ink, secondary text, border, action, action text, danger, disabled, skeleton. Account for contrast ratios in light/dark modes; don't assume every mint-on-white combination is legible. Disable dark mode until all surfaces support it rather than shipping broken mixed themes.
+
+## Surface assignments and UX flow (new owner decision)
+
+- Dark Home and Profile: #091B19 with fog text; absolutely no unexpected white cards.
+- Explorer, product detail, onboarding and publish: #FAFBFA with pure white cards and quiet neutral borders. Do not reintroduce cream.
+- One-screen discover-first onboarding; business interests and boutique identity are optional *after* entry, not a gate.
+- Plus opens post composer directly; article and status available nearby; listing is one scrolling form with optional details collapsed.
+- Lovable implementation at the pinned SHA in docs/LOVABLE_NATIVE_HANDOFF.md is authoritative for visual compositions; native RLS, auth, privacy and stored data stay authoritative for behavior.
+
+## Native port of the Lovable lab (Nov 4, 2026, branch feature/lovable-native-parity-20261104)
+
+Implemented in Expo/React Native from the pinned Lovable source (806a26f). Where this table and
+the older « Patterns » table below disagree, this table wins.
+
+| Lovable | Native implementation |
+|---|---|
+| `font-display` Fraunces, `font-lab` Hanken Grotesk | `@expo-google-fonts/fraunces` 400/600 and `hanken-grotesk` 400–800 (per-weight imports). `<Text serif>` for headings, quotes and the wordmark; body stays Hanken Grotesk 15/22. Inter removed |
+| `--lab-night/deep/fog/mint/gold/line` | `palette` + `colors` (light) and the new `dark` token group in `packages/shared/src/tokens.ts` (fog tints ≥ 0.62 for body, ≥ 0.48 for bold meta on #091B19). No colour outside tokens/theme |
+| `.lab-glass` / `.lab-glass-light` | `IconButton variant="glass"`, `dark.glass`, `colors.glassLight`; `Sheet tone="dark"` for action sheets. No backdrop blur on native: opacities raised (0.92–0.96) for legibility |
+| `.lab-motif` | `<Motif />` (react-native-svg pattern: mint chevrons 7 %, gold dots 18 %, 28-pt tile) |
+| Wordmark « Jëfëli. » | `Wordmark`: Fraunces semibold + gold full stop |
+| Floating five-tab dock | Absolutely positioned over the scene; dark (`dark.dock`) everywhere except Explorer (`colors.dockLight`); 58-pt items, mint active pill, labels always visible; hidden while the Android keyboard is open. Screens pad with `useDockSpace()` |
+| Status bar | `useDarkStatusBar()` sets light icons while a night screen (Home, Profile, Messages, chat, post, Explorer's night strip) is focused |
+| Home / PostCard | No white card; eyebrow with dot; serif quote card with motif for text posts; full-bleed media at true aspect; glass tagged-article chip; vote pill (mint up, gold private down) |
+| Explorer / ListingCard | Night intro with motif; 84-pt tiles (« Tous » on night); Tout / Neuf / Occasion / Wecci pills (real `browse_products` filters — no price-mode filter exists server-side, so none is faked); lead card + 2 columns; paper card with `shadow.paper` |
+| Product | Full-bleed square photo, glass controls, 28-pt near-white sheet, night/gold Wecci chip, serif title, seller card, disclaimer box, sticky light-glass CTA |
+| Profile | ≈136-pt cover, overlapping ringed avatar, serif name, counts, bio, ≤ 3 interest chips (+N), one action row, « Plus d'infos », sticky Publications / Boutique tabs (3 previews / 4 dark tiles) |
+| Publishing | `PublishHeader` (« ← Publier » + Publication · Article · Statut switcher), `ChoicePills`, one-scroll article form with « Lieu, état et remise » collapsed |
+| Messages / chat | Night inbox and thread, mint (mine) / deep (theirs) 21-pt bubbles, glass composer. Offer and agreement cards stay light paper for legible terms |
+
+OS dark mode: `userInterfaceStyle` stays `light`; the app always renders its own Lovable
+surfaces (verified with a `prefers-color-scheme: dark` browser emulation). Native splash and
+root background are now `#FAFBFA` (the old cream `#F6F5F1` is gone).
 
 ## Component vocabulary
 App header, search input, feed tabs, story rings, social post, video preview, listing card, price label, verified state, follow button, icon row, profile header, shop strip, product tile, category chip, message bubble, barter proposal card, live host/control panel, share sheet trigger, modal bottom sheet, toast, validation, upload progress, contextual action menu, report flow, skeleton and empty state.
@@ -33,10 +120,31 @@ App header, search input, feed tabs, story rings, social post, video preview, li
 - Safe-area-aware, keyboard-avoiding, thumb-friendly bottom tabs.
 - Use 8-point-ish layout system (4/8/12/16/24/32), thoughtful content-width/padding; not hard-coded pixel-perfect assumptions.
 - Editorial photography, genuine aspect ratio, correct poster video treatment, no stretching or over-filtering.
-- Profile: name/handle/location first; statuses/highlights; then **boutique preview**; content tabs (`Fil`, `Statuts`, `Live`, `Boutique`, `Avis`) without making a merchant template.
+- Profile: short atmospheric cover, overlapping avatar, name/handle/location and **prominent bio** first; up to three business-interest chips. Only **Publications** and **Boutique** primary tabs; no boutique carousel or duplicate pinned hero. Keep statuses, live, highlights, reviews and privacy available through secondary routes.
 - Product: media first, price clear, seller details and condition, location and realistic contact/offer CTA.
 - Messages: calm spacious thread with pinned linked product context; actual composer with attachments and voice input states.
 - Live: full-frame media, unobtrusive comments overlay, visible true `EN DIRECT`, current pinned item, safety control.
+
+## Patterns from the owner's UI references (post-playtest refinement)
+The owner shared two references, a travel app and a banking app. They guide composition,
+spacing and interaction patterns. They are **not** copied: colours stay Atlantic Sand.
+
+| Pattern | Where | Rule |
+|---|---|---|
+| Floating five-tab dock | Tab bar ((tabs)/_layout.tsx) | One rounded Tinder-inspired dock with Accueil, Explorer, Publier, Messages, Profil. Active mint; dark/translucent on Home/Profile, near-white on commerce. The center Plus directly opens the post composer, not a separate giant button or chooser |
+| Round icon buttons | Header bell (`IconButton variant="surface"`) | White circle with a hairline border. Counters sit outside the circle |
+| Pill search | `SearchBar` | White, fully rounded, hairline border, on the sand canvas |
+| Location pill | Explorer header | Small mint icon disc, the city (or « Toutes les villes »), and a chevron. Opens the city sheet |
+| Segmented control | Explorer type, `OptionRow` without hints | White rounded container. The selected option is ink with white text, the others are secondary text. Two-line labels are allowed at 375 pt |
+| Icon tiles | Explorer categories (`lib/categoryIcons.ts`) | 4 columns, a lucide line icon and a short label, with the full category name as the accessibility label. Selected = mint-soft fill with a mint border. « Voir tout » / « Réduire » in the section header |
+| Quiet section headers | Explorer, lists | `headline` at weight 600. The secondary action (« Voir tout », « Effacer les filtres ») is secondary text, never a button |
+| Inset-image cards | `ListingCard` | A white card (radius 19) with the photo inset by 5 pt (radius 12). Below: title, a pin + location line, the price and the DÉMO seller label |
+| Quiet currency | `PriceLabel` (app), `PriceText` (web) | Strong digits with a secondary « F CFA ». « · à discuter » is secondary too. Labels such as « Prix sur demande » replace the number; never « 0 F » |
+| Grouped detail list | Product page | One rounded white container. Each row has a round mint-soft icon bubble, the value and a hint, with hairline dividers |
+
+Field edges keep `borderStrong` so they stay visible on the sand canvas (non-text contrast).
+On web, the browser's own focus ring inside fields is removed because the field border
+already turns ink on focus.
 
 ## UX writing
 French, short, plain and locally natural. Examples: `Pour toi`, `À proximité`, `Occasions`, `Troc`, `Faire une offre`, `Envoyer un message`, `Vendu`, `Réservé`, `Proposer un échange`, `Votre statut`, `En direct`. Prices: `25 000 F CFA` (or compact `25 000 F` with clear currency context). Never show invented activity stats as actual.
