@@ -693,3 +693,7 @@ Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale,
 ### Full regression after the visual addendum, 15 Nov
 - `pnpm check` pass (54 unit tests), integration **347/347** on a clean DB, E2E full suite: **80 passed, 1 failed, 12 skipped** (hosted + ffmpeg/gated).
 - The one failure, `desktop.spec.ts` DT-08, was a **stale test, not a product defect**: since migration `20261115000100` an accepted offer reserves the article (`products.status = 'reserved'`), so the test's « accept the price offer, then propose a swap on the same article » no longer has a swap button; and the context pane now says « Troquer · … » (was « Wecci (troc) · … »). The seller now refuses the price offer in that test and the pane assertion follows the new label. `desktop.spec.ts` re-run: 8/8 pass. The rest of the suite was not re-run after this test-only change.
+
+### Pilot-cut migrations on staging, 15 Nov (owner go)
+Verified backup → pre-check → `20261115000100…400` applied in order (history 25 → 29, counts unchanged) → schema identical to local (1 188 objects) →
+deploy check `✓ 45 tables, 64 functions` → hosted probes 49/49 (`scripts/staging-security-probe.py`). Details: `docs/STAGING_MIGRATION_PLAN.md`.
