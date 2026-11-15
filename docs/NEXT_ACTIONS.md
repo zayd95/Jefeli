@@ -6,7 +6,11 @@ Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15
 staging backup + the two P1 migrations + 44/44 hosted probes; PR #12 (v1 baseline) merged as
 4b65ce3; drafts #1–#10 closed with a pointer; PR #11 rebased onto `main`.
 
-Owner decision needed: **go to apply the four pilot-cut migrations to jefeli-staging** (`20261115000100`, `…200`, `…300`, `…400`; backup first, then hosted probes) so the PR #13 Vercel previews build. Until then they stay red on the schema check.
+Done 15 Nov (owner GO): the four pilot-cut migrations are on jefeli-staging (backup, 49/49 probes);
+full E2E 81/0/12; public share pages open without login; PR #13 merged to `main`, tag `v0.9.1-pilot`.
+
+Next for the owner: **EAS Android build for a test phone** — `docs/ANDROID_RELEASE.md` §0
+(`eas init`, EAS preview env vars, `eas build -p android --profile pilot-apk`, install the APK).
 
 Owner actions still open:
 1. **Create the tag `v0.9-baseline` on 4b65ce3** (GitHub › Releases › Draft a new release ›

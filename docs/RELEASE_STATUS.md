@@ -1,5 +1,23 @@
 # Jëfëli — release status
 
+## 15 Nov 2026 — pilot cut verified, merged to `main`, tag `v0.9.1-pilot`
+
+- Four pilot-cut migrations (`20261115000100`–`400`) applied to **jefeli-staging** after a verified
+  backup; schema identical to local, `schema:check` green, **49/49 hosted probes**
+  (`scripts/staging-security-probe.py`).
+- Full local regression after the DT-08 fix: **81 passed, 0 failed, 12 skipped** (skips = hosted /
+  gated specs: e-mail confirmations, live provider, etc.), three consecutive runs; the earlier
+  failures were a stale DT-08 test, a PC-B2 hidden-element match and a missing
+  `NEXT_PUBLIC_APP_URL` on the local web server — no product defect.
+- Public share pages on **jefeli-web** open with no login wall from a fresh browser context
+  (`scripts/check-public-share.cjs`, screenshots in `docs/evidence/pilot-cut/public-share/`).
+  **jefeli-app production stays protected** (owner decision), so Android App Links cannot
+  auto-verify on that host; share links use the public jefeli-web host.
+- Caveat: Vercel Hobby's 100-deployments/day limit was hit by evidence pushes; later commits used
+  `[vercel skip]`. Production jefeli-web serves the last successful production build until a
+  deployment from `main` succeeds.
+- Android pilot build (EAS) is an owner-account step: `docs/ANDROID_RELEASE.md` §0.
+
 **Readiness: Gate A (developer preview) reached locally. P1 private-pilot candidate prepared
 (code verified in browser and backend); Gate B (invited pilot) waits for the owner items in
 `docs/GO_NO_GO.md`.** Public release is **not authorised**.

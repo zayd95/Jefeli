@@ -697,3 +697,10 @@ Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale,
 ### Pilot-cut migrations on staging, 15 Nov (owner go)
 Verified backup → pre-check → `20261115000100…400` applied in order (history 25 → 29, counts unchanged) → schema identical to local (1 188 objects) →
 deploy check `✓ 45 tables, 64 functions` → hosted probes 49/49 (`scripts/staging-security-probe.py`). Details: `docs/STAGING_MIGRATION_PLAN.md`.
+
+## Merge of the pilot cut (15 Nov 2026)
+
+Staging migrations, 49/49 hosted probes, full E2E 81/0/12 (3 runs), public share pages without
+login wall: all green. PR #13 retargeted from `feature/p1-identity` to `main` (it contains PR #11)
+and merged with a merge commit; tag `v0.9.1-pilot` requested (the session git proxy may refuse tag
+pushes — see NEXT_ACTIONS).
