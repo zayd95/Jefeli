@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContentMenu } from '@/components/ContentMenu';
 import { PostMedia } from '@/components/PostMedia';
 import { PriceLabel } from '@/components/PriceLabel';
+import { ShareBoutiqueMoment, StatusCardButton } from '@/components/ShareBoutique';
 import { ShareToStatusSheet } from '@/components/ShareToStatus';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
@@ -32,7 +33,7 @@ import type { ProductCard } from '@/lib/types';
 import { goBack } from '@/lib/nav';
 
 export default function ProductScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, first } = useLocalSearchParams<{ id: string; first?: string }>();
   const { userId } = useAuth();
   const q = useQuery({ queryKey: ['product', id], queryFn: () => fetchProduct(id ?? '') });
 
@@ -64,10 +65,10 @@ export default function ProductScreen() {
       </Screen>
     );
   }
-  return <ProductDetail product={q.data} isOwner={q.data.seller_id === userId} />;
+  return <ProductDetail product={q.data} isOwner={q.data.seller_id === userId} firstListing={first === '1'} />;
 }
 
-function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: boolean }) {
+function ProductDetail({ product, isOwner, firstListing }: { product: ProductCard; isOwner: boolean; firstListing?: boolean }) {
   const { userId } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
@@ -75,6 +76,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(false);
   const [statusSheet, setStatusSheet] = useState(false);
+  // Pilot cut (e): the « Partage ta boutique » moment, once, after the seller's first listing.
+  const [moment, setMoment] = useState(!!firstListing && isOwner);
   const [busy, setBusy] = useState<string | null>(null);
   const [ctaHeight, setCtaHeight] = useState(140);
   const saved = useQuery({ queryKey: ['product-saved', product.id], queryFn: () => isProductSaved(userId ?? '', product.id), enabled: !!userId && !isOwner });
@@ -280,6 +283,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
                 // W1.2: show it in photos and in your own voice, the article attached.
                 <Button label="Présenter cet article" variant="soft" icon={Mic} accessibilityLabel="Présenter cet article en photos et en voix" onPress={() => router.push(`/publish/post?product=${product.id}`)} />
               ) : null}
+              {product.status === 'active' || product.status === 'reserved' ? <StatusCardButton product={product} /> : null}
             <View style={styles.ctaRow}>
               {product.status === 'active' ? (
                 <>
@@ -347,6 +351,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         }}
       />
       <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
+      <ShareBoutiqueMoment visible={moment} onClose={() => setMoment(false)} product={product} seller={seller ?? null} />
     </>
   );
 
@@ -454,6 +459,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         }}
       />
       <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
+      <ShareBoutiqueMoment visible={moment} onClose={() => setMoment(false)} product={product} seller={seller ?? null} />
     </View>
   );
 }

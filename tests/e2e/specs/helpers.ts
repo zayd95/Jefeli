@@ -112,6 +112,8 @@ export async function publishListing(
     category: string;
     condition: string;
     description?: string;
+    /** Pilot cut (e): leave the « Partage ta boutique » moment of a first listing open. */
+    keepMoment?: boolean;
   },
 ) {
   await page.goto('/publish/listing');
@@ -136,7 +138,14 @@ export async function publishListing(
   if (opts.description) await field(page, 'Description (facultatif)').fill(opts.description);
   await btn(page, 'Terminé').click();
   await page.getByRole('button', { name: opts.mode === 'Troc' ? 'Proposer en troc' : 'Mettre en vente', exact: true }).click();
-  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}(\?first=1)?$/, { timeout: 60_000 });
+  // A seller's first listing opens « Partage ta boutique » (pilot cut e): close it unless asked.
+  if (page.url().endsWith('?first=1') && !opts.keepMoment) {
+    const moment = page.getByTestId('share-boutique-moment');
+    await expect(moment).toBeVisible();
+    await moment.getByRole('button', { name: 'Plus tard', exact: true }).click();
+    await expect(moment).toBeHidden();
+  }
 }
 
 /** Local Supabase mail catcher (Mailpit, `supabase start`); no e-mail leaves the machine. */

@@ -179,3 +179,41 @@ test('PC-D1 · web article page « Faire une offre » → sign-up → back on th
   await shot(page, DIR, 'd2-offer-sent-after-signup');
   await ctx.close();
 });
+
+/**
+ * PC-E1 « Partage ta boutique »: a new seller's first listing opens the moment with the 9:16
+ * WhatsApp status card; one tap gives the image (download in a desktop browser; the share sheet
+ * on a phone) and copies the link for the caption. The second listing does not show it again.
+ */
+test('PC-E1 · first listing → « Partage ta boutique » moment → WhatsApp status card (9:16)', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const S = { name: `Vendeuse Statut ${RUN}`, email: `st-${RUN}@e2e.jefeli.test`, handle: `statut_${RUN}`, password: PASSWORD };
+  const { ctx, page } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await signUp(page, S);
+  await publishListing(page, { file: FIXTURE('bag.jpg'), title: `Sac statut ${RUN}`, mode: 'Vente ou troc', price: '18000', category: 'Sacs & accessoires', condition: 'Comme neuf', keepMoment: true });
+  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}\?first=1$/);
+  const moment = page.getByTestId('share-boutique-moment');
+  await expect(moment).toBeVisible();
+  await expect(moment.getByText('Ton premier article est en ligne.', { exact: false })).toBeVisible();
+  await page.waitForTimeout(1500); // the card preview loads from the web site
+  await shot(page, DIR, 'e1-share-boutique-moment');
+
+  const download = page.waitForEvent('download');
+  await moment.getByRole('button', { name: /Partager en statut WhatsApp/ }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/^jefeli-statut-[0-9a-f]{8}\.png$/);
+  await file.saveAs(require('node:path').join(require('./helpers').EVIDENCE, DIR, 'e2-whatsapp-status-card-9x16.png'));
+  await expect(page.getByText(/Image enregistrée et lien copié/)).toBeVisible();
+  const clip = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clip).toMatch(new RegExp(`Sac statut ${RUN} — sur Jëfëli : .*/p/[0-9a-f-]{36}$`));
+
+  // The card exists only for public articles.
+  expect((await page.request.get(`${WEB_URL}/p/00000000-0000-4000-8000-000000000000/status-card`)).status()).toBe(404);
+
+  // Second listing: no moment.
+  await publishListing(page, { file: FIXTURE('shoe.jpg'), title: `Chaussures statut ${RUN}`, mode: 'Vente', price: '9000', category: 'Chaussures', condition: 'Bon état' });
+  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/);
+  await expect(page.getByTestId('share-boutique-moment')).toHaveCount(0);
+  await ctx.close();
+});

@@ -48,7 +48,7 @@ import { PostMedia } from '@/components/PostMedia';
 import { ReorderStrip } from '@/components/ReorderStrip';
 import { Button, Chip, colors, Field, fonts, IconButton, InlineRetry, radius, Screen, Sheet, spacing, Text, Toggle, useToast, WEB_NO_OUTLINE } from '@/design';
 import { createPost } from '@/lib/api/posts';
-import { createListing, fetchCategories } from '@/lib/api/products';
+import { countMyListings, createListing, fetchCategories } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import { keepMediaForDraft, restoreDraftMedia } from '@/lib/draftFiles';
 import { discardDraft, useDraft, useDraftGate } from '@/lib/drafts';
@@ -292,7 +292,9 @@ function ListingEditor({ continued }: { continued: boolean }) {
       // Partial failure is said plainly: the article exists, the feed share did not go out.
       if (shared) toast('Article mis en vente dans votre boutique', 'success');
       else toast('Article publié dans votre boutique, mais le partage dans votre fil a échoué. Vous pourrez le partager depuis une publication.', 'error');
-      router.replace(`/p/${id}`);
+      // Pilot cut (e): the seller's first listing opens the « Partage ta boutique » moment.
+      const first = await countMyListings(userId).then((n) => n === 1).catch(() => false);
+      router.replace(first ? `/p/${id}?first=1` : `/p/${id}`);
     } catch (e) {
       // The draft is kept: nothing typed, picked or recorded is lost; « Réessayer » sends it again.
       const message = e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e);

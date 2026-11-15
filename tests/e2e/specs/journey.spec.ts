@@ -57,7 +57,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     });
     await expect(b.getByText('35 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
     await expect(b.getByText(LISTING, { exact: true }).last()).toBeVisible();
-    productUrl = b.url();
+    productUrl = b.url().replace(/\?first=1$/, '');
     expect(productUrl).toMatch(/\/p\/[0-9a-f-]{36}$/);
     await shot(b, DIR, 'B-product-owner-view');
 

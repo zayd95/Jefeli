@@ -256,3 +256,10 @@ export async function fetchBoutique(ownerId: string) {
 export async function updateBoutique(ownerId: string, patch: { description?: string; pickup_notes?: string; delivery_notes?: string; payment_notes?: string }) {
   unwrap(await supabase.from('boutiques').update(patch).eq('owner_id', ownerId));
 }
+
+/** How many listings a seller has ever published (any status): 1 right after the first one. */
+export async function countMyListings(userId: string): Promise<number> {
+  const { count, error } = await supabase.from('products').select('id', { count: 'exact', head: true }).eq('seller_id', userId);
+  if (error) throw error;
+  return count ?? 0;
+}

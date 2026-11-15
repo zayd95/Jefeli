@@ -233,7 +233,7 @@ test.describe.serial('W1.3 creation to feed', () => {
     await btn(s, 'Terminé').click();
     await shot(s, DIR, 'S-article-window-with-voice');
     await btn(s, 'Mettre en vente').click();
-    await expect(s).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 90_000 });
+    await expect(s).toHaveURL(/\/p\/[0-9a-f-]{36}(\?first=1)?$/, { timeout: 90_000 });
     const productPath = new URL(s.url()).pathname;
 
     // The buyer hears the seller over the photos, which follow the voice, then writes.
