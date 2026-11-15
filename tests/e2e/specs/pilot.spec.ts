@@ -66,7 +66,8 @@ test('PC-B2 · an offer link from the web page lands on the offer form after sig
   await page.goto(`/offer/${article.id}`);
   await signUpFromWall(page, { name: `Acheteur Offre ${RUN}`, email: `off-${RUN}@e2e.jefeli.test`, handle: `offre_${RUN}` });
   await expect(page).toHaveURL(new RegExp(`/offer/${article.id}`), { timeout: 30_000 });
-  await expect(page.getByText(article.title).first()).toBeVisible();
+  // Only the visible copy counts: the previous screen's title can still sit (hidden) in the navigation stack.
+  await expect(page.getByText(article.title).filter({ visible: true }).first()).toBeVisible();
   await shot(page, DIR, 'b2-offer-form-after-signup');
   await ctx.close();
 });
