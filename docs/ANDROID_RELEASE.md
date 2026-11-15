@@ -19,18 +19,50 @@ no account was created.
 
 Legend: **OK** · **missing** · **to decide**.
 
+## 0. Pilot cut (h) — internal-testing build config (15 Nov 2026)
+
+Owner decisions: package **`sn.jefeli.app` confirmed**; the Play account will be created later.
+Config only: **no `eas build`, no `eas submit`, nothing uploaded**. Everything below runs on the
+EAS free tier (Android builds in the free queue) and the Play internal testing track (free once
+the $25 developer account exists).
+
+| What | Where | State |
+|---|---|---|
+| Build profile `pilot-internal` | `apps/mobile/eas.json` | Extends `production`. It builds an **AAB** (`buildType: app-bundle`) for the Play **internal testing** track. Channel `pilot`, EAS environment `preview`, `EXPO_PUBLIC_ENV=staging` (the app shows the « Environnement de test » banner). |
+| Build profile `pilot-apk` | `apps/mobile/eas.json` | The same app as an **APK** with `distribution: internal`, so pilot sellers can install it from an EAS link before the Play account exists. |
+| Submit profile `internal` | `apps/mobile/eas.json` | Track `internal`, release status `draft` (nothing goes live by itself). It reads `./secrets/play-service-account.json`, which is gitignored and **does not exist yet**. |
+| Schema check | — | `eas.json` validated against eas-cli's published schema (`packages/eas-json/schema/eas.schema.json`). A deliberately broken copy fails the same check. |
+| Android App Links (item d) | `app.json › android.intentFilters` | `autoVerify` for `https://jefeli-app-habibjallow95-9380.vercel.app` on `/p/`, `/offer/`, `/u/`, `/post/`. Seen in `npx expo config --type introspect`. They only verify once `/.well-known/assetlinks.json` is served with the real signing key: see step 4 below. |
+| Notification icon | `app.json › expo-notifications.icon` | `android-icon-monochrome.png` (RGBA, transparent background). Previously missing (§ 1). |
+
+Owner steps, in order (each needs your account; I cannot do them):
+1. `cd apps/mobile && npx eas-cli@latest init`. This links the Expo project and writes
+   `expo.extra.eas.projectId` (also needed for push, § 4). Commit that change.
+2. EAS › Environment variables › **preview**: set `EXPO_PUBLIC_SUPABASE_URL` (staging),
+   `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (staging publishable key; public, not a secret),
+   `EXPO_PUBLIC_WEB_BASE_URL=https://jefeli-web-habibjallow95-9380.vercel.app` and
+   `EXPO_PUBLIC_EAS_PROJECT_ID`. No service-role key, ever.
+3. `npx eas-cli build -p android --profile pilot-apk` (testers) or `--profile pilot-internal`
+   (Play). EAS creates and keeps the upload keystore.
+4. `npx eas-cli credentials -p android` › copy the **SHA-256** fingerprint. Put it in Vercel ›
+   jefeli-app › Environment Variables › `ANDROID_CERT_SHA256`, then redeploy. With Play App
+   Signing, also add Play's app-signing SHA-256, comma-separated. `scripts/web-finalize.mjs` then
+   serves `/.well-known/assetlinks.json`. Without it, links simply open the web app.
+5. Later, with the Play account: create the app `sn.jefeli.app`, then upload the AAB to Internal
+   testing by hand, or give the go for `eas submit --profile internal`.
+
 ## 1. App identity and assets
 
 | Item | Status | Current value | Note |
 |---|---|---|---|
-| Android package | **to decide** | `sn.jefeli.app` | Still a placeholder awaiting owner confirmation (`docs/GO_NO_GO.md` row 10). It **cannot change** after the first Play upload |
+| Android package | OK (owner, 15 Nov) | `sn.jefeli.app` | Confirmed by the owner. It **cannot change** after the first Play upload |
 | App name | OK | `Jëfëli` (`expo.name`; resolved `app_name` string = `Jëfëli`) | — |
 | `version` (versionName) | OK | `0.1.0` | — |
 | `versionCode` | OK (managed remotely) | Not in `app.json`. `eas.json`: `cli.appVersionSource = "remote"` and `build.production.autoIncrement = true`, so EAS stores and increments it | Starting value non vérifié (EAS holds it, not the repo) |
 | EAS project link | **missing** | `expo.extra.eas = {}`: no `projectId`, no `owner` | `eas init` under the owner's Expo account. This also unblocks push (§ 4) |
 | Icon | OK | `./assets/images/icon.png`, 1024×1024 RGB | — |
 | Adaptive icon | OK | foreground / background / monochrome PNGs, each 1024×1024, `backgroundColor` `#061D18` | Monochrome is present (Android 13+ themed icons) |
-| Notification icon | **missing** | `expo-notifications` plugin sets only `color: "#10252C"`, no `icon` | Android draws the status-bar icon from the launcher icon's alpha. A full-colour icon can show as a plain shape. Add a white-on-transparent `icon` (the monochrome asset is a starting point) |
+| Notification icon | OK (pilot cut h) — was missing | `expo-notifications` plugin sets only `color: "#10252C"`, no `icon` | Android draws the status-bar icon from the launcher icon's alpha. A full-colour icon can show as a plain shape. Add a white-on-transparent `icon` (the monochrome asset is a starting point) |
 | Splash | OK | `expo-splash-screen`: `backgroundColor` `#061D18`, `image` `./assets/images/splash-icon.png` (1200×320), `imageWidth` 200, resize `contain` | Brand note: `#061D18` is the « Dakar after dark » v2 colour, not the CLAUDE.md canvas `#F6F5F1`. It is consistent with the app's current theme |
 | Orientation | OK | `portrait` (resolved `android:screenOrientation="portrait"`) | — |
 | `minSdkVersion` | OK | 24 (`expo-build-properties`) | — |
