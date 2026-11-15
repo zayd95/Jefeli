@@ -19,6 +19,7 @@ import { colors, Screen, Text, ToastProvider, Wordmark } from '@/design';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { isConfigured } from '@/lib/env';
 import { registerForPush, usePushNavigation } from '@/lib/push';
+import { useReturnTo } from '@/lib/returnTo';
 import { useInboxRealtime } from '@/lib/realtime';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -70,6 +71,8 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
 
   useInboxRealtime(signedIn ? session.user.id : null);
   usePushNavigation();
+  // Pilot cut (b): back to the article (or offer) the visitor opened before signing up.
+  useReturnTo(ready, signedIn, onboarded);
 
   useEffect(() => {
     if (signedIn && onboarded) registerForPush().catch(() => {});

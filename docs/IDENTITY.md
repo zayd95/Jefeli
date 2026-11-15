@@ -1,10 +1,32 @@
 # Jëfëli — identité produit, lexique, économie Jëf et moments signature
 
-> Statut : **proposition** (14 nov. 2026), à valider par l'owner. Rien dans ce document n'est
+> Statut : **proposition** (14 nov. 2026) ; **décisions de l'owner du 15 nov. 2026 ci-dessous**. Rien dans ce document n'est
 > encore implémenté sauf ce qui est explicitement marqué **« existe »** avec son chemin.
 > Les spécifications fonctionnelles détaillées (parcours, SQL, tests) sont dans
 > `docs/SPEC_PILLARS.md`. Les règles de `CLAUDE.md`, `docs/PRODUCT_SPEC.md` et
 > `docs/DESIGN_SYSTEM.md` (« Dakar after dark ») priment en cas de conflit.
+
+## Décisions de l'owner (15 nov. 2026) — priment sur les propositions ci-dessous
+
+1. **Libellés wolof : oui, « à valider par vendeurs pilotes »** (⚑ dans ce document = à valider
+   par les vendeurs pilotes et des locuteurs natifs). Liste : Wecci, Waxaale, Jëf, Jambaar,
+   Jërëjëf, Wecci Day, graphies Tabaski / Korité.
+2. **Mode troc renommé « Troquer ».** « Wecci » désigne uniquement le pilier (petites annonces
+   entre particuliers). Le libellé « Wecci · Troc » d'Explorer devient « Troquer ».
+3. **Jëf : valeurs de la spec conservées, mais ni registre (ledger) ni dépenses construits.**
+   Pilote = **« Jëf lite »** : niveaux publics Nouveau → Fiable → Confirmé → Jambaar, calculés en
+   lecture seule à partir des accords confirmés (`agreements.status = 'completed'`) et des trocs
+   réalisés ; aucun solde, aucun gain affiché, aucune dépense (§ 1.5, § 3.3–3.6 et les seuils en
+   Jëf du § 3.7 restent **différés**). Plus : la **première annonce** d'un nouveau vendeur reçoit
+   automatiquement **24 h d'exposition « Nouveau »** dans son allée.
+4. **Prix et déclencheur de paiement approuvés comme hypothèses** ; rien de payant n'est construit.
+5. **Rituels : uniquement « Wecci Day » (samedi), derrière le flag `ritual_wecci_day`.** Le marché
+   de 20 h et les marchés de saison ne sont pas retenus pour le pilote.
+6. Migrations P1 appliquées sur jefeli-staging (sauvegarde vérifiée d'abord) — fait le 15 nov.
+7. Baseline v1 mergée dans `main` (PR #12, 4b65ce3) ; tag `v0.9-baseline` à créer par l'owner
+   (le proxy git de la session refuse les push de tags).
+8. Package Android **`sn.jefeli.app` confirmé** ; config EAS préparée (compte Play créé plus tard).
+
 
 **Promesse :** « Montre ce que tu as, trouve ce que tu cherches, échange ce que tu n'utilises plus. »
 

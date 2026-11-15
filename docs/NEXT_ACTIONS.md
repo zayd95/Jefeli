@@ -1,23 +1,23 @@
 # Next actions
 
-## Owner (now): P1 identity sprint — draft PR #11 (`feature/p1-identity`)
+## Owner (now): pilot cut — `feature/pilot-cut` (draft PR, base `feature/p1-identity`)
 
-Read the one-page report (in the session) and these docs: `docs/PILLARS_AUDIT.md`,
-`docs/IDENTITY.md`, `docs/SPEC_PILLARS.md`, `docs/ANDROID_RELEASE.md`, `docs/V1_BASELINE_PR.md`.
-Decisions needed (yes/no or a short choice):
-1. Wolof labels to validate with native speakers: Wecci, Waxaale, Jëf, Jambaar, Jërëjëf, Wecci Day,
-   Tabaski / Korité spellings (`docs/IDENTITY.md` § 1).
-2. Rename the current « Wecci » mode (troc) to « Troquer » and keep Wecci for the pillar? (yes/no)
-3. Jëf values (earn / spend tables, caps) as proposed, or change? (`docs/IDENTITY.md` § 3)
-4. Prices to test later (Boost 24 h 300–500 F, 7 j 1 500–2 500 F, Pro 2 500–5 000 F/mois) and the
-   payment trigger (4 weeks ≥ 150 qualified conversations / week)? (`docs/SPEC_PILLARS.md` § 5)
-5. Rituals to keep: marché de nuit 20 h, Wecci Day (samedi), marchés de saison? (each yes/no)
-6. Apply the two P1 migrations to jefeli-staging (backup first) so PR #11 previews build? (go / not yet)
-7. Open the « v1 baseline » PR into `main` as a draft? (yes / no)
-8. Update `CLAUDE.md` brand colours (it still lists accent `#A3E4D7`, ink `#10252C`, canvas
-   `#F6F5F1`) to the 14 Nov system? It is your contract file, so I have not edited it. (yes / no)
-9. Android: confirm the package name `sn.jefeli.app` (cannot change after the first upload), then
-   the Play account ($25) and the items in `docs/ANDROID_RELEASE.md` § 7.
+Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15 Nov:
+staging backup + the two P1 migrations + 44/44 hosted probes; PR #12 (v1 baseline) merged as
+4b65ce3; drafts #1–#10 closed with a pointer; PR #11 rebased onto `main`.
+
+Owner actions still open:
+1. **Create the tag `v0.9-baseline` on 4b65ce3** (GitHub › Releases › Draft a new release ›
+   tag `v0.9-baseline`, target 4b65ce3). The session's git proxy refuses tag pushes (HTTP 403).
+2. **jefeli-app production is behind Vercel protection** (you declined making it public). So the
+   « Ouvrir dans l'app » / « Faire une offre » links of the public share pages reach a Vercel
+   login for visitors. Options: make jefeli-app production public (Vercel › jefeli-app ›
+   Settings › Deployment Protection › « Only Preview Deployments »), or keep it closed until the
+   Android build. Until then the web share pages themselves are public
+   (https://jefeli-web-habibjallow95-9380.vercel.app).
+3. Staging Auth URLs changed on 15 Nov (site URL = jefeli-app production; allow list + web
+   production + app preview wildcard). Previous state saved; say if you want it reverted.
+4. Play Console account ($25) when you are ready — not needed for the EAS config (item h).
 
 ## Owner (now): phone sign-up — `docs/PHONE_AUTH.md` (draft PR #7)
 
