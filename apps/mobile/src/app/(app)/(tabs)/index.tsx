@@ -1,5 +1,5 @@
 /**
- * Accueil, ported from the approved Lovable feed (Atlantic After Dark, #091B19):
+ * Accueil, ported from the approved Lovable feed (one dark canvas, see @jefeli/shared tokens):
  *   - a fixed header: serif wordmark with a gold dot, round glass search and notifications,
  *     « Pour toi » / « Abonnements » with a mint underline;
  *   - the story rail, then quiet discovery chips (my city → the nearby feed; Wecci and
@@ -162,7 +162,7 @@ export default function Home() {
             aria-selected={!!selected}
             accessibilityLabel={label}
           >
-            <Icon size={14} color={dark.mint} strokeWidth={2.2} />
+            <Icon size={14} color={dark.wecci} strokeWidth={2.2} />
             <Text variant="callout" weight="600" color={selected ? dark.text : dark.textStrong} style={{ fontSize: 13 }}>
               {label}
             </Text>
@@ -328,11 +328,11 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: spacing.sm },
   tabs: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, paddingHorizontal: spacing.lg },
   tab: { height: 40, justifyContent: 'center' },
-  tabLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 2, backgroundColor: colors.mint },
+  tabLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 2, backgroundColor: colors.gold },
   envTag: { marginLeft: 'auto', backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
   chips: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: dark.borderStrong },
-  chipOn: { borderColor: dark.mintLine, backgroundColor: dark.mintSelected },
+  chipOn: { borderColor: dark.goldLine, backgroundColor: dark.raised },
   caughtUp: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.lg },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderBottomWidth: 1, borderColor: dark.border },
 });

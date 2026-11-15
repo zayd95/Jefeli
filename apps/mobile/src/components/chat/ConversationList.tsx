@@ -53,13 +53,13 @@ export function ConversationList({ activeId = null, pane = false }: { activeId?:
           <View style={styles.intro}>
             {all.length > 0 ? (
               <View style={styles.search}>
-                <Search size={20} color={dark.mint} />
+                <Search size={20} color={dark.gold} />
                 <TextInput
                   value={search}
                   onChangeText={setSearch}
                   placeholder="Rechercher une conversation"
                   placeholderTextColor={dark.textTertiary}
-                  selectionColor={dark.mint}
+                  selectionColor={dark.gold}
                   accessibilityLabel="Rechercher une conversation"
                   autoCorrect={false}
                   style={[styles.searchInput, WEB_NO_OUTLINE]}
@@ -120,7 +120,7 @@ function Row({ c, me, active }: { c: ConversationSummary; me: string; active: bo
       <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
         <View style={styles.line}>
           {c.other ? <ProfileName profile={c.other} tone="dark" /> : <Text variant="bodyStrong" tone="fog">{name}</Text>}
-          <Text variant="caption" color={unread ? dark.mint : dark.textTertiary} weight={unread ? '700' : '500'} style={{ fontSize: 12 }}>
+          <Text variant="caption" color={unread ? dark.gold : dark.textTertiary} weight={unread ? '700' : '500'} style={{ fontSize: 12 }}>
             {timeAgo(c.last_message_at)}
           </Text>
         </View>
@@ -132,12 +132,12 @@ function Row({ c, me, active }: { c: ConversationSummary; me: string; active: bo
           {c.muted ? <BellOff size={14} color={dark.textTertiary} /> : null}
           {unread ? (
             <View style={styles.badge}>
-              <Text variant="micro" weight="800" color={colors.night}>
+              <Text variant="micro" weight="800" color={colors.white}>
                 {c.unread_count > 99 ? '99+' : c.unread_count}
               </Text>
             </View>
           ) : (
-            <ChevronRight size={16} color={dark.mint} />
+            <ChevronRight size={16} color={dark.gold} />
           )}
         </View>
       </View>
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
   intro: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm, gap: spacing.lg },
   search: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, height: 48, paddingHorizontal: spacing.lg, borderRadius: 999, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
   searchInput: { flex: 1, fontFamily: fonts.regular, fontSize: fieldFontSize(14), color: dark.text, paddingVertical: 8 },
-  rowActive: { backgroundColor: dark.mintSelected, borderRadius: 14, paddingHorizontal: spacing.sm, marginHorizontal: spacing.sm },
+  rowActive: { backgroundColor: dark.raised, borderRadius: 14, paddingHorizontal: spacing.sm, marginHorizontal: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 85, marginHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: dark.border },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
-  badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  badge: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
 });

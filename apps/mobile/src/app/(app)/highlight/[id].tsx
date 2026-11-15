@@ -26,7 +26,7 @@ export default function HighlightScreen() {
 
   if (h.isPending) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={colors.white} />
       </View>
     );

@@ -171,7 +171,7 @@ export function OfferCard({
                 {formatXOF(offer.amount_xof)}
               </Text>
               {gap !== null && gap !== 0 ? (
-                <Text variant="caption" weight="700" color={gap < 0 ? colors.gold : dark.mint}>
+                <Text variant="caption" weight="700" color={gap < 0 ? colors.gold : dark.gold}>
                   {gap > 0 ? '+' : '−'}
                   {Math.abs(gap)} % du prix
                 </Text>

@@ -141,11 +141,11 @@ if (args.has('--og')) {
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
     @font-face { font-family: 'Inter Variable'; src: url(data:font/woff2;base64,${font.toString('base64')}) format('woff2'); font-weight: 100 900; }
     html, body { margin: 0; width: 1200px; height: 630px; }
-    body { background: #F6F5F1; color: #10252C; font-family: 'Inter Variable'; display: flex; flex-direction: column; justify-content: center; padding: 0 96px; box-sizing: border-box; position: relative; }
+    body { background: #061D18; color: #F6F5ED; font-family: 'Inter Variable'; display: flex; flex-direction: column; justify-content: center; padding: 0 96px; box-sizing: border-box; position: relative; }
     .wm { font-size: 168px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; display: flex; align-items: baseline; }
-    .dot { width: 0.15em; height: 0.15em; margin-left: 0.06em; border-radius: 0.03em; background: #2E8C73; display: inline-block; }
+    .dot { width: 0.15em; height: 0.15em; margin-left: 0.06em; border-radius: 0.03em; background: #EFBD38; display: inline-block; }
     .tag { margin-top: 28px; font-size: 52px; font-weight: 800; letter-spacing: -0.03em; }
-    .sub { margin-top: 10px; font-size: 30px; color: #607071; }
+    .sub { margin-top: 10px; font-size: 30px; color: #9BADA7; }
     .band { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: #A3E4D7; }
   </style></head><body><div class="wm">Jëfëli<span class="dot"></span></div><div class="tag">Découvre. Partage. Vends.</div><div class="sub">Le réseau social du commerce sénégalais</div><div class="band"></div></body></html>`;
   const ctx = await browser.newContext({ viewport: { width: 1200, height: 630 } });

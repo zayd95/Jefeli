@@ -189,7 +189,7 @@ export function ChatView({ id, aboutParam, embedded = false }: { id: string; abo
           ListFooterComponent={
             !messages.hasNextPage && !messages.isPending ? (
               <View style={styles.safety}>
-                <ShieldCheck size={16} color={dark.mint} />
+                <ShieldCheck size={16} color={dark.gold} />
                 <Text variant="caption" tone="fogSecondary" style={{ flex: 1 }}>
                   {PLATFORM_DISCLAIMER} Ne partagez jamais de codes reçus par SMS.
                 </Text>

@@ -43,7 +43,7 @@ export default function Report() {
   if (done) {
     return (
       <Screen edges={['top', 'bottom']} style={{ padding: spacing.xl, justifyContent: 'center', gap: spacing.lg }}>
-        <CheckCircle2 size={44} color={colors.accentDeep} />
+        <CheckCircle2 size={44} color={colors.gold} />
         <Text variant="title">Merci pour votre signalement</Text>
         <Text tone="secondary">
           L’équipe de modération va l’examiner. Vous serez notifié(e) de la décision. Si vous vous sentez en danger, bloquez ce compte et contactez les autorités.

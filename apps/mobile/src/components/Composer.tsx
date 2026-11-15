@@ -226,9 +226,9 @@ const styles = StyleSheet.create({
   video: { backgroundColor: colors.night, alignItems: 'center', justifyContent: 'center' },
   videoBadgePlain: { alignItems: 'center', gap: 2 },
   // Over the captured cover frame: the same ink scrim as « Couverture » below.
-  videoBadge: { alignItems: 'center', gap: 2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.md, backgroundColor: 'rgba(16,37,44,0.65)' },
-  cover: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(16,37,44,0.65)', paddingVertical: 2, alignItems: 'center' },
-  remove: { position: 'absolute', top: 5, right: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(16,37,44,0.75)', alignItems: 'center', justifyContent: 'center' },
+  videoBadge: { alignItems: 'center', gap: 2, paddingHorizontal: 8, paddingVertical: 4, borderRadius: radius.md, backgroundColor: colors.mediaPanel },
+  cover: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: colors.mediaPanel, paddingVertical: 2, alignItems: 'center' },
+  remove: { position: 'absolute', top: 5, right: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.mediaPanel, alignItems: 'center', justifyContent: 'center' },
   overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.xl },
   box: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.xl, gap: spacing.md },
   optionRow: { flexDirection: 'row', gap: spacing.sm },
@@ -237,6 +237,6 @@ const styles = StyleSheet.create({
   segmentOn: { backgroundColor: colors.primary },
   option: { flex: 1, minHeight: 48, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', padding: spacing.sm },
   optionOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  optionDark: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.35)' },
+  optionDark: { backgroundColor: colors.inkWash, borderColor: colors.mediaLine },
   optionDarkOn: { backgroundColor: colors.action, borderColor: colors.action },
 });

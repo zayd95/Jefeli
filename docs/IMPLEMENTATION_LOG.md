@@ -644,3 +644,32 @@ Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale,
 - Migrations are **local only**; staging unchanged; PR #11 previews stay red on the schema check
   until the owner's go.
 - **Verification:** clean local database: check pass, integration 327/327, E2E 72 passed / 0 failed / 10 skipped.
+
+#### P1 addendum — one visual system (owner, 14 Nov; done 15 Nov)
+
+- **Theme:** one dark canvas everywhere (`#061D18`, surfaces `#0B2922` / `#12382F`). Reverses the
+  12 Nov white Explorer: Explorer, article, forms, settings, web share pages, admin and desktop are
+  dark. The `light` token set and every « paper » variant (ListingCard, PriceLabel, DemoBadge,
+  Skeleton, EmptyState) are removed.
+- **Three accents:** gold = action, active states, Waxaale, Jëf; mint (`colors.wecci`) = Wecci and
+  discovery tags only (Wecci badge and chip, feed eyebrows, Accueil chips, aisle icons, profile
+  interests); red = unread badges (Messages list now red), favourites, errors, live. Own chat
+  bubbles moved from mint to the raised surface. Errors are ink text with a red border or icon
+  (red text is 4.2:1, below AA).
+- **Colour inventory → tokens:** 21 hex + 32 `rgba()` values in app code, 12 in web CSS/TSX, all
+  replaced by tokens (new `media*`, `dangerPressed`, `wecci*`, `logoMint`, `black`, `white`).
+  Config files (`app.json`, `index.html`, `icon.svg`, `apps/web/scripts`) now hold palette values
+  only. Guard: `packages/shared/test/no-raw-colors.test.ts` (fails on any new hex / rgba; checked
+  with a probe file). Contrast: `packages/shared/test/contrast.test.ts` (19 WCAG AA pairs, pass).
+- **Type:** Nunito only (mobile `@expo-google-fonts/nunito` 400/600/700/800/900, web
+  `@fontsource-variable/nunito`); DM Sans and DM Serif Display removed; headings 800/900 (the
+  `serif` prop now renders Nunito ExtraBold), eyebrows 800 tracked +1, labels 600/700, body 400.
+  Accents checked in every weight from the shipped TTFs.
+- **Shape:** cards 20, buttons / chips / tags pill, sheets 25, shadows removed.
+- **Order note:** the brief asked for this pass before the task-5 prototypes; they were already
+  committed (59f172b, c4c9d30), so the pass was applied on top of them on the same branch (no
+  history rewrite). The prototypes follow the new system (Waxaale band gold, Wecci badge mint).
+- **Verification (clean local database):** `pnpm check` pass (54 unit tests incl. the colour guard
+  and contrast), integration 327/327, E2E 72 passed / 0 failed / 10 skipped.
+- **Evidence:** `docs/evidence/p1-identity/consistency/` (10 screens × 390 / 1440 px, before / after,
+  plus `nunito-accents-400-900.png`).

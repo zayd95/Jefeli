@@ -131,8 +131,8 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  unread: { backgroundColor: '#EEF7F3' },
-  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.accentDeep },
-  systemIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  unread: { backgroundColor: colors.raised },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.gold },
+  systemIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   requests: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, margin: spacing.lg, padding: spacing.md, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
 });

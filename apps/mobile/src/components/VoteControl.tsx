@@ -74,8 +74,8 @@ export function VoteControl({ post }: { post: PostCardData }) {
         accessibilityLabel={up ? `Retirer mon vote pour. ${countLabel}` : `Voter pour. ${countLabel}`}
         accessibilityState={{ selected: up }} aria-selected={up}
       >
-        <ArrowBigUp size={22} color={up ? dark.mint : dark.textStrong} fill={up ? dark.mint : 'transparent'} strokeWidth={1.6} />
-        <Text variant="callout" weight="700" color={up ? dark.mint : dark.textStrong} style={styles.count}>
+        <ArrowBigUp size={22} color={up ? dark.gold : dark.textStrong} fill={up ? dark.gold : 'transparent'} strokeWidth={1.6} />
+        <Text variant="callout" weight="700" color={up ? dark.gold : dark.textStrong} style={styles.count}>
           {formatCount(count)}
         </Text>
       </Pressable>

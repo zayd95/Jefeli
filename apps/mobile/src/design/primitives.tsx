@@ -9,7 +9,7 @@ import { Animated, Pressable, StyleSheet, View, type StyleProp, type ViewStyle }
 
 import { Button } from './Button';
 import { Text } from './Text';
-import { colors, dark, light, radius, shadow, spacing } from './theme';
+import { colors, dark, radius, shadow, spacing } from './theme';
 
 /** Lovable wordmark: Fraunces semibold « Jëfëli » with a gold full stop. */
 export function Wordmark({ size = 28, color = colors.ink }: { size?: number; color?: string }) {
@@ -66,10 +66,10 @@ export function Chip({
 export function Tag({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'mint' | 'warning' | 'ink' | 'danger' }) {
   const map = {
     neutral: { bg: colors.surfaceMuted, fg: colors.ink },
-    mint: { bg: colors.mintSoft, fg: colors.ink },
+    mint: { bg: colors.goldSoft, fg: colors.ink },
     warning: { bg: colors.warningSoft, fg: colors.warning },
     ink: { bg: colors.surfaceMuted, fg: colors.ink },
-    danger: { bg: colors.dangerSoft, fg: colors.danger },
+    danger: { bg: colors.dangerSoft, fg: colors.ink },
   }[tone];
   return (
     <View style={[styles.tag, { backgroundColor: map.bg }]}>
@@ -83,22 +83,12 @@ export function Tag({ label, tone = 'neutral' }: { label: string; tone?: 'neutra
 export function VerifiedBadge({ size = 16 }: { size?: number }) {
   return (
     <View accessibilityLabel="Vendeur vérifié par l’équipe Jëfëli">
-      <BadgeCheck size={size} color={colors.white} fill={colors.accentDeep} strokeWidth={2.2} />
+      <BadgeCheck size={size} color={colors.white} fill={colors.gold} strokeWidth={2.2} />
     </View>
   );
 }
 
-export function DemoBadge({ tone = 'light' }: { tone?: 'light' | 'dark' | 'paper' }) {
-  if (tone === 'paper') {
-    // White Explorer page: dark ochre on pale gold (AA on white).
-    return (
-      <View style={[styles.demo, { backgroundColor: '#FFF4D6' }]} accessibilityLabel="Compte de démonstration">
-        <Text variant="micro" weight="800" color="#7A5A00" style={{ fontSize: 9.5, letterSpacing: 0.6 }}>
-          DÉMO
-        </Text>
-      </View>
-    );
-  }
+export function DemoBadge({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
   if (tone === 'dark') {
     // Lovable DemoTag on Atlantic night: quiet fog pill, still clearly « DÉMO ».
     return (
@@ -143,7 +133,7 @@ export function Eyebrow({ label }: { label: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={{ width: 24, height: 2, borderRadius: 1, backgroundColor: colors.gold }} />
-      <Text weight="700" color={dark.textSecondary} style={{ fontSize: 11.5, lineHeight: 14, letterSpacing: 1.6 }}>
+      <Text weight="800" color={dark.textSecondary} style={{ fontSize: 11.5, lineHeight: 14, letterSpacing: 1 }}>
         {label.toUpperCase()}
       </Text>
     </View>
@@ -178,7 +168,7 @@ export function Skeleton({
   height: number;
   radius?: number;
   style?: StyleProp<ViewStyle>;
-  tone?: 'light' | 'dark' | 'paper';
+  tone?: 'light' | 'dark';
 }) {
   const [opacity] = useState(() => new Animated.Value(0.55));
   useEffect(() => {
@@ -191,7 +181,7 @@ export function Skeleton({
     loop.start();
     return () => loop.stop();
   }, [opacity]);
-  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: tone === 'dark' ? dark.raised : tone === 'paper' ? light.surfaceMuted : colors.skeleton, opacity }, style]} />;
+  return <Animated.View style={[{ width: width ?? '100%', height, borderRadius: r, backgroundColor: tone === 'dark' ? dark.raised : colors.skeleton, opacity }, style]} />;
 }
 
 export function EmptyState({
@@ -209,21 +199,20 @@ export function EmptyState({
   actionLabel?: string;
   onAction?: () => void;
   compact?: boolean;
-  /** Dark = Lovable editorial empty state on Atlantic night (serif title, fog body). Paper = the white Explorer page. */
-  tone?: 'light' | 'dark' | 'paper';
+  /** Dark = editorial empty state (heading weight, fog body). */
+  tone?: 'light' | 'dark';
 }) {
   const isDark = tone === 'dark';
-  const paper = tone === 'paper';
   return (
     <View style={[styles.empty, compact && { paddingVertical: spacing.xl }]}>
-      <View style={[styles.emptyIcon, isDark && { backgroundColor: dark.mintSoft, borderWidth: 1, borderColor: dark.mintLine }, paper && { backgroundColor: light.accentSoft }]}>
-        <Icon size={26} color={isDark ? dark.mint : paper ? light.ink : colors.ink} strokeWidth={1.8} />
+      <View style={[styles.emptyIcon, isDark && { backgroundColor: dark.goldSoft, borderWidth: 1, borderColor: dark.goldLine }]}>
+        <Icon size={26} color={isDark ? dark.gold : colors.ink} strokeWidth={1.8} />
       </View>
-      <Text variant={isDark ? 'title' : 'headline'} serif={isDark} tone={isDark ? 'fog' : 'default'} color={paper ? light.ink : undefined} align="center" style={{ marginTop: spacing.md }}>
+      <Text variant={isDark ? 'title' : 'headline'} serif={isDark} tone={isDark ? 'fog' : 'default'} align="center" style={{ marginTop: spacing.md }}>
         {title}
       </Text>
       {body ? (
-        <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} color={paper ? light.textSecondary : undefined} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
+        <Text variant="callout" tone={isDark ? 'fogSecondary' : 'secondary'} align="center" style={{ marginTop: spacing.xs, maxWidth: 300 }}>
           {body}
         </Text>
       ) : null}
@@ -339,8 +328,8 @@ export function InlineRetry({ message, onRetry, retrying, tone = 'light' }: { me
         {message}
       </Text>
       <Pressable onPress={onRetry} disabled={retrying} accessibilityRole="button" accessibilityLabel="Réessayer" hitSlop={10} style={styles.inlineRetryBtn}>
-        <RefreshCw size={14} color={isDark ? dark.mint : colors.ink} />
-        <Text variant="caption" weight="800" color={isDark ? dark.mint : colors.ink}>
+        <RefreshCw size={14} color={isDark ? dark.gold : colors.ink} />
+        <Text variant="caption" weight="800" color={isDark ? dark.gold : colors.ink}>
           {retrying ? '…' : 'Réessayer'}
         </Text>
       </Pressable>
@@ -367,14 +356,14 @@ const styles = StyleSheet.create({
   },
   chipIdle: { backgroundColor: 'transparent' },
   chipSelected: { backgroundColor: colors.primary },
-  tag: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: radius.xs, alignSelf: 'flex-start' },
+  tag: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, alignSelf: 'flex-start' },
   demo: {
     backgroundColor: colors.warningSoft,
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#F0DFA8',
+    borderColor: colors.goldLine,
   },
   demoDark: { backgroundColor: dark.subtle, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 },
   live: {
@@ -387,14 +376,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.white },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, ...shadow.card },
+  card: { backgroundColor: colors.surface, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, ...shadow.card },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxxl, paddingHorizontal: spacing.xl },
   emptyIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.mintSoft,
+    backgroundColor: colors.goldSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },

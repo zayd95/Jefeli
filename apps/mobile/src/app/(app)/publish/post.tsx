@@ -304,7 +304,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
       <Text variant="caption" weight="700" tone="mint">
         {intentInfo.label}
       </Text>
-      <ChevronDown size={14} color={dark.mint} />
+      <ChevronDown size={14} color={dark.gold} />
     </Pressable>
   );
 
@@ -339,7 +339,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
               onChangeText={(t) => set({ body: t })}
               placeholder={intentInfo.placeholder}
               placeholderTextColor={dark.textTertiary}
-              selectionColor={colors.mint}
+              selectionColor={colors.gold}
               multiline
               maxLength={2200}
               accessibilityLabel="Texte de la publication"
@@ -364,7 +364,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
                 onChangeText={(t) => set({ body: t })}
                 placeholder="Quelques mots pour ceux qui ne peuvent pas écouter"
                 placeholderTextColor={dark.textTertiary}
-                selectionColor={colors.mint}
+                selectionColor={colors.gold}
                 multiline
                 maxLength={2200}
                 accessibilityLabel="Texte de la publication"
@@ -386,7 +386,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
             </View>
             {voice ? (
               <View style={styles.narration}>
-                <Mic size={16} color={dark.mint} />
+                <Mic size={16} color={dark.gold} />
                 <Text variant="caption" weight="700" tone="fog" style={{ flex: 1 }} numberOfLines={2}>
                   {`Votre explication · ${voiceSummary(voice.language, voice.durationMs)}${voice.cues && voice.cues.length > 1 ? ' · visite guidée' : ''}`}
                 </Text>
@@ -409,7 +409,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
                 onChangeText={(t) => set({ body: t })}
                 placeholder="Ajouter une légende…"
                 placeholderTextColor={dark.textTertiary}
-                selectionColor={colors.mint}
+                selectionColor={colors.gold}
                 multiline
                 maxLength={2200}
                 accessibilityLabel="Légende"
@@ -532,7 +532,7 @@ function PostEditor({ params, continued }: { params: Params; continued: boolean 
               <Text variant="bodyStrong" tone="fog" numberOfLines={1} style={{ flex: 1 }}>
                 {p.title}
               </Text>
-              {on ? <Check size={18} color={dark.mint} /> : null}
+              {on ? <Check size={18} color={dark.gold} /> : null}
             </Pressable>
           );
         })}
@@ -557,7 +557,7 @@ function SheetChoice({ label, hint, on, onPress }: { label: string; hint?: strin
           </Text>
         ) : null}
       </View>
-      {on ? <Check size={18} color={dark.mint} /> : null}
+      {on ? <Check size={18} color={dark.gold} /> : null}
     </Pressable>
   );
 }
@@ -604,16 +604,16 @@ const styles = StyleSheet.create({
   canvas: { minHeight: 260, borderRadius: 24, borderWidth: 1, borderColor: dark.goldLine, backgroundColor: dark.surface, padding: 20, gap: spacing.md },
   canvasText: { flex: 1, minHeight: 190, fontFamily: fonts.serif, fontSize: 22, lineHeight: 30, color: dark.text, textAlignVertical: 'top' },
   canvasFoot: { flexDirection: 'row', justifyContent: 'flex-end' },
-  typePill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: dark.mintLine, backgroundColor: dark.mintSoft },
+  typePill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: dark.goldLine, backgroundColor: dark.goldSoft },
   preview: { borderRadius: 24, overflow: 'hidden', backgroundColor: dark.surface, alignSelf: 'center' },
-  narration: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 12, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.mintLine },
+  narration: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 12, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.goldLine },
   voiceActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   captionRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingBottom: spacing.sm, borderBottomWidth: 1, borderBottomColor: dark.border },
   caption: { flex: 1, minHeight: 44, fontFamily: fonts.regular, fontSize: 16, lineHeight: 22, color: dark.text, paddingVertical: 10, textAlignVertical: 'top' },
-  linked: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: 8, paddingLeft: 10, borderRadius: 18, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.mintLine },
+  linked: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: 8, paddingLeft: 10, borderRadius: 18, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.goldLine },
   toolbar: { flexDirection: 'row', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderTopWidth: 1, borderColor: dark.border, backgroundColor: dark.background },
   tool: { flex: 1, minHeight: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 3 },
-  toolBadge: { position: 'absolute', top: -6, right: -10, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: 8, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  toolBadge: { position: 'absolute', top: -6, right: -10, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: 8, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   pickRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.sm, borderRadius: 12, minHeight: 56 },
-  pickRowOn: { backgroundColor: dark.mintSelected },
+  pickRowOn: { backgroundColor: dark.raised },
 });

@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   surface: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   overlay: { backgroundColor: colors.overlay },
   glass: { width: 40, height: 40, borderRadius: 20, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
-  badgeOnGlass: { backgroundColor: colors.mint, borderColor: dark.background },
+  badgeOnGlass: { backgroundColor: colors.gold, borderColor: dark.background },
   badgeOnSurface: { top: -4, right: -4 },
   badge: {
     position: 'absolute',

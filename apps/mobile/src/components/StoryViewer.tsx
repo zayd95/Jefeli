@@ -205,8 +205,8 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
         ) : mediaUri ? (
           <Image source={{ uri: mediaUri }} style={StyleSheet.absoluteFill} contentFit="cover" placeholder={posterUri ? { uri: posterUri } : undefined} />
         ) : null}
-        <LinearGradient colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0)']} style={styles.shadeTop} pointerEvents="none" />
-        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} style={styles.shadeBottom} pointerEvents="none" />
+        <LinearGradient colors={[colors.mediaScrim, colors.mediaClear]} style={styles.shadeTop} pointerEvents="none" />
+        <LinearGradient colors={[colors.mediaClear, colors.mediaScrim]} style={styles.shadeBottom} pointerEvents="none" />
       </View>
 
       <View style={styles.tapZones}>
@@ -229,7 +229,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               <Text variant="callout" weight="700" color={colors.white}>
                 {author?.display_name}
               </Text>
-              <Text variant="caption" color="rgba(255,255,255,0.8)">
+              <Text variant="caption" color={colors.mediaText}>
                 {isHighlight ? timeAgo(story.created_at) : `${timeAgo(story.created_at)} · reste ${timeLeft(story.expires_at)}`}
               </Text>
             </View>
@@ -318,7 +318,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
                 value={reply}
                 onChangeText={setReply}
                 placeholder={`Répondre à ${author?.display_name ?? ''}…`}
-                placeholderTextColor="rgba(255,255,255,0.75)"
+                placeholderTextColor={colors.mediaTextSoft}
                 style={styles.replyInput}
                 maxLength={1000}
                 onSubmitEditing={sendReply}
@@ -576,27 +576,27 @@ function StoryVideo({
 
 const styles = StyleSheet.create({
   videoState: { ...fill, alignItems: 'center', justifyContent: 'center' },
-  root: { flex: 1, backgroundColor: '#000' },
+  root: { flex: 1, backgroundColor: colors.black },
   desktopBackdrop: { flex: 1, backgroundColor: colors.night, alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
   desktopStage: { flex: 1, borderRadius: 16, overflow: 'hidden' },
   voiceBackdrop: { backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
-  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.mint },
+  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.gold },
   textBackdrop: { backgroundColor: dark.surface, justifyContent: 'center', padding: spacing.xxl },
   shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 180 },
   shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 },
   tapZones: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row' },
   overlay: { flex: 1 },
   bars: { flexDirection: 'row', gap: 4, paddingHorizontal: spacing.sm, paddingTop: spacing.sm },
-  bar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)', overflow: 'hidden' },
+  bar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: colors.mediaLine, overflow: 'hidden' },
   barFill: { height: 3, backgroundColor: colors.white },
   head: { flexDirection: 'row', alignItems: 'center', paddingLeft: spacing.md, paddingTop: spacing.sm },
   author: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   narrationLoading: { position: 'absolute', top: '50%', alignSelf: 'center' },
-  caption: { paddingHorizontal: spacing.xl, marginBottom: spacing.lg, textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 6 },
+  caption: { paddingHorizontal: spacing.xl, marginBottom: spacing.lg, textShadowColor: colors.mediaScrimStrong, textShadowRadius: 6 },
   sticker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.md, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   stickerCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
-  replyInput: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: 'rgba(0,0,0,0.25)' },
+  replyInput: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: colors.mediaTextSoft, paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: colors.mediaScrim },
   ownerBar: { flexDirection: 'row', justifyContent: 'center', gap: spacing.md, paddingBottom: spacing.md },
-  ownerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)' },
+  ownerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, height: 44, borderRadius: 22, backgroundColor: colors.mediaScrim },
 });

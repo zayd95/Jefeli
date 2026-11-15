@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.mintSoft,
+    backgroundColor: colors.goldSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },

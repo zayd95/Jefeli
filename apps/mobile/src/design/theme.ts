@@ -1,26 +1,30 @@
-import { colors, dark, light, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
-import { Platform, type TextStyle, type ViewStyle } from 'react-native';
+import { colors, dark, radius, spacing, typeScale, touchTarget, palette } from '@jefeli/shared';
+import { type TextStyle, type ViewStyle } from 'react-native';
 
-export { colors, dark, light, radius, spacing, typeScale, touchTarget, palette };
+export { colors, dark, radius, spacing, typeScale, touchTarget, palette };
 
 /**
- * Typography: DM Sans for the interface, DM Serif Display for editorial headings
- * display text (`font-display`). Each weight ships as its own family on native.
+ * Typography (P1 addendum, owner 14 Nov 2026): one rounded typeface, Nunito, everywhere.
+ *   - headings 800 / 900 (the `serif` prop on <Text> now means « heading »: Nunito ExtraBold);
+ *   - UI labels 600 / 700;
+ *   - body 400.
+ * Each weight ships as its own family on native.
  */
 export const fonts = {
-  regular: 'DMSans_400Regular',
-  medium: 'DMSans_500Medium',
-  semibold: 'DMSans_600SemiBold',
-  bold: 'DMSans_700Bold',
-  extrabold: 'DMSans_800ExtraBold',
-  // DM Serif Display ships one weight: editorial headings, product names, wordmark.
-  serif: 'DMSerifDisplay_400Regular',
-  serifSemibold: 'DMSerifDisplay_400Regular',
-  serifItalic: 'DMSerifDisplay_400Regular_Italic',
+  regular: 'Nunito_400Regular',
+  medium: 'Nunito_600SemiBold',
+  semibold: 'Nunito_600SemiBold',
+  bold: 'Nunito_700Bold',
+  extrabold: 'Nunito_800ExtraBold',
+  black: 'Nunito_900Black',
+  serif: 'Nunito_800ExtraBold',
+  serifSemibold: 'Nunito_800ExtraBold',
+  serifItalic: 'Nunito_800ExtraBold_Italic',
 } as const;
 
+/** Headings: ExtraBold, or Black when 900 is asked for. */
 export function serifFor(weight: TextStyle['fontWeight']): string {
-  return weight === '400' || weight === 'normal' || weight === '300' || weight === '500' ? fonts.serif : fonts.serifSemibold;
+  return weight === '900' ? fonts.black : fonts.extrabold;
 }
 
 export function fontFor(weight: TextStyle['fontWeight']): string {
@@ -33,30 +37,22 @@ export function fontFor(weight: TextStyle['fontWeight']): string {
     case 'bold':
       return fonts.bold;
     case '800':
-    case '900':
       return fonts.extrabold;
+    case '900':
+      return fonts.black;
     default:
       return fonts.regular;
   }
 }
 
+/**
+ * No shadows (P1 addendum): on one dark canvas, depth comes from the two surfaces and a hairline
+ * border, never from a drop shadow. The names stay so existing styles keep compiling.
+ */
 export const shadow = {
-  /** Lovable light product card: `0 8px 24px -16px ink/35`. */
-  paper: Platform.select<ViewStyle>({
-    ios: { shadowColor: '#10252C', shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } },
-    android: { elevation: 2 },
-    default: { boxShadow: '0 8px 24px -16px rgba(16,37,44,0.35)' } as ViewStyle,
-  }),
-  card: Platform.select<ViewStyle>({
-    ios: { shadowColor: '#10252C', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
-    android: { elevation: 1 },
-    default: { boxShadow: '0 3px 10px rgba(16,37,44,0.06)' } as ViewStyle,
-  }),
-  floating: Platform.select<ViewStyle>({
-    ios: { shadowColor: '#10252C', shadowOpacity: 0.14, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } },
-    android: { elevation: 6 },
-    default: { boxShadow: '0 8px 24px rgba(16,37,44,0.14)' } as ViewStyle,
-  }),
+  paper: {} as ViewStyle,
+  card: {} as ViewStyle,
+  floating: {} as ViewStyle,
 };
 
 export const hairline = 1;

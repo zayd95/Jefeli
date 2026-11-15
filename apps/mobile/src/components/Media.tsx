@@ -316,7 +316,7 @@ export function Thumb({ media, bucket = 'public-media', style, label }: { media?
         </View>
       ) : media?.kind === 'audio' ? (
         <View style={styles.audioTile}>
-          <Mic size={20} color={dark.mint} />
+          <Mic size={20} color={dark.gold} />
         </View>
       ) : null}
     </View>
@@ -330,9 +330,9 @@ const styles = StyleSheet.create({
   mute: { position: 'absolute', right: 12, bottom: 12, width: 36, height: 36, borderRadius: 18, backgroundColor: dark.glass, alignItems: 'center', justifyContent: 'center' },
   counter: { position: 'absolute', top: 12, right: 12, backgroundColor: dark.glass, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
   dots: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 5 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.55)' },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.mediaLine },
   dotOn: { backgroundColor: colors.white, width: 16 },
   errorPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: dark.glass },
   audioTile: { ...fill, backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center' },
-  videoTag: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(16,37,44,0.6)', alignItems: 'center', justifyContent: 'center' },
+  videoTag: { position: 'absolute', top: 6, right: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.mediaPanel, alignItems: 'center', justifyContent: 'center' },
 });

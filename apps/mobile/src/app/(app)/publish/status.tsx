@@ -138,7 +138,7 @@ export default function NewStatus() {
               <Text variant="bodyStrong" tone="fog" style={{ flex: 1 }}>
                 {AUDIENCE_LABELS[a]}
               </Text>
-              {on ? <Check size={18} color={dark.mint} /> : null}
+              {on ? <Check size={18} color={dark.gold} /> : null}
             </Pressable>
           );
         })}
@@ -155,7 +155,7 @@ export default function NewStatus() {
               <Text variant="bodyStrong" tone="fog" numberOfLines={1} style={{ flex: 1 }}>
                 {p.title}
               </Text>
-              {on ? <Check size={18} color={dark.mint} /> : null}
+              {on ? <Check size={18} color={dark.gold} /> : null}
             </Pressable>
           );
         })}
@@ -313,7 +313,7 @@ function ChooseRow({ icon: Icon, label, hint, onPress }: { icon: typeof Mic; lab
 function SideTool({ icon: Icon, label, a11y, on, onPress }: { icon: typeof Mic; label: string; a11y: string; on: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={styles.sideTool} accessibilityRole="button" accessibilityLabel={a11y} accessibilityState={{ selected: on }}>
-      <View style={[styles.sideIcon, on && { backgroundColor: colors.mint }]}>
+      <View style={[styles.sideIcon, on && { backgroundColor: colors.gold }]}>
         <Icon size={20} color={on ? colors.night : colors.white} />
       </View>
       <Text variant="micro" weight="700" color={colors.white}>
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   chooseTop: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   choose: { flex: 1, padding: spacing.lg, gap: spacing.xl },
   chooseRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64, padding: spacing.md, borderRadius: 20, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
-  chooseIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  chooseIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   audience: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
   stage: { flex: 1, margin: spacing.xs, borderRadius: 22, overflow: 'hidden', backgroundColor: dark.surface },
   stageTop: { position: 'absolute', top: spacing.md, left: spacing.md, right: spacing.md, flexDirection: 'row', alignItems: 'center' },
@@ -335,13 +335,13 @@ const styles = StyleSheet.create({
   sideTool: { alignItems: 'center', gap: 4, minWidth: 48 },
   sideIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: dark.glass, alignItems: 'center', justifyContent: 'center' },
   voiceStage: { alignItems: 'center', justifyContent: 'center', gap: spacing.lg, paddingHorizontal: spacing.md, backgroundColor: dark.surface },
-  listen: { alignSelf: 'stretch', padding: spacing.md, borderRadius: 20, backgroundColor: dark.background, borderWidth: 1, borderColor: dark.mintLine },
-  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.mint },
+  listen: { alignSelf: 'stretch', padding: spacing.md, borderRadius: 20, backgroundColor: dark.background, borderWidth: 1, borderColor: dark.goldLine },
+  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.gold },
   captionWrap: { position: 'absolute', left: spacing.lg, right: 76, bottom: 96 },
   caption: { fontFamily: fonts.serif, fontSize: 24, lineHeight: 31, color: colors.white, backgroundColor: dark.glass, borderRadius: 14, paddingHorizontal: spacing.md, paddingVertical: 10, textAlign: 'center' },
   sticker: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   bottom: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  publish: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  publish: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingHorizontal: spacing.sm, borderRadius: 12 },
-  rowOn: { backgroundColor: dark.mintSelected },
+  rowOn: { backgroundColor: dark.raised },
 });

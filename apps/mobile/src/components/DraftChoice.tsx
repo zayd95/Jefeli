@@ -65,8 +65,8 @@ export function DraftChoice({
       ) : (
         <>
           <View style={styles.head}>
-            <View style={[styles.icon, isDark && { backgroundColor: dark.mintSoft, borderColor: dark.mintLine, borderWidth: 1 }]}>
-              <FileText size={18} color={isDark ? dark.mint : colors.accentDeep} />
+            <View style={[styles.icon, isDark && { backgroundColor: dark.goldSoft, borderColor: dark.goldLine, borderWidth: 1 }]}>
+              <FileText size={18} color={isDark ? dark.gold : colors.gold} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text variant="headline" tone={fg} accessibilityRole="header">
@@ -93,6 +93,6 @@ const styles = StyleSheet.create({
   boxLight: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   boxDark: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.borderStrong },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

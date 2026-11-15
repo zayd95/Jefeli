@@ -20,7 +20,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { gridItemWidth, ListingCard } from '@/components/ListingCard';
-import { Avatar, Button, colors, dark, DemoBadge, ErrorState, Eyebrow, light, Motif, radius, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
+import { Avatar, Button, colors, dark, DemoBadge, ErrorState, Eyebrow, Motif, radius, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
 import {
   exploreMarket,
   fetchActiveCities,
@@ -206,8 +206,8 @@ export default function Explore() {
           </Pressable>
         </View>
         <Pressable onPress={() => router.push('/search')} style={styles.search} accessibilityRole="button" accessibilityLabel="Rechercher">
-          <Search size={20} color={light.textSecondary} />
-          <Text variant="body" color={light.textSecondary} numberOfLines={1}>
+          <Search size={20} color={dark.textSecondary} />
+          <Text variant="body" color={dark.textSecondary} numberOfLines={1}>
             Un article, une boutique, un quartier…
           </Text>
         </Pressable>
@@ -238,8 +238,8 @@ export default function Explore() {
           accessibilityRole="button"
           accessibilityLabel={extraFilters > 0 ? `Filtres, ${extraFilters} actif${extraFilters > 1 ? 's' : ''}` : 'Filtres : prix, achat ou Wecci, tri'}
         >
-          <SlidersHorizontal size={15} color={extraFilters > 0 ? colors.onPrimary : light.ink} strokeWidth={2.2} />
-          <Text variant="callout" weight="700" color={extraFilters > 0 ? colors.onPrimary : light.ink} style={{ fontSize: 13 }}>
+          <SlidersHorizontal size={15} color={extraFilters > 0 ? colors.onPrimary : colors.ink} strokeWidth={2.2} />
+          <Text variant="callout" weight="700" color={extraFilters > 0 ? colors.onPrimary : colors.ink} style={{ fontSize: 13 }}>
             {extraFilters > 0 ? `Filtres · ${extraFilters}` : 'Filtres'}
           </Text>
         </Pressable>
@@ -252,8 +252,8 @@ export default function Explore() {
           accessibilityLabel={hood ? `Près de moi, ${hood}` : 'Près de moi : ajoutez votre quartier à votre profil'}
           testID="near-me"
         >
-          <Navigation size={14} color={near ? colors.onPrimary : light.accent} strokeWidth={2.4} />
-          <Text variant="callout" weight="700" color={near ? colors.onPrimary : light.ink} style={{ fontSize: 13 }}>
+          <Navigation size={14} color={near ? colors.onPrimary : dark.wecci} strokeWidth={2.4} />
+          <Text variant="callout" weight="700" color={near ? colors.onPrimary : colors.ink} style={{ fontSize: 13 }}>
             {hood ? `Près de moi · ${hood}` : 'Près de moi'}
           </Text>
         </Pressable>
@@ -270,7 +270,7 @@ export default function Explore() {
               aria-selected={on}
               accessibilityLabel={k.label}
             >
-              <Text variant="callout" weight="600" color={on ? colors.onPrimary : light.textSecondary} style={{ fontSize: 13 }}>
+              <Text variant="callout" weight="600" color={on ? colors.onPrimary : dark.textSecondary} style={{ fontSize: 13 }}>
                 {k.label}
               </Text>
             </Pressable>
@@ -281,17 +281,17 @@ export default function Explore() {
       {trendItems.length > 0 ? (
         <View style={styles.discovery}>
           <View style={[styles.rowHead, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
-            <Flame size={18} color="#C2410C" strokeWidth={2.2} />
-            <Text serif style={{ fontSize: 22, lineHeight: 27, color: light.ink }} accessibilityRole="header">
+            <Flame size={18} color={colors.red} strokeWidth={2.2} />
+            <Text serif style={{ fontSize: 22, lineHeight: 27, color: colors.ink }} accessibilityRole="header">
               Tendances cette semaine
             </Text>
           </View>
-          <Text variant="caption" style={[styles.rowSub, { color: light.textSecondary }, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
+          <Text variant="caption" style={[styles.rowSub, { color: dark.textSecondary }, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
             Les articles que les membres ajoutent le plus à leurs favoris.
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.rowScroll, desktop && { paddingHorizontal: DESKTOP_PAD }]} accessibilityLabel="Tendances cette semaine">
             {trendItems.map((p) => (
-              <ListingCard key={p.id} product={p} width={desktop ? 220 : 168} surface="paper" />
+              <ListingCard key={p.id} product={p} width={desktop ? 220 : 168} />
             ))}
           </ScrollView>
         </View>
@@ -300,8 +300,8 @@ export default function Explore() {
       {sellerItems.length > 0 ? (
         <View style={styles.discovery}>
           <View style={[styles.rowHead, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
-            <UserPlus size={18} color={light.accent} strokeWidth={2.2} />
-            <Text serif style={{ fontSize: 22, lineHeight: 27, color: light.ink }} accessibilityRole="header">
+            <UserPlus size={18} color={dark.wecci} strokeWidth={2.2} />
+            <Text serif style={{ fontSize: 22, lineHeight: 27, color: colors.ink }} accessibilityRole="header">
               Vendeurs à suivre
             </Text>
           </View>
@@ -316,20 +316,20 @@ export default function Explore() {
       <View style={[styles.sectionHeader, desktop && { paddingHorizontal: DESKTOP_PAD }]}>
         <View style={{ flexShrink: 1, gap: 8 }}>
           <Eyebrow label={filtered ? 'Votre sélection' : 'À découvrir'} />
-          <Text serif style={{ fontSize: desktop ? 34 : 29, lineHeight: desktop ? 38 : 33, color: light.ink, flexShrink: 1 }} numberOfLines={1}>
+          <Text serif style={{ fontSize: desktop ? 34 : 29, lineHeight: desktop ? 38 : 33, color: colors.ink, flexShrink: 1 }} numberOfLines={1}>
             {heading}
           </Text>
         </View>
         {filtered ? (
           <Pressable onPress={clear} hitSlop={10} accessibilityRole="button" accessibilityLabel="Effacer les filtres" style={{ minHeight: 40, justifyContent: 'center' }}>
-            <Text variant="callout" weight="600" color={light.textSecondary} style={{ textDecorationLine: 'underline', fontSize: 13 }}>
+            <Text variant="callout" weight="600" color={dark.textSecondary} style={{ textDecorationLine: 'underline', fontSize: 13 }}>
               Effacer
             </Text>
           </Pressable>
         ) : null}
       </View>
       {kind === 'trade' ? (
-        <Text variant="callout" color={light.textSecondary} style={{ paddingHorizontal: 14, marginTop: -spacing.xs, marginBottom: spacing.md }}>
+        <Text variant="callout" color={dark.textSecondary} style={{ paddingHorizontal: 14, marginTop: -spacing.xs, marginBottom: spacing.md }}>
           Wecci : échange possible, avec ou sans complément en argent.
         </Text>
       ) : null}
@@ -340,19 +340,19 @@ export default function Explore() {
     <Screen background={dark.background}>
       <FlatList<Row>
         onLayout={(e) => setContentWidth(e.nativeEvent.layout.width)}
-        style={{ backgroundColor: light.background }}
+        style={{ backgroundColor: dark.background }}
         data={rows}
         keyExtractor={(row) => (row.type === 'lead' ? `lead-${row.product.id}` : row.items.map((p) => p.id).join('-'))}
         ListHeaderComponent={header}
         renderItem={({ item }) =>
           item.type === 'lead' ? (
             <View style={styles.leadRow}>
-              <ListingCard product={item.product} width={leadW} big surface="paper" />
+              <ListingCard product={item.product} width={leadW} big />
             </View>
           ) : (
             <View style={[styles.gridRow, desktop && styles.gridRowDesktop]}>
               {item.items.map((p) => (
-                <ListingCard key={p.id} product={p} width={itemW} showVerified={desktop} surface="paper" />
+                <ListingCard key={p.id} product={p} width={itemW} showVerified={desktop} />
               ))}
             </View>
           )
@@ -360,12 +360,12 @@ export default function Explore() {
         ListEmptyComponent={
           products.isPending ? (
             <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }} accessibilityLabel="Chargement">
-              <Skeleton height={Math.round((leadW * 11) / 16)} radius={20} tone="paper" />
+              <Skeleton height={Math.round((leadW * 11) / 16)} radius={20} />
               <View style={{ flexDirection: 'row', gap: spacing.md }}>
                 {[0, 1].map((i) => (
                   <View key={i} style={{ flex: 1, gap: 8 }}>
-                    <Skeleton height={190} radius={18} tone="paper" />
-                    <Skeleton height={14} width="60%" tone="paper" />
+                    <Skeleton height={190} radius={18} />
+                    <Skeleton height={14} width="60%" />
                   </View>
                 ))}
               </View>
@@ -382,7 +382,7 @@ export default function Explore() {
         }
         onEndReached={() => products.hasNextPage && !products.isFetchingNextPage && products.fetchNextPage()}
         onEndReachedThreshold={0.6}
-        refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={() => void products.refetch()} tintColor={light.ink} />}
+        refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={() => void products.refetch()} tintColor={colors.ink} />}
         contentContainerStyle={[{ paddingBottom: dockSpace, flexGrow: 1 }, desktop && styles.desktopList]}
       />
 
@@ -502,15 +502,15 @@ function SellerCard({ seller }: { seller: SuggestedSeller }) {
       <Pressable onPress={() => router.push(`/u/${seller.handle}`)} accessibilityRole="link" accessibilityLabel={`Voir la boutique de ${seller.display_name}`} style={{ alignItems: 'center', gap: 6 }}>
         <Avatar path={seller.avatar_path} name={seller.display_name} size={56} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: 132 }}>
-          <Text weight="700" color={light.ink} numberOfLines={1} style={{ fontSize: 14, flexShrink: 1 }}>
+          <Text weight="700" color={colors.ink} numberOfLines={1} style={{ fontSize: 14, flexShrink: 1 }}>
             {seller.display_name}
           </Text>
           {seller.verification_level === 'merchant_verified' ? <VerifiedBadge size={13} /> : null}
         </View>
-        <Text variant="caption" color={light.textSecondary} numberOfLines={1} style={{ maxWidth: 132 }}>
+        <Text variant="caption" color={dark.textSecondary} numberOfLines={1} style={{ maxWidth: 132 }}>
           {[seller.city, `${seller.active_products} article${seller.active_products > 1 ? 's' : ''}`].filter(Boolean).join(' · ')}
         </Text>
-        {seller.is_demo ? <DemoBadge tone="paper" /> : null}
+        {seller.is_demo ? <DemoBadge /> : null}
       </Pressable>
       <Pressable
         onPress={() => void onFollow()}
@@ -519,7 +519,7 @@ function SellerCard({ seller }: { seller: SuggestedSeller }) {
         accessibilityRole="button"
         accessibilityLabel={done ? `Vous suivez ${seller.display_name}` : `Suivre ${seller.display_name}`}
       >
-        <Text variant="callout" weight="700" color={done ? light.ink : colors.onPrimary} style={{ fontSize: 13 }}>
+        <Text variant="callout" weight="700" color={done ? colors.ink : colors.onPrimary} style={{ fontSize: 13 }}>
           {done ? 'Suivi' : 'Suivre'}
         </Text>
       </Pressable>
@@ -542,13 +542,13 @@ function AisleCard({ aisle, counts, selected, onPress }: { aisle: Aisle; counts:
       testID={`aisle-${aisle.key}`}
     >
       <View style={[styles.aisleIcon, selected && styles.tileIconOn]}>
-        <Icon size={20} color={selected ? colors.mintAccent : light.accent} strokeWidth={2} />
+        <Icon size={20} color={selected ? colors.gold : dark.wecci} strokeWidth={2} />
       </View>
       <View style={{ gap: 2, flexShrink: 1 }}>
-        <Text serif color={selected ? colors.onPrimary : light.ink} style={{ fontSize: 21, lineHeight: 25 }}>
+        <Text serif color={selected ? colors.onPrimary : colors.ink} style={{ fontSize: 21, lineHeight: 25 }}>
           {aisle.label}
         </Text>
-        <Text variant="caption" weight="600" color={selected ? colors.onPrimary : light.textSecondary} numberOfLines={2}>
+        <Text variant="caption" weight="600" color={selected ? colors.onPrimary : dark.textSecondary} numberOfLines={2}>
           {counts.articles > 0 ? `${counts.articles} article${counts.articles > 1 ? 's' : ''}\n${counts.sellers} vendeur${counts.sellers > 1 ? 's' : ''}` : 'Bientôt ouverte'}
         </Text>
       </View>
@@ -566,12 +566,12 @@ function AisleChip({ icon: Icon, label, a11y, count, selected, onPress }: { icon
       aria-selected={selected}
       accessibilityLabel={a11y ?? label}
     >
-      <Icon size={16} color={selected ? colors.onPrimary : light.accent} strokeWidth={2} />
-      <Text weight="600" color={selected ? colors.onPrimary : light.ink} numberOfLines={1} style={{ fontSize: 13 }}>
+      <Icon size={16} color={selected ? colors.onPrimary : dark.wecci} strokeWidth={2} />
+      <Text weight="600" color={selected ? colors.onPrimary : colors.ink} numberOfLines={1} style={{ fontSize: 13 }}>
         {label}
       </Text>
       {count ? (
-        <Text variant="caption" weight="700" color={selected ? colors.onPrimary : light.textTertiary} style={{ fontSize: 11.5 }}>
+        <Text variant="caption" weight="700" color={selected ? colors.onPrimary : dark.textTertiary} style={{ fontSize: 11.5 }}>
           {count}
         </Text>
       ) : null}
@@ -589,16 +589,16 @@ function SeekInvite({ title, onSeek, onClear }: { title: string; onSeek: () => v
       <View style={styles.seekIcon}>
         <Megaphone size={26} color={colors.onPrimary} strokeWidth={2.2} />
       </View>
-      <Text serif color={light.ink} style={{ fontSize: 23, lineHeight: 28, textAlign: 'center' }}>
+      <Text serif color={colors.ink} style={{ fontSize: 23, lineHeight: 28, textAlign: 'center' }}>
         {title}
       </Text>
-      <Text variant="callout" color={light.textSecondary} style={{ textAlign: 'center', maxWidth: 320 }}>
+      <Text variant="callout" color={dark.textSecondary} style={{ textAlign: 'center', maxWidth: 320 }}>
         Dites ce que vous cherchez : les vendeurs du marché vous répondent, souvent dans la journée.
       </Text>
       <Button label="Publier « Je cherche »" variant="cta" icon={PackageSearch} onPress={onSeek} />
       {onClear ? (
         <Pressable onPress={onClear} hitSlop={10} accessibilityRole="button" style={{ minHeight: 40, justifyContent: 'center' }}>
-          <Text variant="callout" weight="600" color={light.textSecondary} style={{ textDecorationLine: 'underline' }}>
+          <Text variant="callout" weight="600" color={dark.textSecondary} style={{ textDecorationLine: 'underline' }}>
             Voir tout le marché
           </Text>
         </Pressable>
@@ -611,34 +611,34 @@ const styles = StyleSheet.create({
   intro: { backgroundColor: dark.background, paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xl, overflow: 'hidden' },
   introTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   cityPill: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, height: 44, paddingLeft: 6, paddingRight: spacing.md, borderRadius: radius.pill, backgroundColor: dark.glass, borderWidth: 1, borderColor: dark.glassBorder },
-  cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
-  search: { marginTop: spacing.lg, height: 48, borderRadius: 15, backgroundColor: light.surface, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
+  cityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
+  search: { marginTop: spacing.lg, height: 48, borderRadius: 15, backgroundColor: dark.surface, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg },
   market: { paddingHorizontal: 14, paddingTop: spacing.lg, gap: spacing.md },
   launchRow: { flexDirection: 'row', gap: 10 },
-  aisle: { flex: 1, minHeight: 104, borderRadius: 18, padding: 14, gap: 10, justifyContent: 'space-between' },
+  aisle: { flex: 1, minHeight: 104, borderRadius: radius.card, padding: 14, gap: 10, justifyContent: 'space-between' },
   aisleOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },
-  aislePaper: { backgroundColor: light.surface, borderWidth: 1, borderColor: light.border },
-  aisleIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: light.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  aislePaper: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
+  aisleIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: dark.wecciSoft, alignItems: 'center', justifyContent: 'center' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 7, height: 42, paddingHorizontal: 14, borderRadius: 14 },
-  seek: { marginHorizontal: 14, alignItems: 'center', gap: spacing.md, padding: spacing.xl, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: light.borderStrong, backgroundColor: light.surface },
+  seek: { marginHorizontal: 14, alignItems: 'center', gap: spacing.md, padding: spacing.xl, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: dark.borderStrong, backgroundColor: dark.surface },
   seekIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   tiles: { paddingHorizontal: 14, paddingTop: spacing.md, gap: 8 },
   tileRing: { borderRadius: 16 },
   tile: { width: 112, height: 84, borderRadius: 16, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10 },
   tileOn: { backgroundColor: colors.primary, borderWidth: 1, borderColor: colors.primary },
-  tilePaper: { backgroundColor: light.surface, borderWidth: 1, borderColor: light.border },
-  tileIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: light.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  tilePaper: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
+  tileIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: dark.wecciSoft, alignItems: 'center', justifyContent: 'center' },
   tileIconOn: { backgroundColor: colors.night },
   pills: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.md, paddingBottom: spacing.xs },
-  pill: { height: 40, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: light.border, backgroundColor: light.surface, justifyContent: 'center' },
-  filterPill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderColor: light.borderStrong },
+  pill: { height: 40, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.surface, justifyContent: 'center' },
+  filterPill: { flexDirection: 'row', alignItems: 'center', gap: 6, borderColor: dark.borderStrong },
   discovery: { paddingTop: spacing.xl },
   rowHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14 },
   rowSub: { paddingHorizontal: 14, marginTop: 2 },
   rowScroll: { paddingHorizontal: 14, gap: 10, paddingTop: spacing.md },
-  seller: { width: 156, padding: 12, borderRadius: 16, backgroundColor: light.surface, borderWidth: 1, borderColor: light.border, alignItems: 'center', gap: 10 },
+  seller: { width: 156, padding: 12, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, alignItems: 'center', gap: 10 },
   follow: { alignSelf: 'stretch', height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  followDone: { backgroundColor: light.surfaceSubtle, borderWidth: 1, borderColor: light.border },
+  followDone: { backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: dark.border },
   choice: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: dark.borderStrong, backgroundColor: dark.surface },
   choiceOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   pillOn: { backgroundColor: colors.primary, borderColor: colors.primary },
@@ -648,5 +648,5 @@ const styles = StyleSheet.create({
   gridRowDesktop: { gap: DESKTOP_GAP, paddingHorizontal: DESKTOP_PAD, marginBottom: DESKTOP_GAP },
   desktopList: { width: '100%', maxWidth: DESKTOP_MAX, alignSelf: 'center' },
   tilesWrap: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: DESKTOP_PAD, gap: 10 },
-  empty: { marginHorizontal: 14, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: light.borderStrong, backgroundColor: light.surface },
+  empty: { marginHorizontal: 14, borderRadius: 20, borderWidth: 1, borderStyle: 'dashed', borderColor: dark.borderStrong, backgroundColor: dark.surface },
 });

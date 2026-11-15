@@ -169,8 +169,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           </View>
           {product.pinned_at ? (
             <View style={styles.pinned}>
-              <Pin size={13} color={colors.accentDeep} />
-              <Text variant="caption" weight="700" color={colors.accentDeep}>
+              <Pin size={13} color={colors.gold} />
+              <Text variant="caption" weight="700" color={colors.gold}>
                 Épinglé par le vendeur
               </Text>
             </View>
@@ -458,12 +458,12 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   );
 }
 
-/** Lovable product chip: paper with a hairline; Wecci in night with a gold label. */
+/** Product chip: surface with a hairline; Wecci (troc) in mint, the one colour reserved for it. */
 function Chip({ label, wecci, warning }: { label: string; wecci?: boolean; warning?: boolean }) {
   return (
     <View style={[styles.chip, wecci && styles.chipWecci, warning && styles.chipWarning]}>
-      {wecci ? <Repeat size={11} color={colors.gold} strokeWidth={2.6} /> : null}
-      <Text variant="caption" weight={wecci ? '700' : '600'} color={wecci ? colors.gold : warning ? colors.warning : colors.textSecondary} style={{ fontSize: 11.5 }}>
+      {wecci ? <Repeat size={11} color={colors.wecci} strokeWidth={2.6} /> : null}
+      <Text variant="caption" weight={wecci ? '700' : '600'} color={wecci ? colors.wecci : warning ? colors.warning : colors.textSecondary} style={{ fontSize: 11.5 }}>
         {label}
       </Text>
     </View>
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   sheet: { marginTop: -24, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 20, gap: 4 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  chipWecci: { backgroundColor: colors.night, borderColor: colors.night },
+  chipWecci: { backgroundColor: colors.wecciSoft, borderColor: colors.wecciSoft },
   chipWarning: { backgroundColor: colors.warningSoft, borderColor: colors.warningSoft },
   pinned: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm },
   title: { marginTop: spacing.md, fontSize: 28, lineHeight: 33, color: colors.ink },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   detailList: { marginTop: 20, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md },
   detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'center', paddingVertical: spacing.md },
   detailDivider: { borderTopWidth: 1, borderTopColor: colors.border },
-  detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   shareRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg },
   sharePill: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   safety: { flexDirection: 'row', gap: spacing.sm, marginTop: 20, padding: spacing.md, backgroundColor: colors.inkWash, borderRadius: 16 },

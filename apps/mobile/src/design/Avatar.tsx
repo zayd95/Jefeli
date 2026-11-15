@@ -17,7 +17,7 @@ export interface AvatarProps {
 }
 
 // Deep, earthy initials backgrounds (terracotta red, forest, teal, ochre) under warm off-white letters.
-const fallbackTints = ['#B43F31', '#0D3A30', '#14755D', '#8C6A1C', '#5E3A2E'];
+const fallbackTints = [colors.raised, colors.surface];
 
 export function Avatar({ path, name, size = 40, border }: AvatarProps) {
   const url = avatarUrl(path);
@@ -67,7 +67,7 @@ export function StoryRing({
   tone?: 'light' | 'dark';
 }) {
   if (tone === 'dark') return <DarkStoryRing path={path} name={name} label={label} seen={seen} size={size} onPress={onPress} addBadge={addBadge} live={live} />;
-  const ringColor = live ? colors.live : seen ? colors.borderStrong : colors.accentDeep;
+  const ringColor = live ? colors.live : seen ? colors.borderStrong : colors.gold;
   return (
     <Pressable
       onPress={onPress}
@@ -109,11 +109,11 @@ function DarkStoryRing({ path, name, label, seen, size = 58, onPress, addBadge, 
       {addBadge ? (
         // « Votre statut »: dashed fog ring with a mint plus (no avatar until there is a status).
         <View style={[styles.dashed, { width: outer, height: outer, borderRadius: outer / 2 }]}>
-          <Plus size={24} color={dark.mint} strokeWidth={2} />
+          <Plus size={24} color={dark.gold} strokeWidth={2} />
         </View>
       ) : live || !seen ? (
         <LinearGradient
-          colors={live ? [colors.live, colors.live] : [dark.mint, dark.mint, dark.gold]}
+          colors={live ? [colors.live, colors.live] : [dark.gold, dark.gold, dark.gold]}
           start={{ x: 0, y: 1 }}
           end={{ x: 1, y: 0 }}
           style={{ width: outer, height: outer, borderRadius: outer / 2, padding: 2 }}

@@ -139,12 +139,12 @@ export default async function ProductPage({ params }: Props) {
 
           <div className="chip-row">
             {product.status !== 'active' ? (
-              <span className="chip" style={{ background: 'var(--c-ink)', color: 'var(--c-white)' }}>
+              <span className="chip" style={{ background: 'var(--c-raised)', color: 'var(--c-ink)' }}>
                 {PRODUCT_STATUS_LABELS[product.status]}
               </span>
             ) : null}
             <span className="chip">{CONDITION_LABELS[product.condition]}</span>
-            <span className="chip chip-mint">
+            <span className={product.listing_mode === 'sale' ? 'chip' : 'chip chip-mint'}>
               {product.listing_mode === 'sale' ? <IconTag /> : <IconSwap />}
               {LISTING_MODE_LABELS[product.listing_mode]}
             </span>
@@ -208,7 +208,7 @@ export default async function ProductPage({ params }: Props) {
                       </>
                     ) : null}
                   </div>
-                  <div className="seller-sub" style={{ color: 'var(--c-accent-deep)', fontWeight: 600 }}>
+                  <div className="seller-sub" style={{ color: 'var(--c-gold)', fontWeight: 600 }}>
                     Voir sa boutique
                   </div>
                 </div>

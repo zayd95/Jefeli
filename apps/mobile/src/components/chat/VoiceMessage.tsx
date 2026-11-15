@@ -15,21 +15,21 @@ import { useVoicePlayer, Waveform } from '../audio/Voice';
 export function VoiceMessage({ path, durationMs, waveform, mine }: { path: string; durationMs?: number; waveform?: number[] | null; mine: boolean }) {
   const uri = useMediaUrl('private-media', path);
   const v = useVoicePlayer(uri, durationMs ?? null);
-  const fg = mine ? colors.night : dark.mint;
+  const fg = dark.gold;
   return (
     <View style={styles.row}>
-      <Pressable onPress={v.toggle} style={[styles.play, { backgroundColor: mine ? colors.ink : colors.mint }]} accessibilityRole="button" accessibilityLabel={v.playing ? 'Pause' : 'Écouter le message vocal'} disabled={!uri}>
-        {v.playing ? <Pause size={16} color={mine ? colors.mint : colors.night} fill={mine ? colors.mint : colors.night} /> : <Play size={16} color={mine ? colors.mint : colors.night} fill={mine ? colors.mint : colors.night} />}
+      <Pressable onPress={v.toggle} style={[styles.play, { backgroundColor: colors.gold }]} accessibilityRole="button" accessibilityLabel={v.playing ? 'Pause' : 'Écouter le message vocal'} disabled={!uri}>
+        {v.playing ? <Pause size={16} color={colors.onPrimary} fill={colors.onPrimary} /> : <Play size={16} color={colors.onPrimary} fill={colors.onPrimary} />}
       </Pressable>
       <View style={{ flex: 1 }}>
-        <Waveform values={waveform} progress={v.progress} height={24} bars={28} color={mine ? colors.overlay : dark.borderStrong} activeColor={fg} onSeek={v.seek} />
+        <Waveform values={waveform} progress={v.progress} height={24} bars={28} color={dark.borderStrong} activeColor={fg} onSeek={v.seek} />
       </View>
-      <Text variant="caption" weight="600" color={mine ? colors.inkSoft : dark.textSecondary} style={{ minWidth: 34 }}>
+      <Text variant="caption" weight="600" color={dark.textSecondary} style={{ minWidth: 34 }}>
         {formatDuration(v.playing || v.positionMs > 0 ? v.positionMs : v.totalMs)}
       </Text>
       {v.playing ? (
         <Pressable onPress={v.cycleRate} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Vitesse ${v.rate} fois. Changer`}>
-          <Text variant="micro" weight="800" color={mine ? colors.inkSoft : dark.textSecondary}>
+          <Text variant="micro" weight="800" color={dark.textSecondary}>
             {v.rate === 1 ? '1×' : v.rate === 1.5 ? '1,5×' : '2×'}
           </Text>
         </Pressable>

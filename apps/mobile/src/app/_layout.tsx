@@ -1,10 +1,9 @@
-import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
-import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
-import { DMSans_600SemiBold } from '@expo-google-fonts/dm-sans/600SemiBold';
-import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
-import { DMSans_800ExtraBold } from '@expo-google-fonts/dm-sans/800ExtraBold';
-import { DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display/400Regular';
-import { DMSerifDisplay_400Regular_Italic } from '@expo-google-fonts/dm-serif-display/400Regular_Italic';
+import { Nunito_400Regular } from '@expo-google-fonts/nunito/400Regular';
+import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
+import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
+import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
+import { Nunito_800ExtraBold_Italic } from '@expo-google-fonts/nunito/800ExtraBold_Italic';
+import { Nunito_900Black } from '@expo-google-fonts/nunito/900Black';
 import { useFonts } from 'expo-font';
 import { describeFailure } from '@jefeli/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -34,15 +33,14 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  // Typography: DM Sans (interface) + DM Serif Display (editorial headings), only the weights used.
+  // Typography: Nunito only (P1 addendum), the weights used: 400, 600, 700, 800, 900.
   const [fontsLoaded, fontError] = useFonts({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
-    DMSans_700Bold,
-    DMSans_800ExtraBold,
-    DMSerifDisplay_400Regular,
-    DMSerifDisplay_400Regular_Italic,
+    Nunito_400Regular,
+    Nunito_600SemiBold,
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
+    Nunito_800ExtraBold_Italic,
+    Nunito_900Black,
   });
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

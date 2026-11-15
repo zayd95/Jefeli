@@ -1,6 +1,59 @@
 # Jëfëli — design system
 
-## Current direction (owner, 12 Nov 2026): « Dakar after dark »
+## One visual system (owner, 14 Nov 2026 — P1 addendum). Authoritative.
+
+**This section supersedes everything below, including the 12 Nov « Explorer stays white »
+decision.** Like ProPulse, every screen uses one dark background, one action colour, one highlight
+colour and one rounded typeface. Explorer, the article, forms, settings, the web share pages,
+the admin pages and desktop are all dark.
+
+### Colour — `packages/shared/src/tokens.ts` is the only place a colour is written
+
+| Role | Token | Value | Used for — and nothing else |
+|---|---|---|---|
+| Canvas | `colors.background` / `palette.canvas` | `#061D18` | every page background |
+| Surface | `colors.surface` | `#0B2922` | cards, panels, fields |
+| Raised | `colors.raised` / `dark.raised` | `#12382F` | raised rows, own chat bubbles, active rows |
+| **Gold — action** | `colors.gold` / `primary`, `onPrimary` `#0A2922` | `#EFBD38` | every action and active state (primary buttons, active tab, « + », Waxaale offers, links) and everything Jëf |
+| **Mint — Wecci** | `colors.wecci`, `wecciSoft` | `#7ED8BD` | Wecci (troc) badges and chips, discovery tags (feed eyebrows, Accueil chips, aisle icons, profile interests) |
+| **Red — attention** | `colors.red` / `danger` | `#DB4A35` | unread badges, favourites, error borders and icons |
+| Live | `colors.live` | `#D93A44` | only a real « EN DIRECT » |
+| Text | `ink` `#F6F5ED`, `textSecondary` `#9BADA7`, `textTertiary` `#91A59F` | | text, never pure white except over photos and video (`colors.white`, `media*`) |
+| Logo | `palette.logoMint` | `#A3E4D7` | the « Jëfëli. » letters only (brand assets unchanged) |
+
+- The `light` token set and every « paper » variant are gone.
+- Error **text** is ink (red on the canvas is 4.2:1, below AA for small text): errors are marked by
+  a red border or icon next to ink text. Red is never used for small text.
+- Translucent values (scrims, glass, media overlays) are tokens too (`colors.media*`, `dark.*`).
+- **Guard:** `packages/shared/test/no-raw-colors.test.ts` (runs in `pnpm check`) fails on any
+  `#hex` or `rgb()/rgba()` in apps and packages code outside `tokens.ts`; config, HTML, SVG and the
+  Node build scripts may only use `palette` values.
+- **Contrast:** `packages/shared/test/contrast.test.ts` checks 19 text/background pairs against
+  WCAG 2.1 AA (4.5:1 text, 3:1 large text and UI).
+
+### Type — Nunito only (`@expo-google-fonts/nunito`, `@fontsource-variable/nunito`, free, OFL)
+
+| Use | Weight |
+|---|---|
+| Headings (the `serif` prop on `<Text>` now means « heading ») | 800, 900 |
+| Eyebrows | 800, uppercase, letter-spacing +1 |
+| UI labels, buttons, chips | 600 / 700 |
+| Body | 400 |
+
+DM Sans and DM Serif Display are removed. ë é è à ç and the other French accents render in every
+weight (`docs/evidence/p1-identity/consistency/nunito-accents-400-900.png`, from the TTF files the
+app ships). The logo and the « J. » icon are image assets and do not change.
+
+### Shape
+
+Cards radius 20 (`radius.card`), chips, tags and buttons pill-shaped (`radius.pill`), sheets 25
+(`radius.sheet`), no drop shadows (`shadow.*` are empty; depth comes from the two surfaces and a
+hairline border). The 4-pt spacing scale is unchanged.
+
+Evidence: `docs/evidence/p1-identity/consistency/` (before / after at 390 and 1440 px for Accueil,
+Explorer, article, Boutique, Messages, chat, Publier, Profil, Réglages and the public share page).
+
+## Previous direction (owner, 12 Nov 2026): « Dakar after dark » — superseded where it conflicts
 
 **This section supersedes the palette and surface rules below wherever they conflict.** A premium
 dark marketplace inspired by Senegal: deep forest greens, Senegalese gold for anything active or

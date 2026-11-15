@@ -14,6 +14,8 @@ Decisions needed (yes/no or a short choice):
 5. Rituals to keep: marché de nuit 20 h, Wecci Day (samedi), marchés de saison? (each yes/no)
 6. Apply the two P1 migrations to jefeli-staging (backup first) so PR #11 previews build? (go / not yet)
 7. Open the « v1 baseline » PR into `main` as a draft? (yes / no)
+9. Update `CLAUDE.md` brand colours (it still lists accent `#A3E4D7`, ink `#10252C`, canvas
+   `#F6F5F1`) to the 14 Nov system? It is your contract file, so I have not edited it. (yes / no)
 8. Android: confirm the package name `sn.jefeli.app` (cannot change after the first upload), then
    the Play account ($25) and the items in `docs/ANDROID_RELEASE.md` § 7.
 

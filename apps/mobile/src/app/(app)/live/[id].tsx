@@ -149,7 +149,7 @@ function LiveScreen() {
             <Text variant="callout" weight="700" color={colors.white} numberOfLines={1}>
               {s.host?.display_name}
             </Text>
-            <Text variant="caption" color="rgba(255,255,255,0.85)" numberOfLines={1}>
+            <Text variant="caption" color={colors.mediaText} numberOfLines={1}>
               {s.title}
             </Text>
           </View>
@@ -216,7 +216,7 @@ function LiveScreen() {
                   value={comment}
                   onChangeText={setComment}
                   placeholder="Écrire un commentaire…"
-                  placeholderTextColor="rgba(255,255,255,0.75)"
+                  placeholderTextColor={colors.mediaTextSoft}
                   style={styles.input}
                   maxLength={300}
                   onSubmitEditing={send}
@@ -226,7 +226,7 @@ function LiveScreen() {
                 {comment.trim() ? <IconButton icon={Send} label="Envoyer" color={colors.white} onPress={send} /> : null}
               </>
             ) : (
-              <Text variant="caption" color="rgba(255,255,255,0.8)">
+              <Text variant="caption" color={colors.mediaText}>
                 Les commentaires ouvrent quand le live est en direct.
               </Text>
             )}
@@ -287,16 +287,16 @@ function LiveScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000' },
+  root: { flex: 1, backgroundColor: colors.black },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, backgroundColor: colors.night },
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingLeft: spacing.md, paddingTop: spacing.sm },
-  endedTag: { backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  count: { backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  host: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginLeft: spacing.md, marginTop: spacing.sm, alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.35)', paddingRight: spacing.md, borderRadius: 24, padding: 4, maxWidth: '80%' },
+  endedTag: { backgroundColor: colors.mediaScrim, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  count: { backgroundColor: colors.mediaScrim, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  host: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginLeft: spacing.md, marginTop: spacing.sm, alignSelf: 'flex-start', backgroundColor: colors.mediaScrim, paddingRight: spacing.md, borderRadius: 24, padding: 4, maxWidth: '80%' },
   comments: { maxHeight: 220, flexGrow: 0, paddingHorizontal: spacing.md },
-  commentText: { marginBottom: 6, textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 4 },
+  commentText: { marginBottom: 6, textShadowColor: colors.mediaScrimStrong, textShadowRadius: 4 },
   pinCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.md, marginBottom: spacing.sm, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
   footer: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingBottom: spacing.sm, minHeight: 56 },
-  input: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: 'rgba(0,0,0,0.3)' },
+  input: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: colors.mediaTextSoft, paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: colors.mediaScrim },
   pinRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
 });

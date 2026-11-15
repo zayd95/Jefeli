@@ -1,7 +1,7 @@
 /** Web fallback: live video is only supported in the native apps (development builds). */
 import { View } from 'react-native';
 
-import { Text } from '@/design';
+import { colors, Text } from '@/design';
 
 export interface LiveVideoProps {
   apiKey: string;
@@ -16,8 +16,8 @@ export interface LiveVideoProps {
 
 export function LiveVideo(_props: LiveVideoProps) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000', padding: 24 }}>
-      <Text color="#fff" align="center">
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.black, padding: 24 }}>
+      <Text color={colors.white} align="center">
         La vidéo en direct est disponible dans l’application mobile.
       </Text>
     </View>

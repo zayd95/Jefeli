@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   segmentItem: { flex: 1, minHeight: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, paddingHorizontal: spacing.sm },
   segmentOn: { backgroundColor: colors.primary },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.sm, borderRadius: radius.md, minHeight: 64 },
-  rowOn: { backgroundColor: colors.mintSoft },
+  rowOn: { backgroundColor: colors.goldSoft },
   thumb: { width: 48, height: 48, borderRadius: radius.sm },
   check: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
   checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },

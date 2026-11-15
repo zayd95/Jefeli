@@ -55,7 +55,7 @@ export function ChatContext({ conversationId, aboutId }: { conversationId: strin
             <Text weight="800" color={dark.text} style={{ fontSize: 15 }}>
               {formatListingPrice(p)}
             </Text>
-            <Text variant="caption" weight="700" color={dark.mint}>
+            <Text variant="caption" weight="700" color={dark.gold}>
               Voir l’article →
             </Text>
           </Pressable>
@@ -70,7 +70,7 @@ export function ChatContext({ conversationId, aboutId }: { conversationId: strin
             const Icon = barter ? Repeat : Tag;
             return (
               <View key={o.id} style={styles.offer}>
-                <Icon size={16} color={barter ? dark.gold : dark.mint} />
+                <Icon size={16} color={barter ? dark.gold : dark.gold} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text weight="700" color={dark.text} style={{ fontSize: 13.5 }}>
                     {barter ? 'Wecci (troc)' : 'Offre de prix'}
@@ -88,7 +88,7 @@ export function ChatContext({ conversationId, aboutId }: { conversationId: strin
 
       <Section title="Sécurité">
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <ShieldCheck size={16} color={dark.mint} />
+          <ShieldCheck size={16} color={dark.gold} />
           <Text variant="caption" color={dark.textSecondary} style={{ flex: 1, lineHeight: 18 }}>
             {PLATFORM_DISCLAIMER} Ne partagez jamais de codes reçus par SMS.
           </Text>

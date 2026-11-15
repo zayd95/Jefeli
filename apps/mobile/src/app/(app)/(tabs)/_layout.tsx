@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { CreateMenu } from '@/components/CreateMenu';
-import { colors, dark, light, shadow, Text } from '@/design';
+import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { DOCK_GAP } from '@/lib/dock';
@@ -119,7 +119,7 @@ export default function TabsLayout() {
       tabBar={(props) => (desktop ? null : <JefeliTabBar {...(props as unknown as TabBarProps)} />)}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: light.background } }} />
+      <Tabs.Screen name="explore" options={{ sceneStyle: { backgroundColor: dark.background } }} />
       <Tabs.Screen name="publish" />
       <Tabs.Screen name="messages" />
       <Tabs.Screen name="profile" />

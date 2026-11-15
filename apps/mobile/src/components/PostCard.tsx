@@ -1,6 +1,6 @@
 /**
  * Social post card, ported from the approved Lovable feed (Atlantic After Dark):
- *   - no white card: posts sit on #091B19, separated by air;
+ *   - no white card: posts sit on the canvas, separated by air;
  *   - author row, then a quiet uppercase eyebrow with a coloured dot (« Demande d’aide »,
  *     « Je propose », « Vitrine », « Moment »…);
  *   - text-only posts become a restrained patterned card with the words in the editorial serif;
@@ -38,16 +38,16 @@ import { VoteControl } from './VoteControl';
 type Eyebrow = { label: string; dot: string };
 
 function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Eyebrow {
-  if (intent === 'seek') return { label: 'Demande d’aide', dot: dark.gold };
-  if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.mint };
+  if (intent === 'seek') return { label: 'Demande d’aide', dot: dark.wecci };
+  if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.wecci };
   if (intent === 'opinion') return { label: INTENT_LABELS.opinion, dot: dark.textSecondary };
-  if (tagged) return { label: 'Vitrine', dot: dark.mint };
+  if (tagged) return { label: 'Vitrine', dot: dark.wecci };
   const voice = post.media.some((m) => m.kind === 'audio');
   const visual = post.media.filter((m) => m.kind !== 'audio');
   if (visual[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
-  if (visual.length > 0 && voice) return { label: 'Photos racontées', dot: dark.mint };
+  if (visual.length > 0 && voice) return { label: 'Photos racontées', dot: dark.wecci };
   if (visual.length > 0) return { label: 'Moment', dot: dark.textSecondary };
-  if (voice) return { label: 'Publication vocale', dot: dark.mint };
+  if (voice) return { label: 'Publication vocale', dot: dark.wecci };
   return { label: 'Publication', dot: dark.textSecondary };
 }
 
@@ -334,7 +334,7 @@ function PostCardInner({
           </Pressable>
         ) : null}
         <Pressable onPress={toggleSave} style={styles.iconAction} accessibilityRole="button" accessibilityLabel={post.saved ? 'Retirer des enregistrements' : 'Enregistrer'} hitSlop={4}>
-          <Bookmark size={20} color={post.saved ? dark.mint : dark.textStrong} fill={post.saved ? dark.mint : 'transparent'} strokeWidth={1.7} />
+          <Bookmark size={20} color={post.saved ? dark.gold : dark.textStrong} fill={post.saved ? dark.gold : 'transparent'} strokeWidth={1.7} />
         </Pressable>
         {rowAction ? (
           <Pressable
@@ -344,7 +344,7 @@ function PostCardInner({
             accessibilityRole="button"
             accessibilityLabel={rowAction.a11y}
           >
-            <Send size={16} color={dark.mint} strokeWidth={2} />
+            <Send size={16} color={dark.gold} strokeWidth={2} />
             <Text variant="callout" weight="700" tone="mint" style={{ fontSize: 13 }}>
               {rowAction.label}
             </Text>
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   cta: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
   ctaGold: { backgroundColor: dark.gold },
-  ctaMint: { backgroundColor: dark.mint },
+  ctaMint: { backgroundColor: dark.gold },
   ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
   ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   productRow: {

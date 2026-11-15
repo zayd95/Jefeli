@@ -184,7 +184,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         <IconButton
           icon={Users}
           label="Ami(e) — retirer des amis"
-          color={dark.mint}
+          color={dark.gold}
           style={style}
           onPress={async () => {
             if (await confirmAsync('Retirer des amis ?', `${profile.display_name} ne verra plus vos contenus réservés aux amis.`, 'Retirer'))
@@ -194,7 +194,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
       );
     if (r.friend_request_direction === 'incoming' && r.friend_request_id)
       return (
-        <IconButton icon={Check} label="Accepter l’ami" color={dark.mint} style={style} onPress={() => act('friend', () => respondFriendRequest(r.friend_request_id as string, true), 'Vous êtes maintenant amis')} />
+        <IconButton icon={Check} label="Accepter l’ami" color={dark.gold} style={style} onPress={() => act('friend', () => respondFriendRequest(r.friend_request_id as string, true), 'Vous êtes maintenant amis')} />
       );
     if (r.friend_request_direction === 'outgoing' && r.friend_request_id)
       return <IconButton icon={Clock} label="Demande d’ami envoyée — annuler" color={dark.textStrong} style={style} onPress={() => act('friend', () => cancelFriendRequest(r.friend_request_id as string), 'Demande annulée')} />;
@@ -210,7 +210,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const ring = (
     <View style={styles.avatarRing}>
       {hasStories ? (
-        <LinearGradient colors={[dark.mint, dark.mint, dark.gold]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={[fill, { borderRadius: 36 }]} />
+        <LinearGradient colors={[dark.gold, dark.gold, dark.gold]} start={{ x: 0, y: 1 }} end={{ x: 1, y: 0 }} style={[fill, { borderRadius: 36 }]} />
       ) : (
         <View style={[fill, { borderRadius: 36, backgroundColor: dark.borderStrong }]} />
       )}
@@ -373,8 +373,8 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
               accessibilityState={{ selected: following, busy: busy === 'follow' }}
               aria-pressed={following}
             >
-              {following ? <Check size={16} color={dark.mint} strokeWidth={2.4} /> : null}
-              <Text variant="callout" weight="700" color={following ? dark.mint : dark.text} style={{ fontSize: 13 }}>
+              {following ? <Check size={16} color={dark.gold} strokeWidth={2.4} /> : null}
+              <Text variant="callout" weight="700" color={following ? dark.gold : dark.text} style={{ fontSize: 13 }}>
                 {followLabel}
               </Text>
             </Pressable>
@@ -502,7 +502,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
             return (
               <View>
                 <Pressable onPress={() => setExpandedId(null)} style={styles.backToList} accessibilityRole="button">
-                  <ArrowLeft size={16} color={dark.mint} />
+                  <ArrowLeft size={16} color={dark.gold} />
                   <Text variant="callout" weight="700" tone="mint" style={{ fontSize: 13 }}>
                     Toutes les publications
                   </Text>
@@ -630,7 +630,7 @@ function PostPreview({ post, onPress }: { post: PostCardData; onPress: () => voi
       ) : (
         <View style={[styles.previewThumb, styles.previewMotif]}>
           <Motif />
-          <MessageCircle size={20} color={dark.mint} />
+          <MessageCircle size={20} color={dark.gold} />
         </View>
       )}
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -666,7 +666,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 function InfoLink({ icon: Icon, label, onPress }: { icon: typeof Star; label: string; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={styles.infoLink} accessibilityRole="button" accessibilityLabel={label}>
-      <Icon size={14} color={dark.mint} />
+      <Icon size={14} color={dark.gold} />
       <Text variant="caption" weight="600" tone="fog" style={{ flex: 1, fontSize: 12 }}>
         {label}
       </Text>
@@ -708,11 +708,11 @@ const styles = StyleSheet.create({
   bio: { marginTop: spacing.md, maxWidth: 420, fontSize: 15, lineHeight: 22.5 },
   overline: { fontSize: 11, letterSpacing: 1.3, marginBottom: spacing.sm },
   interests: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
-  interest: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1, borderColor: dark.mintLine, backgroundColor: dark.mintSoft },
+  interest: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.pill, borderWidth: 1, borderColor: dark.wecciSoft, backgroundColor: dark.wecciSoft },
   interestMore: { minHeight: 32, paddingHorizontal: 8, justifyContent: 'center' },
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg },
   follow: { flex: 1, height: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.pill, borderWidth: 1, borderColor: dark.borderStrong },
-  followOn: { borderColor: dark.mintLine, backgroundColor: dark.mintSelected },
+  followOn: { borderColor: dark.goldLine, backgroundColor: dark.raised },
   roundAction: { width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: dark.borderStrong },
   infoToggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
   infoToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 36 },
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   infoLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 36 },
   tabs: { flexDirection: 'row', marginTop: spacing.lg, paddingHorizontal: spacing.lg, backgroundColor: dark.header, borderTopWidth: 1, borderBottomWidth: 1, borderColor: dark.border },
   tab: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center' },
-  tabLine: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: 0, height: 2, borderRadius: 1, backgroundColor: colors.mint },
+  tabLine: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: 0, height: 2, borderRadius: 1, backgroundColor: colors.gold },
   preview: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 82, paddingVertical: spacing.sm, marginHorizontal: spacing.lg, borderBottomWidth: 1, borderBottomColor: dark.border },
   previewThumb: { width: 66, height: 66, borderRadius: 12 },
   previewMotif: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },

@@ -155,5 +155,5 @@ const styles = StyleSheet.create({
   seal: { width: 148, height: 148, borderRadius: 74, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center', shadowColor: colors.gold, shadowOpacity: 0.35, shadowRadius: 30, shadowOffset: { width: 0, height: 18 }, elevation: 12 },
   sealRing: { width: 124, height: 124, borderRadius: 62, borderWidth: 2, borderColor: colors.onPrimary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   dot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.gold },
-  dotMint: { backgroundColor: colors.mintAccent, width: 9, height: 9, borderRadius: 5 },
+  dotMint: { backgroundColor: colors.gold, width: 9, height: 9, borderRadius: 5 },
 });

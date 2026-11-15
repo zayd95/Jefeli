@@ -108,7 +108,7 @@ export function CoverPicker({ userId, path, onChange }: { userId: string; path: 
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 8 },
-  cover: { height: 120, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  cover: { height: 120, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   coverLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, minHeight: 36, borderRadius: radius.pill, backgroundColor: colors.surface },
   coverRemove: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', minHeight: 28 },
   cam: {

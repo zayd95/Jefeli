@@ -41,6 +41,11 @@
   as market aisles with the « Je cherche » empty state). Two **local-only** migrations
   (`20261114000100`, `20261114000200`): staging unchanged, so the PR's Vercel previews stay red on
   the schema check until the owner's go. **Not merged, not deployed.**
+- **P1 addendum — one visual system (15 Nov), PR #11:** dark everywhere (white Explorer reversed),
+  three accents with one job each, Nunito only, cards 20 / pills / no shadows; no colour outside
+  `tokens.ts` (guard test), WCAG AA pairs checked (19/19). Clean local run: check pass (54),
+  integration 327/327, E2E 72 / 0 / 10 skipped. Evidence `docs/evidence/p1-identity/consistency/`.
+  Not merged, not deployed, nothing on staging.
 - **P1 identity verification (14 Nov), local stack, clean database (reset + DÉMO seed):**
   `pnpm check` pass (unit 32/32), integration **327/327** (incl. 3 new voice-offer tests), E2E
   **72 passed, 0 failed**, 10 skipped (9 hosted + 1 gated), incl. the new `identity.spec.ts` (3) and

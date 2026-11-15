@@ -95,7 +95,7 @@ export function PhoneField({
                 {c.name}
               </Text>
               <Text tone="secondary">+{c.dial}</Text>
-              {on ? <Check size={18} color={colors.accentDeep} strokeWidth={2.4} /> : null}
+              {on ? <Check size={18} color={colors.gold} strokeWidth={2.4} /> : null}
             </Pressable>
           );
         })}

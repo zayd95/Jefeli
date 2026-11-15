@@ -178,7 +178,7 @@ export default function PostScreen() {
               onChangeText={setText}
               placeholder={post.data.intent === 'opinion' ? 'Donnez votre avis…' : post.data.intent === 'seek' ? 'Une piste, une adresse, un conseil…' : 'Ajouter un commentaire…'}
               placeholderTextColor={dark.textTertiary}
-              selectionColor={dark.mint}
+              selectionColor={dark.gold}
               multiline
               maxLength={1000}
               autoFocus={comment === '1'}
@@ -232,5 +232,5 @@ const styles = StyleSheet.create({
   // Lovable comment field: fog-tinted pill on night, mint send.
   composer: { borderTopWidth: 1, borderColor: dark.border, paddingHorizontal: spacing.md, paddingTop: spacing.sm, backgroundColor: dark.header },
   input: { flex: 1, minHeight: 44, maxHeight: 110, borderRadius: 22, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.subtle, paddingHorizontal: spacing.lg, paddingVertical: 10, fontFamily: fonts.regular, fontSize: fieldFontSize(15), color: dark.text },
-  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
 });
