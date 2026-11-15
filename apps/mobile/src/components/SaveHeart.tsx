@@ -53,5 +53,5 @@ export function SaveHeart({ productId, sellerId, title }: { productId: string; s
 }
 
 const styles = StyleSheet.create({
-  heart: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(246, 245, 237, 0.94)', alignItems: 'center', justifyContent: 'center' },
+  heart: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.mediaChip, alignItems: 'center', justifyContent: 'center' },
 });

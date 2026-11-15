@@ -24,7 +24,7 @@ const palettes: Record<Variant, { bg: string; bgPressed: string; fg: string; bor
   cta: { bg: colors.primary, bgPressed: colors.actionPressed, fg: colors.onPrimary },
   outline: { bg: 'transparent', bgPressed: colors.surfaceSubtle, fg: colors.ink, border: colors.borderStrong },
   ghost: { bg: 'transparent', bgPressed: colors.surfaceSubtle, fg: colors.ink },
-  danger: { bg: colors.dangerSoft, bgPressed: 'rgba(219, 74, 53, 0.24)', fg: colors.danger },
+  danger: { bg: colors.dangerSoft, bgPressed: colors.dangerPressed, fg: colors.ink },
   soft: { bg: colors.surfaceSubtle, bgPressed: colors.surfaceMuted, fg: colors.ink },
   // Atlantic After Dark (Lovable `border-lab-fog/20 text-lab-fog`)
   outlineDark: { bg: 'transparent', bgPressed: dark.subtle, fg: dark.text, border: dark.borderStrong },
@@ -65,7 +65,7 @@ export function Button({
           borderWidth: p.border ? 1 : 0,
           opacity: isDisabled && !loading ? 0.45 : 1,
           alignSelf: fullWidth ? 'stretch' : 'auto',
-          borderRadius: pill ? radius.pill : radius.md,
+          borderRadius: radius.pill,
         },
         style,
       ]}
@@ -85,6 +85,6 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  base: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

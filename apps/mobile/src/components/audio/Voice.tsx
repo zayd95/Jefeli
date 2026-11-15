@@ -10,7 +10,7 @@ import { Mic, Pause, Play } from 'lucide-react-native';
 import { useEffect, useId, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View, type GestureResponderEvent, type LayoutChangeEvent } from 'react-native';
 
-import { colors, dark, Text } from '@/design';
+import { colors, dark, radius, Text } from '@/design';
 import { getPlaying, setPlaying, useIsPlaying } from '@/lib/playback';
 
 const RATES = [1, 1.5, 2] as const;
@@ -151,8 +151,8 @@ export function resample(values: number[] | null | undefined, bars: number): num
 }
 
 function PlayButton({ playing, loading, onPress, size, label, tone }: { playing: boolean; loading: boolean; onPress: () => void; size: number; label: string; tone: 'mint' | 'glass' | 'ink' }) {
-  const bg = tone === 'mint' ? colors.mint : tone === 'ink' ? colors.ink : dark.glass;
-  const fg = tone === 'mint' ? colors.night : tone === 'ink' ? colors.mint : colors.white;
+  const bg = tone === 'mint' ? colors.gold : tone === 'ink' ? colors.ink : dark.glass;
+  const fg = tone === 'mint' ? colors.night : tone === 'ink' ? colors.gold : colors.white;
   return (
     <Pressable
       onPress={onPress}
@@ -204,15 +204,15 @@ export function VoiceCard({
   return (
     <View style={[styles.card, light ? styles.cardLight : styles.cardDark]} accessibilityLabel={`Publication vocale${summary ? `, ${summary}` : ''}`}>
       <View style={styles.cardTop}>
-        <Mic size={14} color={light ? colors.accentDeep : dark.mint} />
-        <Text variant="micro" weight="700" color={light ? colors.accentDeep : dark.mint} style={{ letterSpacing: 0.6 }}>
+        <Mic size={14} color={light ? colors.gold : dark.gold} />
+        <Text variant="micro" weight="700" color={light ? colors.gold : dark.gold} style={{ letterSpacing: 0.6 }}>
           {language ? `EN ${voiceLanguageLabel(language)?.toUpperCase()}` : 'PUBLICATION VOCALE'}
         </Text>
       </View>
       <View style={styles.cardRow}>
         <PlayButton playing={v.playing} loading={v.loading} onPress={v.toggle} size={56} label="Écouter la publication vocale" tone={light ? 'ink' : 'mint'} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Waveform values={waveform} progress={v.progress} height={36} color={light ? colors.borderStrong : dark.borderStrong} activeColor={light ? colors.ink : dark.mint} onSeek={v.seek} />
+          <Waveform values={waveform} progress={v.progress} height={36} color={light ? colors.borderStrong : dark.borderStrong} activeColor={light ? colors.ink : dark.gold} onSeek={v.seek} />
           <View style={styles.cardMeta}>
             <Text variant="caption" weight="600" color={light ? colors.textSecondary : dark.textSecondary}>
               {v.playing || v.positionMs > 0 ? `${formatDuration(v.positionMs)} / ${formatDuration(v.totalMs)}` : formatDuration(v.totalMs)}
@@ -258,7 +258,7 @@ export function NarrationBar({
       <PlayButton playing={v.playing} loading={v.loading} onPress={v.toggle} size={36} label={`Écouter l’explication${summary ? `, ${summary}` : ''}`} tone="mint" />
       {v.playing || v.positionMs > 0 ? (
         <View style={{ width: 92 }}>
-          <Waveform values={waveform} progress={v.progress} height={20} bars={24} color="rgba(247,246,243,0.35)" activeColor={colors.mint} onSeek={v.seek} />
+          <Waveform values={waveform} progress={v.progress} height={20} bars={24} color={colors.mediaLine} activeColor={colors.gold} onSeek={v.seek} />
         </View>
       ) : null}
       <Text variant="caption" weight="700" color={colors.white} numberOfLines={1} style={{ flexShrink: 1 }}>
@@ -277,7 +277,7 @@ export function VoicePreview({ uri, durationMs, waveform, tone = 'light' }: { ur
     <View style={styles.preview}>
       <PlayButton playing={v.playing} loading={v.loading} onPress={v.toggle} size={40} label="Écouter l’enregistrement" tone={light ? 'ink' : 'mint'} />
       <View style={{ flex: 1 }}>
-        <Waveform values={waveform} progress={v.progress} height={28} color={light ? colors.borderStrong : dark.borderStrong} activeColor={light ? colors.ink : dark.mint} onSeek={v.seek} />
+        <Waveform values={waveform} progress={v.progress} height={28} color={light ? colors.borderStrong : dark.borderStrong} activeColor={light ? colors.ink : dark.gold} onSeek={v.seek} />
       </View>
       <Text variant="caption" weight="700" color={light ? colors.textSecondary : dark.textSecondary} style={{ minWidth: 36, textAlign: 'right' }}>
         {formatDuration(v.playing || v.positionMs > 0 ? v.positionMs : durationMs)}
@@ -288,8 +288,8 @@ export function VoicePreview({ uri, durationMs, waveform, tone = 'light' }: { ur
 
 const styles = StyleSheet.create({
   wave: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  card: { marginHorizontal: 16, borderRadius: 22, padding: 16, gap: 12 },
-  cardDark: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.mintLine },
+  card: { marginHorizontal: 16, borderRadius: radius.card, padding: 16, gap: 12 },
+  cardDark: { backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.goldLine },
   cardLight: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

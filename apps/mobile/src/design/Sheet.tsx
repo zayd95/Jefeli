@@ -74,7 +74,7 @@ export function SheetAction({
       style={({ pressed }) => [styles.action, pressed && { backgroundColor: isDark ? dark.subtle : colors.surfaceSubtle }]}
     >
       <View style={[styles.actionIcon, isDark && { backgroundColor: dark.subtle }, destructive && { backgroundColor: isDark ? dark.subtle : colors.dangerSoft }]}>
-        <Icon size={20} color={destructive ? color : isDark ? dark.mint : color} strokeWidth={2} />
+        <Icon size={20} color={destructive ? color : isDark ? dark.gold : color} strokeWidth={2} />
       </View>
       <View style={{ flex: 1 }}>
         <Text variant="bodyStrong" color={color}>

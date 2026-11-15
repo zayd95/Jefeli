@@ -88,7 +88,7 @@ type PricedListing = Pick<ProductCardRow, 'price_xof' | 'price_mode' | 'listing_
 /**
  * How a listing's price reads on the web — the shared formatListingPrice rules, so the share
  * pages match the app: « 25 000 F CFA », « Prix sur demande », « 25 000 F CFA · à discuter »,
- * « Prix à discuter », « À échanger ». Never « 0 F », never an invented amount.
+ * « Prix à discuter », « À troquer », « À donner ». Never « 0 F », never an invented amount.
  * Regular no-break spaces: the narrow one renders too tight in Inter at UI sizes.
  */
 export function priceLabel(p: PricedListing, compact = false): string {
@@ -132,7 +132,7 @@ export function ProductCard({ product, showPinned = false }: { product: ProductC
   const still = firstStill(product.product_media);
   const hasVideo = product.product_media.some((m) => m.kind === 'video');
   const price = priceLabel(product, true);
-  // « Vente ou troc » / « À échanger » under the price, unless the price line already says it.
+  // « Vente ou troc » / « À troquer » / « À donner » under the price, unless the price line already says it.
   const modeNote = product.listing_mode === 'sale' ? null : LISTING_MODE_LABELS[product.listing_mode];
   const pinned = showPinned && product.pinned_at !== null;
   return (

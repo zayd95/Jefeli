@@ -355,7 +355,7 @@ export function VoiceRecorderPanel({
 
       {live || rec.phase === 'finishing' ? (
         <View style={{ gap: spacing.sm }} accessibilityLiveRegion="polite">
-          <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? (light ? colors.borderStrong : dark.borderStrong) : light ? colors.accentDeep : dark.mint} />
+          <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? (light ? colors.borderStrong : dark.borderStrong) : light ? colors.gold : dark.gold} />
           <View style={styles.row}>
             <View style={[styles.dot, rec.phase !== 'recording' && { opacity: 0.3 }]} />
             <Text variant="bodyStrong" color={ink}>
@@ -405,8 +405,8 @@ const styles = StyleSheet.create({
   panel: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   idle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  mic: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  mic: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },
   photo: { width: 56, height: 56, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
-  photoOn: { borderColor: colors.mint },
+  photoOn: { borderColor: colors.gold },
 });

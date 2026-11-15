@@ -1,13 +1,14 @@
 import { AGREEMENT_STATUS_LABELS, describeCashDifference, formatXOF, PLATFORM_DISCLAIMER, timeAgo, toFrenchError, formatListingPrice, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeftRight, CheckCircle2, FileX, MapPin, MessageCircle, ShieldAlert, Star } from 'lucide-react-native';
+import { ArrowLeftRight, CalendarClock, CheckCircle2, FileX, MapPin, MessageCircle, ShieldAlert, Star } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { DealSealed } from '@/components/DealSealed';
 import { Thumb } from '@/components/Media';
-import { Button, Card, colors, EmptyState, Field, Header, radius, Screen, Sheet, Skeleton, spacing, Tag, Text, useToast } from '@/design';
-import { closeAgreement, confirmAgreementCompleted, fetchAgreement, leaveReview, myReviewFor } from '@/lib/api/offers';
+import { Button, Card, Chip, colors, EmptyState, Field, Header, radius, Screen, Sheet, Skeleton, spacing, Tag, Text, useToast } from '@/design';
+import { closeAgreement, confirmAgreementCompleted, fetchAgreement, leaveReview, myReviewFor, setAgreementHandover } from '@/lib/api/offers';
 import { useAuth } from '@/lib/auth';
 import type { ProductSnapshot } from '@/lib/types';
 
@@ -34,6 +35,7 @@ export default function AgreementScreen() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [sealed, setSealed] = useState(false);
 
   const q = useQuery({ queryKey: ['agreement', id], queryFn: () => fetchAgreement(id ?? '') });
   const mine = useQuery({ queryKey: ['my-review', id], queryFn: () => myReviewFor(id ?? '', me), enabled: q.data?.status === 'completed' });
@@ -64,8 +66,10 @@ export default function AgreementScreen() {
   async function run(key: string, fn: () => Promise<unknown>, ok: string) {
     setBusy(key);
     try {
-      await fn();
-      toast(ok, 'success');
+      const result = await fn();
+      // Both sides have now confirmed: the exchange is done — the brand moment (P1).
+      if (key === 'done' && result === 'completed') setSealed(true);
+      else toast(ok, 'success');
       qc.invalidateQueries({ queryKey: ['agreement', id] });
       qc.invalidateQueries({ queryKey: ['agreements', a?.conversation_id] });
       qc.invalidateQueries({ queryKey: ['my-review', id] });
@@ -78,6 +82,7 @@ export default function AgreementScreen() {
 
   return (
     <Screen edges={['top', 'bottom']}>
+      <DealSealed visible={sealed} title="Échange fait !" subtitle={`Bravo. Laissez un avis à ${other.display_name} : c’est ce qui construit la confiance.`} onDone={() => setSealed(false)} />
       <Header title={t.kind === 'barter' ? 'Accord d’échange' : 'Accord de vente'} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -124,6 +129,8 @@ export default function AgreementScreen() {
             Conseils : rencontrez-vous dans un lieu public et fréquenté, en journée. Vérifiez l’article avant tout paiement. Ne payez jamais d’avance à un inconnu.
           </Text>
         </View>
+
+        {a.status === 'agreed' ? <Handover agreement={a} me={me} otherName={other.display_name} busy={busy === 'handover'} onSave={(at, place) => run('handover', () => setAgreementHandover(a.id, at, place), 'Remise proposée')} /> : null}
 
         <Button label={`Écrire à ${other.display_name}`} variant="outline" icon={MessageCircle} onPress={() => router.push(`/chat/${a.conversation_id}`)} />
 
@@ -208,6 +215,100 @@ export default function AgreementScreen() {
   );
 }
 
+const DAYS = [
+  { key: 0, label: 'Aujourd’hui' },
+  { key: 1, label: 'Demain' },
+  { key: 2, label: 'Après-demain' },
+];
+const HOURS = [10, 13, 16, 18, 20];
+
+/** The handover moment: the next slot of the chosen day and hour, local time. */
+function handoverDate(dayOffset: number, hour: number, now = new Date()): Date {
+  const d = new Date(now);
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(hour, 0, 0, 0);
+  return d;
+}
+
+const WHEN = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+
+/**
+ * Pilot cut (c) — « Remise » step of an open agreement: either member proposes where and when
+ * they meet; the other sees it here and in the chat, and can propose another slot.
+ */
+function Handover({
+  agreement,
+  me,
+  otherName,
+  busy,
+  onSave,
+}: {
+  agreement: { handover_at: string | null; handover_place: string | null; handover_by: string | null };
+  me: string;
+  otherName: string;
+  busy: boolean;
+  onSave: (at: string, place: string) => void;
+}) {
+  const set = !!agreement.handover_at && !!agreement.handover_place;
+  const [editing, setEditing] = useState(!set);
+  const [day, setDay] = useState(1);
+  const [hour, setHour] = useState(18);
+  const [place, setPlace] = useState(agreement.handover_place ?? '');
+  const now = new Date();
+  const slot = handoverDate(day, hour, now);
+  const past = slot.getTime() < now.getTime();
+  return (
+    <Card style={{ gap: spacing.md }} testID="handover-card">
+      <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
+        <CalendarClock size={18} color={colors.gold} />
+        <Text variant="headline">Remise</Text>
+      </View>
+      {set && !editing ? (
+        <>
+          <Text variant="bodyStrong">{WHEN.format(new Date(agreement.handover_at!))}</Text>
+          <Text variant="callout">{agreement.handover_place}</Text>
+          <Text variant="caption" tone="secondary">
+            {agreement.handover_by === me ? `Vous l’avez proposé. ${otherName} est prévenu(e).` : `Proposé par ${otherName}.`}
+          </Text>
+          <Button label="Proposer un autre moment" variant="ghost" size="sm" onPress={() => setEditing(true)} />
+        </>
+      ) : (
+        <>
+          <Text variant="callout" tone="secondary">
+            Choisissez un lieu public et une heure. {otherName} sera prévenu(e) dans la discussion.
+          </Text>
+          <View style={styles.chips}>
+            {DAYS.map((d) => (
+              <Chip key={d.key} label={d.label} selected={day === d.key} onPress={() => setDay(d.key)} />
+            ))}
+          </View>
+          <View style={styles.chips}>
+            {HOURS.map((h) => (
+              <Chip key={h} label={`${h} h`} selected={hour === h} onPress={() => setHour(h)} />
+            ))}
+          </View>
+          <Field label="Lieu" value={place} onChangeText={setPlace} maxLength={120} placeholder="Ex. Station Total, VDN" />
+          {past ? (
+            <Text variant="caption" tone="secondary">
+              Cette heure est passée : choisissez plus tard.
+            </Text>
+          ) : null}
+          <Button
+            label="Proposer la remise"
+            variant="outline"
+            disabled={past || place.trim().length < 2}
+            loading={busy}
+            onPress={() => {
+              onSave(slot.toISOString(), place.trim());
+              setEditing(false);
+            }}
+          />
+        </>
+      )}
+    </Card>
+  );
+}
+
 function SnapRow({ snap, caption }: { snap: ProductSnapshot; caption: string }) {
   if (!snap) return null;
   return (
@@ -229,4 +330,5 @@ function SnapRow({ snap, caption }: { snap: ProductSnapshot; caption: string }) 
 const styles = StyleSheet.create({
   warning: { flexDirection: 'row', gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.warningSoft },
   tips: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.xs },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

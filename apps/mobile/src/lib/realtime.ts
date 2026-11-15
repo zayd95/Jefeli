@@ -8,12 +8,24 @@ import { useEffect } from 'react';
 import { supabase } from './supabase';
 
 /** Keep inbox badge + conversation list fresh while signed in. */
+
+/**
+ * One channel per subscriber. supabase-js hands back an existing channel when the topic is
+ * already open, and adding callbacks to it after subscribe() throws — which happened when a
+ * screen for the same conversation mounted while the previous one was still unmounting
+ * (counter-offer → router.replace to the chat). The topic name does not filter anything:
+ * postgres_changes are filtered by `filter`.
+ */
+function uniqueTopic(topic: string): string {
+  return `${topic}:${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function useInboxRealtime(userId: string | null) {
   const qc = useQueryClient();
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
-      .channel(`inbox:${userId}`)
+      .channel(uniqueTopic(`inbox:${userId}`))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
         qc.invalidateQueries({ queryKey: ['conversations'] });
         qc.invalidateQueries({ queryKey: ['unread-messages'] });
@@ -35,7 +47,7 @@ export function useConversationRealtime(conversationId: string | undefined, onMe
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
-      .channel(`conversation:${conversationId}`)
+      .channel(uniqueTopic(`conversation:${conversationId}`))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
         qc.invalidateQueries({ queryKey: ['messages', conversationId] });
         onMessage?.();
@@ -61,7 +73,7 @@ export function useLiveRealtime(sessionId: string | undefined) {
   useEffect(() => {
     if (!sessionId) return;
     const channel = supabase
-      .channel(`live:${sessionId}`)
+      .channel(uniqueTopic(`live:${sessionId}`))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_comments', filter: `live_session_id=eq.${sessionId}` }, () =>
         qc.invalidateQueries({ queryKey: ['live-comments', sessionId] }),
       )

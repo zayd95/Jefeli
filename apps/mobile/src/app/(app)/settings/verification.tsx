@@ -42,7 +42,7 @@ export default function Verification() {
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl }}>
         <Card style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <BadgeCheck size={22} color={colors.white} fill={colors.accentDeep} />
+            <BadgeCheck size={22} color={colors.white} fill={colors.gold} />
             <Text variant="headline">Ce que signifie le badge</Text>
           </View>
           <Text variant="callout" tone="secondary">

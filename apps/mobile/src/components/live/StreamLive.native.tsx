@@ -14,7 +14,7 @@ import {
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { Text } from '@/design';
+import { colors, Text } from '@/design';
 
 export interface LiveVideoProps {
   apiKey: string;
@@ -53,9 +53,9 @@ export function LiveVideo({ apiKey, token, user, callType, callId, role, onEnded
 
   if (!client || !call) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000' }}>
-        <ActivityIndicator color="#fff" />
-        <Text variant="caption" color="#fff" style={{ marginTop: 8 }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.black }}>
+        <ActivityIndicator color={colors.white} />
+        <Text variant="caption" color={colors.white} style={{ marginTop: 8 }}>
           Connexion au direct…
         </Text>
       </View>

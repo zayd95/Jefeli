@@ -15,8 +15,8 @@ export function Motif({ opacity = 1, style }: { opacity?: number; style?: StyleP
       <Svg width="100%" height="100%">
         <Defs>
           <Pattern id={id} patternUnits="userSpaceOnUse" width={28} height={28}>
-            <Polygon points="0,0 14,0 0,14" fill={palette.mint} fillOpacity={0.07} />
-            <Polygon points="14,0 28,0 28,14" fill={palette.mint} fillOpacity={0.07} />
+            <Polygon points="0,0 14,0 0,14" fill={palette.logoMint} fillOpacity={0.07} />
+            <Polygon points="14,0 28,0 28,14" fill={palette.logoMint} fillOpacity={0.07} />
             <Circle cx={7} cy={7} r={1} fill={palette.gold} fillOpacity={0.18} />
             <Circle cx={21} cy={7} r={1} fill={palette.gold} fillOpacity={0.18} />
             <Circle cx={7} cy={21} r={1} fill={palette.gold} fillOpacity={0.18} />

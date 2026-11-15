@@ -95,11 +95,11 @@ export async function pickFile(page: Page, trigger: () => Promise<void>, file: s
 
 /**
  * Publishes an article through the W1.3 « vitrine »: the cover first, then the name and price
- * written on the window, how it is offered (Vendre / Wecci (troc) / Les deux), how the price is
+ * written on the window, how it is offered (Vendre / Troquer / Les deux / Donner), how the price is
  * shown (a pill), and the details sheet (catégorie, état…). If a draft is waiting, starts anew
  * after the explicit confirmation.
  */
-const MODE_LABELS = { Vente: 'Vendre', 'Vente ou troc': 'Les deux', Troc: 'Wecci (troc)' } as const;
+const MODE_LABELS = { Vente: 'Vendre', 'Vente ou troc': 'Les deux', Troc: 'Troquer', Donner: 'Donner' } as const;
 
 export async function publishListing(
   page: Page,
@@ -112,6 +112,8 @@ export async function publishListing(
     category: string;
     condition: string;
     description?: string;
+    /** Pilot cut (e): leave the « Partage ta boutique » moment of a first listing open. */
+    keepMoment?: boolean;
   },
 ) {
   await page.goto('/publish/listing');
@@ -135,8 +137,15 @@ export async function publishListing(
   await btn(page, opts.condition).click();
   if (opts.description) await field(page, 'Description (facultatif)').fill(opts.description);
   await btn(page, 'Terminé').click();
-  await page.getByRole('button', { name: opts.mode === 'Troc' ? 'Proposer en troc' : 'Mettre en vente', exact: true }).click();
-  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await page.getByRole('button', { name: opts.mode === 'Troc' ? 'Proposer en troc' : opts.mode === 'Donner' ? 'Donner cet article' : 'Mettre en vente', exact: true }).click();
+  await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}(\?first=1)?$/, { timeout: 60_000 });
+  // A seller's first listing opens « Partage ta boutique » (pilot cut e): close it unless asked.
+  if (page.url().endsWith('?first=1') && !opts.keepMoment) {
+    const moment = page.getByTestId('share-boutique-moment');
+    await expect(moment).toBeVisible();
+    await moment.getByRole('button', { name: 'Plus tard', exact: true }).click();
+    await expect(moment).toBeHidden();
+  }
 }
 
 /** Local Supabase mail catcher (Mailpit, `supabase start`); no e-mail leaves the machine. */

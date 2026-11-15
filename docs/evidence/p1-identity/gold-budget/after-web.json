@@ -1,0 +1,35 @@
+{
+  "web-accueil": [
+    {
+      "tag": "a",
+      "text": "Ouvrir Jëfëli",
+      "w": 358,
+      "h": 48
+    }
+  ],
+  "web-article": [
+    {
+      "tag": "a",
+      "text": "Écrire au vendeur",
+      "w": 358,
+      "h": 48
+    }
+  ],
+  "web-boutique": [
+    {
+      "tag": "a",
+      "text": "Suivre ou écrire sur Jëfëli",
+      "w": 358,
+      "h": 48
+    }
+  ],
+  "web-publication": [
+    {
+      "tag": "a",
+      "text": "Réagir sur Jëfëli",
+      "w": 358,
+      "h": 48
+    }
+  ],
+  "web-regles": []
+}

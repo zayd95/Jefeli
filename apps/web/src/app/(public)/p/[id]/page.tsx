@@ -109,7 +109,7 @@ export default async function ProductPage({ params }: Props) {
   const sellerRating = seller ? ratingAverage(seller.rating_sum, seller.rating_count) : null;
   const isAvailable = product.status === 'active';
   const price = priceLabel(product);
-  // No amount shown (« Prix sur demande », « Prix à discuter », « À échanger »): a word label.
+  // No amount shown (« Prix sur demande », « Prix à discuter », « À troquer », « À donner »): a word label.
   const wordPrice = !hasDisplayedPrice(product);
   const askPrice = product.price_mode === 'on_request' || product.price_mode === 'negotiable';
   const shareMessage = `À voir sur Jëfëli\u00A0: ${product.title} — ${price}${isAvailable ? '' : ` (${PRODUCT_STATUS_LABELS[product.status].toLowerCase()})`}`;
@@ -139,12 +139,12 @@ export default async function ProductPage({ params }: Props) {
 
           <div className="chip-row">
             {product.status !== 'active' ? (
-              <span className="chip" style={{ background: 'var(--c-ink)', color: 'var(--c-white)' }}>
+              <span className="chip" style={{ background: 'var(--c-raised)', color: 'var(--c-ink)' }}>
                 {PRODUCT_STATUS_LABELS[product.status]}
               </span>
             ) : null}
             <span className="chip">{CONDITION_LABELS[product.condition]}</span>
-            <span className="chip chip-mint">
+            <span className={product.listing_mode === 'sale' ? 'chip' : 'chip chip-mint'}>
               {product.listing_mode === 'sale' ? <IconTag /> : <IconSwap />}
               {LISTING_MODE_LABELS[product.listing_mode]}
             </span>
@@ -164,6 +164,23 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="cta-block cta-sticky">
+            {isAvailable ? (
+              // Pilot cut (d): straight to the offer form. The app opens it when installed (Android
+              // App Links on the app host); otherwise the web app asks to sign up, then comes back
+              // to this offer (apps/mobile/src/lib/returnTo.ts).
+              <div className="offer-row">
+                {product.listing_mode === 'sale' || product.listing_mode === 'sale_or_trade' ? (
+                  <a className="btn btn-outline" href={appLinks.offer(product.id)} data-testid="web-make-offer">
+                    Faire une offre
+                  </a>
+                ) : null}
+                {product.listing_mode === 'trade' || product.listing_mode === 'sale_or_trade' ? (
+                  <a className="btn btn-outline" href={appLinks.offer(product.id, 'barter')} data-testid="web-propose-trade">
+                    Proposer un troc
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
             <OpenInApp
               href={appLinks.product(product.id)}
               label={
@@ -208,7 +225,7 @@ export default async function ProductPage({ params }: Props) {
                       </>
                     ) : null}
                   </div>
-                  <div className="seller-sub" style={{ color: 'var(--c-accent-deep)', fontWeight: 600 }}>
+                  <div className="seller-sub" style={{ color: 'var(--c-gold)', fontWeight: 600 }}>
                     Voir sa boutique
                   </div>
                 </div>

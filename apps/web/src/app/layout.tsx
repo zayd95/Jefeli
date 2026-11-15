@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/dm-sans';
-import '@fontsource/dm-serif-display/400.css';
+import '@fontsource-variable/nunito';
 import './globals.css';
+import { palette } from '@jefeli/shared';
 import { env } from '@/lib/env';
 import { themeCss } from '@/lib/theme';
 import { EnvBanner } from '@/components/Chrome';
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#F6F5F1',
+  themeColor: palette.canvas,
   width: 'device-width',
   initialScale: 1,
 };

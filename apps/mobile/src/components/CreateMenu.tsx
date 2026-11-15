@@ -172,7 +172,7 @@ export function CreateMenu({ visible, onClose }: { visible: boolean; onClose: ()
               return (
                 <Pressable key={c.key} onPress={() => choose(c)} style={({ pressed }) => [styles.row, pressed && styles.pressed]} accessibilityRole="button" accessibilityLabel={draft ? `${c.a11y}. Brouillon en cours` : c.a11y}>
                   <View style={styles.rowIcon}>
-                    <c.icon size={20} color={colors.night} />
+                    <c.icon size={20} color={colors.gold} />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text variant="bodyStrong" tone="fog">
@@ -244,7 +244,7 @@ export function CreateMenu({ visible, onClose }: { visible: boolean; onClose: ()
               accessibilityRole="button"
               accessibilityLabel={asking ? 'Retour aux choix' : 'Fermer'}
             >
-              <X size={26} color={colors.night} strokeWidth={2.4} />
+              <X size={26} color={colors.gold} strokeWidth={2.4} />
             </Pressable>
           </View>
         </View>
@@ -269,7 +269,7 @@ function CardPicture({ kind }: { kind: Key }) {
     return (
       <View style={styles.picStatus} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={styles.picStatusBars}>
-          <View style={[styles.picStatusBar, { backgroundColor: colors.mint }]} />
+          <View style={[styles.picStatusBar, { backgroundColor: colors.gold }]} />
           <View style={[styles.picStatusBar, { backgroundColor: dark.borderStrong }]} />
         </View>
         <View style={styles.picStatusDot} />
@@ -283,7 +283,7 @@ function CardPicture({ kind }: { kind: Key }) {
         <View style={styles.picPostBar}>
           <View style={styles.picPostPlay} />
           {[5, 9, 6, 10, 4, 8, 5].map((h, i) => (
-            <View key={i} style={{ width: 2, height: h, borderRadius: 1, backgroundColor: i < 4 ? colors.mint : dark.textSecondary }} />
+            <View key={i} style={{ width: 2, height: h, borderRadius: 1, backgroundColor: i < 4 ? colors.gold : dark.textSecondary }} />
           ))}
         </View>
       </View>
@@ -292,7 +292,7 @@ function CardPicture({ kind }: { kind: Key }) {
   return (
     <View style={styles.picTag} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={styles.picTagHole} />
-      <Text weight="800" color={colors.mint} style={{ fontSize: 12, lineHeight: 15 }}>
+      <Text weight="800" color={colors.gold} style={{ fontSize: 12, lineHeight: 15 }}>
         25 000 F
       </Text>
     </View>
@@ -307,17 +307,17 @@ const styles = StyleSheet.create({
   fan: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 10, marginBottom: 22 },
   cardSlot: { width: 104 },
   cardSlotCenter: { width: 124, marginBottom: 26 },
-  card: { borderRadius: 22, padding: 12, gap: 8, alignItems: 'flex-start' },
+  card: { borderRadius: radius.card, padding: 12, gap: 8, alignItems: 'flex-start' },
   cardSide: { height: 146, backgroundColor: dark.text },
-  cardCenter: { height: 172, borderRadius: 26, padding: 13, backgroundColor: colors.mint },
+  cardCenter: { height: 172, borderRadius: radius.card, padding: 13, backgroundColor: colors.gold },
   badgeSlot: { position: 'absolute', top: -10, right: -6 },
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: colors.gold },
   choiceWrap: { width: '100%', paddingHorizontal: spacing.lg, alignItems: 'center', marginBottom: spacing.xl },
-  close: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  close: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold, alignItems: 'center', justifyContent: 'center' },
   // List (narrow phones, large text, screen readers)
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: spacing.lg, gap: 4, borderTopLeftRadius: 24, borderTopRightRadius: 24, backgroundColor: dark.surface },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingVertical: 6, borderRadius: 14 },
-  rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.goldLine, alignItems: 'center', justifyContent: 'center' },
   // Card pictures
   picStatus: { width: 48, height: 70, borderRadius: 10, backgroundColor: colors.forest, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 8 },
   picStatusBars: { position: 'absolute', top: 6, left: 6, right: 6, flexDirection: 'row', gap: 3 },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   picPost: { width: 98, height: 74, borderRadius: 12, backgroundColor: colors.surfaceMuted, overflow: 'hidden', alignItems: 'center' },
   picPostGarment: { width: 34, height: 46, marginTop: 8, borderRadius: 6, backgroundColor: colors.surfaceMuted },
   picPostBar: { position: 'absolute', left: 6, right: 6, bottom: 6, height: 16, borderRadius: 8, backgroundColor: dark.glass, flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6 },
-  picPostPlay: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.mint, marginRight: 3 },
+  picPostPlay: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.gold, marginRight: 3 },
   picTag: { width: 80, height: 50, marginVertical: 10, borderRadius: radius.md, backgroundColor: colors.forest, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8 },
   picTagHole: { width: 8, height: 8, borderRadius: 4, backgroundColor: dark.text },
 });

@@ -43,6 +43,11 @@ export async function respondOffer(offerId: string, accept: boolean): Promise<st
   return unwrap(await supabase.rpc('respond_offer', { p_offer_id: offerId, p_accept: accept })) as string | null;
 }
 
+/** Waxaale (P1): the proposer's voice note for a pending offer (one per offer). */
+export async function attachOfferVoice(offerId: string, path: string, meta: { duration_ms: number; waveform?: number[] }): Promise<string> {
+  return unwrap(await supabase.rpc('attach_offer_voice', { p_offer_id: offerId, p_attachment_path: path, p_attachment_meta: meta as never })) as string;
+}
+
 export async function withdrawOffer(offerId: string) {
   unwrap(await supabase.rpc('withdraw_offer', { p_offer_id: offerId }));
 }
@@ -63,6 +68,11 @@ export async function fetchMyAgreements(userId: string): Promise<AgreementRow[]>
 
 export async function confirmAgreementCompleted(id: string): Promise<string> {
   return unwrap(await supabase.rpc('confirm_agreement_completed', { p_agreement_id: id })) as string;
+}
+
+/** Pilot cut (c): propose (or change) when and where the two members meet. */
+export async function setAgreementHandover(id: string, at: string, place: string) {
+  unwrap(await supabase.rpc('set_agreement_handover', { p_agreement_id: id, p_at: at, p_place: place }));
 }
 
 export async function closeAgreement(id: string, outcome: 'canceled' | 'disputed', reason: string) {

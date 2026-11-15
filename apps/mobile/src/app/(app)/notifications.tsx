@@ -11,6 +11,10 @@ import { incomingFriendRequests } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 
 function targetFor(n: NotificationItem): string | null {
+  // Pilot cut (c): every offer / deal notification opens its chat (the offer card and the
+  // agreement are both reached from there).
+  const chat = typeof n.data?.conversation_id === 'string' ? n.data.conversation_id : null;
+  if (chat && (n.entity_type === 'offer' || n.entity_type === 'agreement')) return `/chat/${chat}`;
   switch (n.entity_type) {
     case 'post':
       return `/post/${n.entity_id}`;
@@ -131,8 +135,8 @@ export default function Notifications() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  unread: { backgroundColor: '#EEF7F3' },
-  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.accentDeep },
-  systemIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  unread: { backgroundColor: colors.raised },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.gold },
+  systemIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   requests: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, margin: spacing.lg, padding: spacing.md, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
 });

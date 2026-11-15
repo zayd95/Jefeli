@@ -78,7 +78,7 @@ export function ChatComposer({
 
   const aboutChip = about ? (
     <View style={styles.about}>
-      <ShoppingBag size={14} color={dark.mint} />
+      <ShoppingBag size={14} color={dark.gold} />
       <Text variant="caption" weight="600" tone="fogSecondary" numberOfLines={1} style={{ flex: 1 }}>
         À propos de {about.title}
       </Text>
@@ -136,7 +136,7 @@ export function ChatComposer({
               {formatDuration(rec.elapsedMs)} / 3:00
             </Text>
             <View style={{ flex: 1 }}>
-              <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? dark.borderStrong : dark.mint} height={22} />
+              <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? dark.borderStrong : dark.gold} height={22} />
             </View>
           </View>
           {rec.phase === 'paused' ? (
@@ -149,7 +149,7 @@ export function ChatComposer({
             </Pressable>
           )}
           <Pressable onPress={finish} disabled={rec.phase === 'finishing'} style={styles.send} accessibilityRole="button" accessibilityLabel="Terminer l’enregistrement">
-            <Check size={20} color={colors.mint} />
+            <Check size={20} color={colors.gold} />
           </Pressable>
         </View>
       </View>
@@ -196,7 +196,7 @@ export function ChatComposer({
             onChangeText={setText}
             placeholder="Écrire un message…"
             placeholderTextColor={dark.textTertiary}
-            selectionColor={dark.mint}
+            selectionColor={dark.gold}
             multiline
             maxLength={4000}
             editable={!disabled}
@@ -231,5 +231,5 @@ const styles = StyleSheet.create({
   recording: { flex: 1, height: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: spacing.md, borderRadius: 16, backgroundColor: dark.subtle },
   recDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },
   previewBox: { flex: 1, minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.sm, borderRadius: 16, backgroundColor: dark.subtle },
-  about: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: 12, backgroundColor: dark.mintSoft, borderWidth: 1, borderColor: dark.mintLine },
+  about: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.sm, paddingVertical: 6, borderRadius: 12, backgroundColor: dark.goldSoft, borderWidth: 1, borderColor: dark.goldLine },
 });

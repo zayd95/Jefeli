@@ -1,18 +1,22 @@
 import { formatAmountInput, formatXOF, parseXOF, PLATFORM_DISCLAIMER, toFrenchError, formatListingPrice, hasDisplayedPrice } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeftRight, Check, PackagePlus } from 'lucide-react-native';
+import { ArrowLeftRight, Check, Mic, PackagePlus, Trash2 } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { VoicePreview } from '@/components/audio/Voice';
+import { VoiceRecorderPanel, type RecordedClip } from '@/components/audio/VoiceRecorder';
 import { OptionRow } from '@/components/Composer';
 import { Thumb } from '@/components/Media';
 import { Button, colors, EmptyState, Field, Header, radius, Screen, Skeleton, spacing, Text, useToast } from '@/design';
-import { counterOffer, fetchOffer, makeOffer } from '@/lib/api/offers';
+import { attachOfferVoice, counterOffer, fetchOffer, makeOffer } from '@/lib/api/offers';
 import { fetchProduct, fetchSellerProducts } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import type { ProductCard } from '@/lib/types';
+import { useFlag } from '@/lib/flags';
 import { goBack } from '@/lib/nav';
+import { newObjectPath, uploadWithRetry } from '@/lib/upload';
 
 /**
  * Make a price offer or a barter proposal on a listing — or counter an existing offer
@@ -40,6 +44,10 @@ export default function OfferComposer() {
   const [payerChoice, setPayer] = useState<'buyer' | 'seller' | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  // Waxaale (P1): the offer can be said out loud; the note is attached once the offer exists.
+  const voiceEnabled = useFlag('voice_messages');
+  const [recording, setRecording] = useState(false);
+  const [voice, setVoice] = useState<RecordedClip | null>(null);
   // State updates land after the next render; two taps in one frame would both pass `busy`.
   const inFlight = useRef(false);
 
@@ -66,9 +74,28 @@ export default function OfferComposer() {
       const offerId = counter
         ? await counterOffer({ offerId: counter, ...args })
         : await makeOffer({ productId: p.id, kind, ...args });
+      let voiceFailed = false;
+      if (voice && userId) {
+        try {
+          const path = newObjectPath(userId, 'messages', voice.mimeType);
+          await uploadWithRetry({ bucket: 'private-media', path, uri: voice.uri, mimeType: voice.mimeType, file: voice.file instanceof Blob ? voice.file : null });
+          await attachOfferVoice(offerId, path, { duration_ms: Math.round(voice.durationMs), waveform: voice.waveform });
+        } catch {
+          voiceFailed = true;
+        }
+      }
       const created = await fetchOffer(offerId);
       qc.invalidateQueries({ queryKey: ['conversations'] });
-      toast(counter ? 'Contre-proposition envoyée' : kind === 'price' ? 'Offre envoyée' : 'Proposition d’échange envoyée', 'success');
+      toast(
+        voiceFailed
+          ? 'Proposition envoyée, mais le message vocal n’a pas pu partir. Renvoyez-le dans la conversation.'
+          : counter
+            ? 'Contre-offre envoyée'
+            : kind === 'price'
+              ? 'Offre envoyée'
+              : 'Proposition d’échange envoyée',
+        voiceFailed ? 'error' : 'success',
+      );
       if (created) router.replace(`/chat/${created.conversation_id}`);
       else goBack();
     } catch (e) {
@@ -96,7 +123,7 @@ export default function OfferComposer() {
     );
   }
 
-  const title = counter ? 'Contre-proposition' : kind === 'price' ? 'Faire une offre' : 'Proposer un échange';
+  const title = counter ? 'Contre-offre' : kind === 'price' ? 'Faire une offre' : 'Proposer un échange';
 
   return (
     <Screen edges={['top', 'bottom']} keyboard>
@@ -188,6 +215,34 @@ export default function OfferComposer() {
 
         <Field label="Message (facultatif)" value={message} onChangeText={setMessage} multiline maxLength={500} placeholder="Ex. Je peux passer le chercher samedi à Médina." />
 
+        {voiceEnabled ? (
+          <View style={styles.voice} testID="offer-voice">
+            <Text variant="callout" weight="700">
+              Dites votre offre à voix haute
+            </Text>
+            <Text variant="caption" tone="secondary">
+              Facultatif · en français ou en wolof, 3 minutes au plus. Le vendeur l’écoute dans la proposition.
+            </Text>
+            {voice ? (
+              <View style={{ gap: spacing.sm }}>
+                <VoicePreview uri={voice.uri} durationMs={voice.durationMs} waveform={voice.waveform} />
+                <Button label="Retirer le message vocal" size="sm" variant="ghost" icon={Trash2} onPress={() => setVoice(null)} />
+              </View>
+            ) : recording ? (
+              <VoiceRecorderPanel
+                useLabel="Joindre à l’offre"
+                onUse={(c) => {
+                  setVoice(c);
+                  setRecording(false);
+                }}
+                onCancel={() => setRecording(false)}
+              />
+            ) : (
+              <Button label="Enregistrer ma voix" size="sm" variant="outline" icon={Mic} onPress={() => setRecording(true)} />
+            )}
+          </View>
+        ) : null}
+
         <View style={styles.notice}>
           <Text variant="caption" tone="secondary">
             {PLATFORM_DISCLAIMER}
@@ -195,7 +250,7 @@ export default function OfferComposer() {
         </View>
       </ScrollView>
       <View style={styles.footer}>
-        <Button label={counter ? 'Envoyer la contre-proposition' : 'Envoyer la proposition'} variant="cta" size="lg" disabled={!valid} loading={busy} onPress={submit} />
+        <Button label={counter ? 'Envoyer la contre-offre' : 'Envoyer la proposition'} variant="cta" size="lg" disabled={!valid} loading={busy} onPress={submit} />
       </View>
     </Screen>
   );
@@ -228,6 +283,7 @@ const styles = StyleSheet.create({
   option: { width: '48%', padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   optionOn: { borderColor: colors.ink, borderWidth: 2 },
   check: { position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center' },
+  voice: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   notice: { padding: spacing.md, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderColor: colors.border },
 });

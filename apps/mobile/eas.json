@@ -7,21 +7,54 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": { "EXPO_PUBLIC_ENV": "local" },
-      "ios": { "simulator": false }
+      "env": {
+        "EXPO_PUBLIC_ENV": "local"
+      },
+      "ios": {
+        "simulator": false
+      }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "env": { "EXPO_PUBLIC_ENV": "staging" }
+      "env": {
+        "EXPO_PUBLIC_ENV": "staging"
+      }
     },
     "production": {
       "channel": "production",
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_ENV": "production" }
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      }
+    },
+    "pilot-internal": {
+      "extends": "production",
+      "channel": "pilot",
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_ENV": "staging"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "pilot-apk": {
+      "extends": "pilot-internal",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {},
+    "internal": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft",
+        "serviceAccountKeyPath": "./secrets/play-service-account.json"
+      }
+    }
   }
 }

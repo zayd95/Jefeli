@@ -447,8 +447,10 @@ describe('Price modes — offers on listings without a displayed price', () => {
         'invalid_amount',
       );
     }
+    // tradeOnRequest is reserved by the barter accepted above (pilot cut c): a fresh trade-only one.
+    const tradeOnly = await createListing(seller, { title: 'Pagne tissé', price: null, priceMode: 'on_request', mode: 'trade' });
     expectError(
-      await buyer.client.rpc('make_offer', { p_product_id: tradeOnRequest, p_kind: 'price', p_amount_xof: 10000 }),
+      await buyer.client.rpc('make_offer', { p_product_id: tradeOnly, p_kind: 'price', p_amount_xof: 10000 }),
       'not_for_sale',
     );
     expectError(

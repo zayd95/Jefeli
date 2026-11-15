@@ -23,8 +23,9 @@ export const CONDITION_OPTIONS: ItemCondition[] = ['new', 'like_new', 'very_good
 
 export const LISTING_MODE_LABELS: Record<ListingMode, string> = {
   sale: 'À vendre',
-  trade: 'À échanger',
+  trade: 'À troquer',
   sale_or_trade: 'Vente ou troc',
+  give: 'À donner',
 };
 
 export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
@@ -153,6 +154,8 @@ export const NOTIFICATION_COPY: Record<string, (actor: string, data: Record<stri
   offer_accepted: (a) => `${a} a accepté votre proposition`,
   offer_rejected: (a) => `${a} a refusé votre proposition`,
   offer_withdrawn: (a) => `${a} a retiré sa proposition`,
+  offer_closed: (_a, d) => `« ${String(d.product_title ?? 'L’article')} » est réservé pour un autre acheteur : votre proposition est close`,
+  agreement_handover: (a, d) => `${a} propose la remise : ${String(d.place ?? '')}`,
   agreement_completed: (a) => `Échange déclaré terminé avec ${a}`,
   agreement_canceled: (a) => `${a} a annulé l’accord`,
   agreement_disputed: (a) => `${a} a signalé un litige sur votre accord`,
@@ -186,4 +189,25 @@ export const VOICE_LANGUAGES = [
 export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number]['key'];
 export function voiceLanguageLabel(key: string | null | undefined): string | null {
   return VOICE_LANGUAGES.find((l) => l.key === key)?.label ?? null;
+}
+
+/**
+ * Pilot cut (g) — « Jëf lite » levels (public, read-only, from exchanges both members declared done;
+ * supabase/migrations/20261115000400_jef_lite_levels.sql). Text only — never a check mark nor
+ * « vérifié » (merchant verification stays the only verification badge).
+ */
+export type MemberLevelKey = 'nouveau' | 'fiable' | 'confirme' | 'jambaar';
+export type MemberLevel = { level: 1 | 2 | 3 | 4; key: MemberLevelKey; deals: number; swaps: number; partners: number };
+export const MEMBER_LEVEL_LABELS: Record<MemberLevelKey, string> = {
+  nouveau: 'Nouveau',
+  fiable: 'Fiable',
+  confirme: 'Confirmé',
+  jambaar: 'Jambaar',
+};
+export const MEMBER_LEVEL_HINT =
+  'Niveau calculé à partir des échanges que les deux membres ont déclarés terminés (ventes et trocs), du nombre de partenaires différents et des avis. Jëfëli ne vérifie pas les transactions.';
+/** « Fiable · 4 échanges conclus » (or « Nouveau » with no exchange yet). */
+export function describeMemberLevel(l: MemberLevel): string {
+  const n = l.deals + l.swaps;
+  return n === 0 ? MEMBER_LEVEL_LABELS[l.key] : `${MEMBER_LEVEL_LABELS[l.key]} · ${n} échange${n > 1 ? 's' : ''} conclu${n > 1 ? 's' : ''}`;
 }

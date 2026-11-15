@@ -154,7 +154,7 @@ function DraggableThumb({
           if (e.nativeEvent.actionName === 'remove') onRemove();
         }}
       >
-        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.night }]} />}
+        {item.uri ? <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.mediaBackdrop }]} />}
         {item.kind === 'video' ? (
           <View style={styles.video}>
             <Play size={12} color={colors.white} fill={colors.white} />
@@ -162,7 +162,7 @@ function DraggableThumb({
         ) : null}
         {index === 0 ? <View style={styles.coverMark} /> : null}
       </Pressable>
-      <Text variant="micro" weight="700" color={light ? colors.accentDeep : dark.mint} style={{ fontSize: 10, height: 14 }} accessibilityElementsHidden importantForAccessibility="no">
+      <Text variant="micro" weight="700" color={light ? colors.gold : dark.gold} style={{ fontSize: 10, height: 14 }} accessibilityElementsHidden importantForAccessibility="no">
         {item.cue ?? ''}
       </Text>
     </View>
@@ -172,9 +172,9 @@ function DraggableThumb({
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, rowGap: GAP },
   cell: { width: SIZE, height: ROW, alignItems: 'center', gap: 4 },
-  thumb: { width: SIZE, height: SIZE, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', backgroundColor: dark.surface },
-  thumbOn: { borderColor: colors.mint },
-  coverMark: { position: 'absolute', left: 6, right: 6, bottom: 5, height: 3, borderRadius: 2, backgroundColor: colors.mint },
+  thumb: { width: SIZE, height: SIZE, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', backgroundColor: colors.mediaBackdrop },
+  thumbOn: { borderColor: colors.gold },
+  coverMark: { position: 'absolute', left: 6, right: 6, bottom: 5, height: 3, borderRadius: 2, backgroundColor: colors.gold },
   video: { position: 'absolute', top: 4, right: 4, width: 18, height: 18, borderRadius: 9, backgroundColor: dark.glass, alignItems: 'center', justifyContent: 'center' },
   add: { width: SIZE, height: SIZE, borderRadius: 14, borderWidth: 1.5, borderStyle: 'dashed', borderColor: dark.borderStrong, alignItems: 'center', justifyContent: 'center' },
   selectedBar: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: 14, backgroundColor: dark.surface },

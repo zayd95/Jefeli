@@ -1,126 +1,128 @@
 /**
- * Jëfëli — « Dakar after dark » design tokens (owner-approved direction, 12 Nov 2026):
- * a premium dark marketplace. Deep forest greens, Senegalese gold for anything active or
- * commerce-related, mint for discovery, red only for attention, warm off-white text.
- * Single source of truth for mobile and web.
+ * Jëfëli — one visual system (owner, 14 Nov 2026, P1 addendum). Every screen, on the phone, the
+ * desktop and the public web pages, uses the same forest-dark canvas, the same two surfaces and
+ * three accents with one job each:
+ *   - gold  — every action and active state (primary buttons, active tab, « + », Waxaale offers)
+ *             and everything Jëf;
+ *   - mint  — Wecci and discovery tags only (`wecci`);
+ *   - red   — unread badges, favourites, errors and live (`live` only for a real « EN DIRECT »).
+ * This file is the ONLY place a colour value may be written (tests/no-raw-colors.test.ts).
  */
 export const palette = {
-  canvas: '#061D18', // main page background (deep forest green)
-  ink: '#F6F5ED', // primary text: warm off-white, never pure white
-  mint: '#A3E4D7', // brand mint (logo letters)
-  mintAccent: '#7ED8BD', // discovery accents: italic highlights, category and meta icons
+  canvas: '#0B1311', // the one background: near-black with a slight green, so photos read true (owner, 15 Nov 2026)
+  media: '#0B1311', // backdrop of every photo / media container: neutral, never tinted green
+  surface: '#0B2922', // headers, sheets, panels, fields: the green surfaces stay for brand moments
+  raised: '#12382F', // raised surfaces, active rows, own chat bubbles
+  ink: '#F6F5ED', // primary text: warm off-white
   slate: '#9BADA7', // supporting copy
-  surface: '#0B2922', // product cards, panels
-  night: '#061D18',
-  deep: '#0B2922',
-  raised: '#12382F', // secondary active surfaces
-  forest: '#0D3A30', // deep green buttons
-  fog: '#F6F5ED',
-  gold: '#EFBD38', // Senegalese gold: active, primary action, publish, eyebrows
-  goldLight: '#F3CA5B',
-  red: '#DB4A35', // notifications, favourites, Senegalese identity details
-  live: '#D93A44', // ONLY for a real « EN DIRECT » state
+  stone: '#91A59F', // tertiary copy
+  line: '#1C4137', // borders
+  lineStrong: '#21463D',
+  gold: '#EFBD38', // ACTION + Jëf
+  goldPressed: '#F3C64D',
+  onGold: '#0A2922', // text and icons on gold
+  mint: '#7ED8BD', // WECCI + discovery tags
+  red: '#DB4A35', // unread, favourites, errors
+  live: '#D93A44', // ONLY a real « EN DIRECT »
+  disabled: '#3C5C53',
+  logoMint: '#A3E4D7', // the « Jëfëli. » logo letters only (unchanged brand asset)
+  black: '#000000', // media stages (video, statuses) only
+  white: '#FFFFFF', // text and icons over photos and video only
 } as const;
 
-/**
- * Semantic tokens. The former light commerce surfaces (Explorer, article, forms) now share the
- * dark foundation; names are kept so every screen follows without a rewrite.
- * `ink` is the main TEXT colour; filled primary actions use `primary` (gold) with `onPrimary`.
- */
+/** Semantic tokens (mobile and web). Translucent values are derived from the palette above. */
 export const colors = {
   background: palette.canvas,
   surface: palette.surface,
-  surfaceSubtle: '#0C2A23', // search fields, chips
-  surfaceMuted: '#12382F', // condition chips, skeleton base
+  surfaceSubtle: palette.surface,
+  surfaceMuted: palette.raised,
+  raised: palette.raised,
   ink: palette.ink,
   inkSoft: '#DCE3DE',
   textSecondary: palette.slate,
-  textTertiary: '#91A59F',
-  border: '#1C4137',
-  borderStrong: '#21463D',
+  textTertiary: palette.stone,
+  border: palette.line,
+  borderStrong: palette.lineStrong,
+  // Action (gold)
+  primary: palette.gold,
+  onPrimary: palette.onGold,
   action: palette.gold,
-  actionPressed: '#F3C64D',
-  actionText: '#0A2922',
-  primary: palette.gold, // filled primary actions (« Vendre », publish, main CTA)
-  onPrimary: '#0A2922', // dark green on gold
-  forest: palette.forest, // deep green secondary buttons
-  mintSoft: 'rgba(126, 216, 189, 0.14)', // own message bubbles, soft highlights
-  accentDeep: palette.mintAccent, // links and accents on dark
-  danger: '#E2604E',
-  dangerSoft: 'rgba(219, 74, 53, 0.14)',
-  live: palette.live,
-  red: palette.red,
-  success: '#4FBF95',
-  warning: palette.goldLight,
-  warningSoft: 'rgba(239, 189, 56, 0.14)',
-  disabled: '#3C5C53',
-  skeleton: '#12382F',
-  darkBackground: palette.night,
-  darkSurface: palette.deep,
-  darkText: palette.fog,
+  actionPressed: palette.goldPressed,
+  actionText: palette.onGold,
   gold: palette.gold,
-  overlay: 'rgba(2, 14, 11, 0.62)',
-  white: '#FFFFFF',
-  night: palette.night,
-  mint: palette.mint,
-  mintAccent: palette.mintAccent,
   goldSoft: 'rgba(239, 189, 56, 0.16)',
-  inkWash: 'rgba(246, 245, 237, 0.04)', // payment disclaimer box
-  glassLight: 'rgba(7, 31, 26, 0.95)', // sticky bars
+  goldLine: 'rgba(239, 189, 56, 0.32)',
+  success: palette.gold,
+  warning: palette.gold,
+  warningSoft: 'rgba(239, 189, 56, 0.14)',
+  // Wecci and discovery (mint)
+  wecci: palette.mint,
+  wecciSoft: 'rgba(126, 216, 189, 0.14)',
+  // Attention (red)
+  red: palette.red,
+  danger: palette.red,
+  dangerSoft: 'rgba(219, 74, 53, 0.16)',
+  dangerPressed: 'rgba(219, 74, 53, 0.26)',
+  live: palette.live,
+  // Neutrals and overlays
+  forest: palette.raised,
+  disabled: palette.disabled,
+  skeleton: palette.raised,
+  darkBackground: palette.canvas,
+  darkSurface: palette.surface,
+  darkText: palette.ink,
+  night: palette.canvas,
+  logoMint: palette.logoMint,
+  white: palette.white,
+  black: palette.black,
+  overlay: 'rgba(5, 9, 8, 0.62)',
+  inkWash: 'rgba(246, 245, 237, 0.04)',
+  glassLight: 'rgba(7, 31, 26, 0.95)',
   dockLight: 'rgba(7, 31, 26, 0.95)',
   dockLightBorder: 'rgba(214, 236, 228, 0.14)',
+  // Over photos and video (statuses, live, media badges)
+  mediaScrim: 'rgba(0, 0, 0, 0.45)',
+  mediaScrimStrong: 'rgba(0, 0, 0, 0.6)',
+  mediaClear: 'rgba(0, 0, 0, 0)',
+  mediaText: 'rgba(255, 255, 255, 0.85)',
+  mediaTextSoft: 'rgba(255, 255, 255, 0.75)',
+  mediaLine: 'rgba(255, 255, 255, 0.35)',
+  mediaChip: 'rgba(246, 245, 237, 0.94)', // light chip on a photo (favourite heart, badges)
+  mediaPanel: 'rgba(11, 19, 17, 0.65)', // dark band over a photo
+  mediaBackdrop: palette.media, // behind photos and videos (letterboxing, loading, empty)
 } as const;
 
-/** Dark surfaces (Home, Profile, Messages and now every screen). */
+/** The same system under the names the screens already use. */
 export const dark = {
-  background: palette.night,
-  surface: palette.deep,
+  background: palette.canvas,
+  surface: palette.surface,
   raised: palette.raised,
-  text: palette.fog,
-  textStrong: '#F5F5EC',
-  textSecondary: '#9BADA7',
-  textTertiary: '#91A59F',
-  border: '#1C4137',
-  borderStrong: '#22483E',
+  text: palette.ink,
+  textStrong: palette.ink,
+  textSecondary: palette.slate,
+  textTertiary: palette.stone,
+  border: palette.line,
+  borderStrong: palette.lineStrong,
   subtle: 'rgba(246, 245, 237, 0.05)',
-  glass: 'rgba(6, 29, 24, 0.66)',
+  glass: 'rgba(11, 19, 17, 0.66)',
   glassBorder: 'rgba(214, 236, 228, 0.14)',
   dock: 'rgba(7, 31, 26, 0.95)',
   dockBorder: 'rgba(214, 236, 228, 0.14)',
-  header: 'rgba(6, 29, 24, 0.94)',
-  scrim: 'rgba(2, 14, 11, 0.9)',
-  scrimSoft: 'rgba(2, 14, 11, 0.6)',
-  mint: palette.mintAccent,
-  mintSoft: 'rgba(126, 216, 189, 0.08)',
-  mintLine: 'rgba(126, 216, 189, 0.22)',
-  mintSelected: palette.raised,
+  header: 'rgba(11, 19, 17, 0.94)',
+  scrim: 'rgba(5, 9, 8, 0.9)',
+  scrimSoft: 'rgba(5, 9, 8, 0.6)',
   gold: palette.gold,
   goldSoft: 'rgba(239, 189, 56, 0.15)',
   goldLine: 'rgba(239, 189, 56, 0.3)',
-  danger: '#F08E7F',
+  wecci: palette.mint,
+  wecciSoft: 'rgba(126, 216, 189, 0.1)',
+  danger: palette.red,
   red: palette.red,
 } as const;
 
-/**
- * Explorer stays a white commercial page (owner, 12 Nov 2026): near-white canvas, white cards,
- * ink text. Gold stays the active / primary colour there too.
- */
-export const light = {
-  background: '#FAFBFA',
-  surface: '#FFFFFF',
-  surfaceSubtle: '#F1F4F2',
-  surfaceMuted: '#E6ECE8',
-  ink: '#10252C',
-  textSecondary: '#607071', // 4.9:1 on the canvas
-  textTertiary: '#6B7A7B',
-  border: '#E2E6E4',
-  borderStrong: '#C9D3CE',
-  accent: '#2E8C73', // mint-family icons and links with 4.5:1 on white
-  accentSoft: '#D7F1E9',
-} as const;
-
 export const spacing = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const;
-export const radius = { xs: 6, sm: 8, md: 12, lg: 15, xl: 16, xxl: 20, sheet: 25, pill: 999 } as const;
+/** Shape (P1 addendum): cards 20, chips and buttons pill-shaped, sheets 25. */
+export const radius = { xs: 6, sm: 8, md: 12, lg: 16, xl: 20, xxl: 20, card: 20, sheet: 25, pill: 999 } as const;
 
 export const typeScale = {
   display: { size: 30, line: 36, weight: '800' as const, tracking: -0.8 },

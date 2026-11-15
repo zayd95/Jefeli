@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   // Share pages are ISR (60 s). Bound how long a CDN may serve a stale copy, so content removed by
   // moderation disappears within minutes rather than the 1-year default.
   expireTime: 600,
+  // The WhatsApp status card (pilot cut e) reads the Nunito files at runtime.
+  outputFileTracingIncludes: { '/p/[id]/status-card': ['./assets/fonts/**'] },
   async redirects() {
     return [{ source: '/admin', destination: '/admin/signalements', permanent: false }];
   },

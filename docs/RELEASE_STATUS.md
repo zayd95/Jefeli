@@ -1,5 +1,23 @@
 # Jëfëli — release status
 
+## 15 Nov 2026 — pilot cut verified, merged to `main`, tag `v0.9.1-pilot`
+
+- Four pilot-cut migrations (`20261115000100`–`400`) applied to **jefeli-staging** after a verified
+  backup; schema identical to local, `schema:check` green, **49/49 hosted probes**
+  (`scripts/staging-security-probe.py`).
+- Full local regression after the DT-08 fix: **81 passed, 0 failed, 12 skipped** (skips = hosted /
+  gated specs: e-mail confirmations, live provider, etc.), three consecutive runs; the earlier
+  failures were a stale DT-08 test, a PC-B2 hidden-element match and a missing
+  `NEXT_PUBLIC_APP_URL` on the local web server — no product defect.
+- Public share pages on **jefeli-web** open with no login wall from a fresh browser context
+  (`scripts/check-public-share.cjs`, screenshots in `docs/evidence/pilot-cut/public-share/`).
+  **jefeli-app production stays protected** (owner decision), so Android App Links cannot
+  auto-verify on that host; share links use the public jefeli-web host.
+- Caveat: Vercel Hobby's 100-deployments/day limit was hit by evidence pushes; later commits used
+  `[vercel skip]`. Production jefeli-web serves the last successful production build until a
+  deployment from `main` succeeds.
+- Android pilot build (EAS) is an owner-account step: `docs/ANDROID_RELEASE.md` §0.
+
 **Readiness: Gate A (developer preview) reached locally. P1 private-pilot candidate prepared
 (code verified in browser and backend); Gate B (invited pilot) waits for the owner items in
 `docs/GO_NO_GO.md`.** Public release is **not authorised**.
@@ -36,6 +54,26 @@
   « Filtres », « Tendances cette semaine » and « Vendeurs à suivre » (real data only). New read-only
   migration `20261113000100_explore_discovery.sql`, **not applied to staging** (needs the owner's
   go). **Not merged, not deployed.**
+- Branch `feature/p1-identity`, draft PR #11 → #10's branch: P1 identity sprint (four pillars
+  docs + three prototypes: Waxaale card with voice offers, « Marché conclu ! » moment, Explorer
+  as market aisles with the « Je cherche » empty state). Two **local-only** migrations
+  (`20261114000100`, `20261114000200`): staging unchanged, so the PR's Vercel previews stay red on
+  the schema check until the owner's go. **Not merged, not deployed.**
+- **Pilot cut a–h (15 Nov), draft PR #13 → `feature/p1-identity`:** share pages on the free Vercel URL, return to the article after sign-up, Waxaale reservation + handover + chat deep links, web « Faire une offre », « Partage ta boutique » + WhatsApp status card, « Donner » / « Troquer », « Jëf lite » + 24 h « Nouveau », EAS internal-testing config (nothing built or submitted). Four **local-only** migrations (`20261115000100`–`400`); staging unchanged, so the previews stay red on the schema check until the owner's go. Baseline merged into `main` (PR #12, 4b65ce3); tag `v0.9-baseline` still to be created by the owner (git proxy refuses tags).
+- **Visual addendum (15 Nov):** canvas `#0B1311`, neutral photo backdrops, one filled gold element per screen (measured, 10 → 0 screens over budget), `CLAUDE.md` updated.
+- **P1 addendum — one visual system (15 Nov), PR #11:** dark everywhere (white Explorer reversed),
+  three accents with one job each, Nunito only, cards 20 / pills / no shadows; no colour outside
+  `tokens.ts` (guard test), WCAG AA pairs checked (19/19). Clean local run: check pass (54),
+  integration 327/327, E2E 72 / 0 / 10 skipped. Evidence `docs/evidence/p1-identity/consistency/`.
+  Not merged, not deployed, nothing on staging.
+- **P1 identity verification (14 Nov), local stack, clean database (reset + DÉMO seed):**
+  `pnpm check` pass (unit 32/32), integration **327/327** (incl. 3 new voice-offer tests), E2E
+  **72 passed, 0 failed**, 10 skipped (9 hosted + 1 gated), incl. the new `identity.spec.ts` (3) and
+  SC-04 (360 pt creation menu). A first full run had 7 failures: 3 because the local web server
+  was down, 3 screen-tour runs expecting the old « Toutes les catégories » tile (updated), and one
+  real defect (realtime channel reused after a counter-offer → crash), fixed in `lib/realtime.ts`.
+  CI on PR #11: the integration job failed in the runner (port 54324 already in use) before any
+  test ran; a re-run is needed from the Actions tab (not possible from this session).
 - **Explorer hosted validation (12–13 Nov, owner-approved), PR #10 on jefeli-staging:**
   - fresh verified backup (`staging-backup-2026-11-12-explore.tar.gz`, sha256 `ac994c90…caf3f0`,
     49 tables / 212 rows, 36/38 media; the 2 private-bucket files need the service key, as before);

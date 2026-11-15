@@ -151,7 +151,7 @@ function StudioBody({
             <Text variant="caption" weight="700" tone="mint">
               {langLabel ? `En ${langLabel.toLowerCase()}` : 'Langue'}
             </Text>
-            <ChevronDown size={14} color={dark.mint} />
+            <ChevronDown size={14} color={dark.gold} />
           </Pressable>
         </View>
         {languages ? (
@@ -171,7 +171,7 @@ function StudioBody({
                   aria-checked={on}
                   accessibilityLabel={l.label}
                 >
-                  <Text variant="caption" weight="700" color={on ? colors.night : dark.text}>
+                  <Text variant="caption" weight="700" color={dark.text}>
                     {l.label}
                   </Text>
                 </Pressable>
@@ -232,7 +232,7 @@ function StudioBody({
                 {status}
               </Text>
               <View style={{ width: '80%', maxWidth: 320 }}>
-                <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? dark.borderStrong : dark.mint} height={44} />
+                <LiveLevels levels={rec.levels} color={rec.phase === 'paused' ? dark.borderStrong : dark.gold} height={44} />
               </View>
             </View>
           )}
@@ -269,7 +269,7 @@ function Control({ icon: Icon, label, a11y, onPress, big, primary, disabled, bus
         disabled={disabled || busy}
         style={({ pressed }) => [
           { width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center' },
-          primary ? { backgroundColor: colors.mint } : big ? { backgroundColor: dark.text } : { borderWidth: 1, borderColor: dark.borderStrong },
+          primary ? { backgroundColor: colors.gold } : big ? { backgroundColor: dark.text } : { borderWidth: 1, borderColor: dark.borderStrong },
           disabled && { opacity: 0.4 },
           pressed && { transform: [{ scale: 0.95 }] },
         ]}
@@ -289,20 +289,20 @@ function Control({ icon: Icon, label, a11y, onPress, big, primary, disabled, bus
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: dark.background, paddingHorizontal: spacing.lg, gap: spacing.md },
   top: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  langPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: dark.mintLine, backgroundColor: dark.mintSoft },
+  langPill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: dark.goldLine, backgroundColor: dark.goldSoft },
   langs: { gap: 6, paddingVertical: 2 },
   lang: { paddingHorizontal: 12, height: 36, borderRadius: 18, justifyContent: 'center', backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.borderStrong },
-  langOn: { backgroundColor: colors.mint, borderColor: colors.mint },
+  langOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   stage: { flex: 1, justifyContent: 'center', gap: spacing.md },
   denied: { padding: spacing.lg, borderRadius: radius.xl, backgroundColor: dark.surface },
-  photo: { width: '100%', aspectRatio: 0.86, alignSelf: 'center', borderRadius: 24, overflow: 'hidden', backgroundColor: dark.surface },
+  photo: { width: '100%', aspectRatio: 0.86, alignSelf: 'center', borderRadius: 24, overflow: 'hidden', backgroundColor: colors.mediaBackdrop },
   photoTimer: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: dark.glass },
   thumbs: { gap: 10, paddingHorizontal: 2, justifyContent: 'center', flexGrow: 1 },
   thumb: { width: 60, height: 60, borderRadius: 14, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent' },
-  thumbOn: { borderColor: colors.mint },
+  thumbOn: { borderColor: colors.gold },
   voiceStage: { alignItems: 'center', gap: spacing.md },
   ring: { padding: 6, borderRadius: 70, borderWidth: 2, borderColor: dark.borderStrong },
-  ringOn: { borderColor: colors.mint },
+  ringOn: { borderColor: colors.gold },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.live },
   controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-end' },
 });

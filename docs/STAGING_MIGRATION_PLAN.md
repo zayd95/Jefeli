@@ -150,3 +150,19 @@ definer, `search_path=''`), hosted probes 40/40 and both previews rebuilt with t
 passing. Rollback: `drop function public.explore_products(text, text, text, text, text, integer,
 integer, text, text, integer, integer), public.trending_products(integer, integer),
 public.suggested_sellers(integer);` — nothing else depends on them except the PR #10 client.
+
+**15 Nov 2026 (pilot-cut go):** the four pilot-cut migrations were applied to `jefeli-staging`.
+- Identity: `jefeli-staging`, ref `gbsoifwllbacwsknydkq`, eu-west-1, Postgres 17.11; history 25 (up to `20261114000200_market_aisles`).
+- Backup before anything: logical, 83 tables (`public`, `auth`, `storage`, migration history), every row, SHA-256 per file, plus
+  the schema state (columns, constraints, indexes, policies, functions, triggers, grants, enums, buckets). Row counts match the
+  database's own `count(*)` on all 83 tables; the 45 `public` tables were reloaded into a scratch local schema and matched row by
+  row. Kept outside the repository (it holds members' data); storage files are not touched by these migrations.
+- Pre-check (read-only): none of the new objects existed; no existing row violates the re-opened `CHECK`s
+  (`offers.status`, `notifications.type`, `products.price_xof`). Baseline counts: `docs/staging/preflight-counts-2026-11-15.json`.
+- Apply: `20261115000100` → `200` → `300` → `400`, each in its own call, history 25 → 29, counts identical after every step; the only data
+  change is the documented `profiles.first_listing_at` backfill (2 of 3 profiles).
+- Schema: 1 188 objects identical to a local database built from the same migrations (only the three trigram-index prints differ, as before).
+- Deploy check: `✓ Schema compatible: 45 tables, 64 functions`.
+- Hosted security probes (public key, `scripts/staging-security-probe.py`): **49/49** (40 existing + 9 for the pilot cut: handover only through the
+  RPC, `new_seller_until` / `first_listing_at` / `handover_*` not writable, `member_level` public and read-only with no balance, private helper not exposed).
+- Rollback: not needed. The four files only add (constraints widened, columns, functions); to undo, restore the replaced function bodies from the backup's `schema.functions`.

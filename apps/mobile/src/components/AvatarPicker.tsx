@@ -45,7 +45,7 @@ export function AvatarPicker({
     <Pressable onPress={choose} accessibilityRole="button" accessibilityLabel="Changer la photo de profil" style={styles.wrap}>
       <View>
         <Avatar path={path} name={name || 'J'} size={size} />
-        <View style={styles.cam}>{busy ? <ActivityIndicator size="small" color={colors.ink} /> : <Camera size={16} color={colors.ink} />}</View>
+        <View style={styles.cam}>{busy ? <ActivityIndicator size="small" color={colors.ink} /> : <Camera size={16} color={colors.gold} />}</View>
       </View>
       <Text variant="callout" weight="600" tone="accent">
         {path ? 'Changer la photo' : 'Ajouter une photo'}
@@ -108,7 +108,7 @@ export function CoverPicker({ userId, path, onChange }: { userId: string; path: 
 
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 8 },
-  cover: { height: 120, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  cover: { height: 120, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   coverLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, minHeight: 36, borderRadius: radius.pill, backgroundColor: colors.surface },
   coverRemove: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', minHeight: 28 },
   cam: {
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.action,
+    backgroundColor: colors.raised,
     borderWidth: 3,
     borderColor: colors.background,
     alignItems: 'center',

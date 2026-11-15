@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   brand: { paddingHorizontal: 10, minHeight: 44, justifyContent: 'center' },
   item: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 46, paddingHorizontal: 12, borderRadius: 12 },
   itemCompact: { width: 50, justifyContent: 'center', paddingHorizontal: 0 },
-  itemOn: { backgroundColor: dark.mintSelected },
+  itemOn: { backgroundColor: dark.raised },
   itemHover: { backgroundColor: dark.subtle },
   badge: { minWidth: 22, height: 20, borderRadius: 10, paddingHorizontal: 5, backgroundColor: colors.red, alignItems: 'center', justifyContent: 'center' },
   dot: { position: 'absolute', top: -2, right: -4, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.red },

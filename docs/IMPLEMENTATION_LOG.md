@@ -607,3 +607,100 @@ integration tests (moderated, sold, suspended, private). Then backup → migrati
 hosted probes 40/40 → previews rebuilt → hosted Explorer 16/16 → clean E2E 69/0/10. The preview
 hosts of this branch were added to the session's network allowlist to run the hosted UI check.
 Evidence: `docs/evidence/design-v2/hosted/`.
+
+### P1 identity sprint — branch `feature/p1-identity` (14 Nov, draft PR #11)
+
+Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale, Boutique, Jëf).
+
+- **Consolidation:** `git merge-base --is-ancestor` true for all 10 other branches into
+  `feature/design-direction-v2`; « v1 baseline » PR prepared in `docs/V1_BASELINE_PR.md`, not opened.
+- **Docs:** `PILLARS_AUDIT.md` (inventory, model mapping, 19 schema deltas, three journeys with tap
+  counts, ranked frictions), `IDENTITY.md` (lexicon, tone, Jëf economy, market, rituals, signature
+  moments, templates), `SPEC_PILLARS.md` (per-pillar specs, acceptance tests, estimates ≈ 80–125
+  dev-days, business model with prices as hypotheses), `ANDROID_RELEASE.md` (config review, blockers,
+  owner checklist, data-safety draft). Nothing submitted anywhere.
+- **Prototype (a) Waxaale in chat:** `OfferCard` redesigned (gold WAXAALE band, amount with gap to
+  the displayed price, steps Offre → Réponse → Accord → Échange fait, expiry bar). Voice offers:
+  migration `20261114000100_waxaale_voice_offer.sql` (`attach_offer_voice`: proposer only, pending
+  only, one note, own audio ≤ 180 s through the existing message checks), recorder in the offer
+  screen, player inside the card (the note no longer shows as a separate bubble).
+- **Prototype (b) « Marché conclu ! »:** `components/DealSealed.tsx` — scrim, gold seal with spring
+  and rotation, 12-dot burst, serif title, success haptic and an original 0.7 s chime
+  (`assets/sounds/deal-sealed.wav`, synthesised in-house), auto close 2.4 s, reduced-motion
+  fallback. Shown on acceptance (OfferCard) and as « Échange fait ! » when the second party confirms
+  (agreement screen).
+- **Prototype (c) Explorer as a market:** launch aisles Téléphones (telephones + electronique) and
+  Mode (5 categories) with real article / seller counts, small aisles for the rest, « Près de moi ·
+  <quartier> » from the profile, and an empty aisle that invites « Publier « Je cherche » » (opens
+  the composer on the seek intent). Migration `20261114000200_market_aisles.sql` (`explore_market`,
+  `market_counts`, security invoker = Explorer visibility).
+- **Defect found and fixed:** a second chat screen for the same conversation (counter-offer →
+  `router.replace`) reused the open Supabase channel and crashed (« cannot add postgres_changes
+  callbacks … after subscribe() »). Each subscriber now gets its own channel topic (`lib/realtime.ts`).
+- **Tests:** integration `21-waxaale-voice-offer` (3); E2E `identity.spec.ts` (PI-01 aisles + « Je
+  cherche », PI-02 voice offer → « Marché conclu ») ; selectors updated for the new labels.
+- **Evidence:** `docs/evidence/p1-identity/` (before / after at 390, 360, 1440 px; deal moment at
+  650 and 1100 ms). Local DÉMO data only (a generated tone stands in for Fatou's voice note).
+- Migrations are **local only**; staging unchanged; PR #11 previews stay red on the schema check
+  until the owner's go.
+- **Verification:** clean local database: check pass, integration 327/327, E2E 72 passed / 0 failed / 10 skipped.
+
+#### P1 addendum — one visual system (owner, 14 Nov; done 15 Nov)
+
+- **Theme:** one dark canvas everywhere (`#061D18`, surfaces `#0B2922` / `#12382F`). Reverses the
+  12 Nov white Explorer: Explorer, article, forms, settings, web share pages, admin and desktop are
+  dark. The `light` token set and every « paper » variant (ListingCard, PriceLabel, DemoBadge,
+  Skeleton, EmptyState) are removed.
+- **Three accents:** gold = action, active states, Waxaale, Jëf; mint (`colors.wecci`) = Wecci and
+  discovery tags only (Wecci badge and chip, feed eyebrows, Accueil chips, aisle icons, profile
+  interests); red = unread badges (Messages list now red), favourites, errors, live. Own chat
+  bubbles moved from mint to the raised surface. Errors are ink text with a red border or icon
+  (red text is 4.2:1, below AA).
+- **Colour inventory → tokens:** 21 hex + 32 `rgba()` values in app code, 12 in web CSS/TSX, all
+  replaced by tokens (new `media*`, `dangerPressed`, `wecci*`, `logoMint`, `black`, `white`).
+  Config files (`app.json`, `index.html`, `icon.svg`, `apps/web/scripts`) now hold palette values
+  only. Guard: `packages/shared/test/no-raw-colors.test.ts` (fails on any new hex / rgba; checked
+  with a probe file). Contrast: `packages/shared/test/contrast.test.ts` (19 WCAG AA pairs, pass).
+- **Type:** Nunito only (mobile `@expo-google-fonts/nunito` 400/600/700/800/900, web
+  `@fontsource-variable/nunito`); DM Sans and DM Serif Display removed; headings 800/900 (the
+  `serif` prop now renders Nunito ExtraBold), eyebrows 800 tracked +1, labels 600/700, body 400.
+  Accents checked in every weight from the shipped TTFs.
+- **Shape:** cards 20, buttons / chips / tags pill, sheets 25, shadows removed.
+- **Order note:** the brief asked for this pass before the task-5 prototypes; they were already
+  committed (59f172b, c4c9d30), so the pass was applied on top of them on the same branch (no
+  history rewrite). The prototypes follow the new system (Waxaale band gold, Wecci badge mint).
+- **Verification (clean local database):** `pnpm check` pass (54 unit tests incl. the colour guard
+  and contrast), integration 327/327, E2E 72 passed / 0 failed / 10 skipped.
+- **Evidence:** `docs/evidence/p1-identity/consistency/` (10 screens × 390 / 1440 px, before / after,
+  plus `nunito-accents-400-900.png`).
+
+### Pilot cut a–h — branch `feature/pilot-cut` (15 Nov, draft PR #13, base `feature/p1-identity`)
+- **a** Share pages on the free Vercel production URL (jefeli-web, from `main`): anonymous 200 with OG tags (`docs/evidence/pilot-cut/a-share-page-production.md`). jefeli-app production stays behind Vercel protection (owner declined making it public).
+- **b** `lib/returnTo.ts`: after sign-up / sign-in and onboarding the member returns to the article or offer they opened (allow-listed internal paths, 24 h). E2E PC-B1, PC-B2.
+- **c** Migration `20261115000100` (local): accepting an offer reserves the item (both in a barter), closes competing offers (buyers told, `offer_closed`), « Remise » step (`set_agreement_handover`), completed → sold, cancelled → back on sale, every offer/agreement notification carries `conversation_id` (in-app + push deep link to the chat). Integration 22 (9 tests), E2E PC-C1.
+- **d** « Faire une offre » / « Proposer un troc » on the public article page → `/offer/<id>`; Android App Links in `app.json` + `.well-known/assetlinks.json` written only from the real signing SHA-256 (`ANDROID_CERT_SHA256`). E2E PC-D1.
+- **e** « Partage ta boutique » moment after the first listing; 9:16 WhatsApp status card (`apps/web/.../status-card`, next/og, Nunito OFL) shared via the share sheet / download. E2E PC-E1.
+- **f** Wecci « Donner » (migrations `20261115000200/300`, price 0 only in this mode, no offer on a gift); swap mode renamed « Troquer ». Integration 23, E2E PC-F1.
+- **g** « Jëf lite »: `member_level` (read-only levels from completed sales + swaps, no balance) and the 24 h « Nouveau » exposure of a first listing (migration `20261115000400`). Integration 24 (7 tests), E2E PC-G1.
+- **h** EAS `pilot-internal` (AAB), `pilot-apk`, submit `internal` (draft); schema-validated; nothing built or submitted (`docs/ANDROID_RELEASE.md` § 0).
+- All four migrations are **local only**; the Vercel previews of PR #13 stop at the staging schema check until the owner's go.
+
+### Visual addendum, 15 Nov — canvas B, gold budget, CLAUDE.md
+- **1a** Canvas `#0B1311` (owner picked variant B after the A/B/C test in `docs/evidence/p1-identity/canvas-test/`); new `palette.media` / `colors.mediaBackdrop` behind every photo container (app and web); green surfaces kept for headers, sheets, raised panels. Contrast re-run: 19/19 pass (red icons 4.5:1 on the new canvas).
+- **1b** Gold budget (one filled gold element per screen): measured by `tests/e2e/specs/zz-gold-budget.spec.ts` on 31 app screens + 5 web pages at 390 px; 10 screens were over budget, 0 after. Fix list and before/after sheets: `docs/evidence/p1-identity/gold-budget/`.
+- **3** `CLAUDE.md` and the authoritative top of `docs/DESIGN_SYSTEM.md` now describe the system (tokens only, Nunito, three accents, gold budget, neutral photo backdrops).
+
+### Full regression after the visual addendum, 15 Nov
+- `pnpm check` pass (54 unit tests), integration **347/347** on a clean DB, E2E full suite: **80 passed, 1 failed, 12 skipped** (hosted + ffmpeg/gated).
+- The one failure, `desktop.spec.ts` DT-08, was a **stale test, not a product defect**: since migration `20261115000100` an accepted offer reserves the article (`products.status = 'reserved'`), so the test's « accept the price offer, then propose a swap on the same article » no longer has a swap button; and the context pane now says « Troquer · … » (was « Wecci (troc) · … »). The seller now refuses the price offer in that test and the pane assertion follows the new label. `desktop.spec.ts` re-run: 8/8 pass. The rest of the suite was not re-run after this test-only change.
+
+### Pilot-cut migrations on staging, 15 Nov (owner go)
+Verified backup → pre-check → `20261115000100…400` applied in order (history 25 → 29, counts unchanged) → schema identical to local (1 188 objects) →
+deploy check `✓ 45 tables, 64 functions` → hosted probes 49/49 (`scripts/staging-security-probe.py`). Details: `docs/STAGING_MIGRATION_PLAN.md`.
+
+## Merge of the pilot cut (15 Nov 2026)
+
+Staging migrations, 49/49 hosted probes, full E2E 81/0/12 (3 runs), public share pages without
+login wall: all green. PR #13 retargeted from `feature/p1-identity` to `main` (it contains PR #11)
+and merged with a merge commit; tag `v0.9.1-pilot` requested (the session git proxy may refuse tag
+pushes — see NEXT_ACTIONS).

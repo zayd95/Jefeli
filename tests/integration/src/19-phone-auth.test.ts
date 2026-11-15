@@ -99,6 +99,9 @@ beforeAll(async () => {
 afterAll(async () => {
   setFlag(false);
   psql(`update private.sms_settings set daily_budget = 300, per_ip_hour = 10 where id`); // migration defaults
+  // close() waits for every open connection; a kept-alive one from the auth server could hold it
+  // past the hook timeout (seen on CI): end them first.
+  sink.closeAllConnections();
   await new Promise<void>((resolve) => sink.close(() => resolve()));
 });
 

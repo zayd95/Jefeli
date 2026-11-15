@@ -62,7 +62,7 @@ export default async function LivePage({ params }: Props) {
         </div>
         <div>
           <h1 id="live-title">{live.title}</h1>
-          <p style={{ marginTop: 8, color: 'rgba(255,255,255,0.78)', fontSize: 14 }}>
+          <p style={{ marginTop: 8, color: 'var(--c-media-text)', fontSize: 14 }}>
             {isLive && live.started_at ? `Commencé ${timeAgo(live.started_at)}. ` : null}
             {live.status === 'ended' && live.ended_at ? `Terminé le ${formatDate(new Date(live.ended_at))}. ` : null}
             {live.status === 'created' ? 'L’hôte prépare son live. ' : null}
@@ -77,7 +77,7 @@ export default async function LivePage({ params }: Props) {
                 {host.display_name}
                 {host.verification_level === 'merchant_verified' ? <VerifiedBadge label={false} interactive={false} /> : null}
               </span>
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>@{host.handle}</span>
+              <span style={{ fontSize: 13, color: 'var(--c-media-text-soft)' }}>@{host.handle}</span>
             </span>
           </Link>
         ) : null}

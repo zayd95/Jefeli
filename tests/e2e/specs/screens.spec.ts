@@ -34,7 +34,7 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '03-home-occasions');
 
     await page.goto('/explore');
-    await expect(page.getByRole('button', { name: 'Toutes les catégories', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('button', { name: 'Tout le marché', exact: true })).toHaveAttribute('aria-selected', 'true');
     await capture(page, device, '04-explore');
 
     await page.goto('/u/awa_couture');
@@ -52,7 +52,7 @@ for (const [device, size] of Object.entries(SIZES)) {
 
     await page.goto('/messages');
     await page.getByRole('button', { name: /Conversation avec BaolMode/ }).click();
-    await expect(page.getByText('PROPOSITION DE TROC', { exact: true }).last()).toBeVisible();
+    await expect(page.getByText(/^· (Troc|Contre-offre)$/).last()).toBeVisible();
     await capture(page, device, '08-chat-barter');
 
     await page.goto('/');

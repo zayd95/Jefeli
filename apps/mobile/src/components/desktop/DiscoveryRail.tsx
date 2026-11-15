@@ -62,7 +62,7 @@ export function DiscoveryRail({ feed }: { feed: PostCardData[] }) {
           {requestItems.map((r) => (
             <Pressable key={r.id} onPress={() => router.push(`/post/${r.id}`)} accessibilityRole="link" style={(s) => [styles.row, isHovered(s) && styles.hover]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text variant="micro" weight="800" color={dark.mint} style={{ fontSize: 11, letterSpacing: 1 }}>
+                <Text variant="micro" weight="800" color={dark.gold} style={{ fontSize: 11, letterSpacing: 1 }}>
                   {intentLabel(r.intent as PostIntent)}
                 </Text>
                 <Text variant="caption" color={dark.textSecondary} numberOfLines={1} style={{ flexShrink: 1 }}>
@@ -160,7 +160,7 @@ function Section({ title, action, children }: { title: string; action?: { label:
         </Text>
         {action ? (
           <Pressable onPress={action.onPress} accessibilityRole="link" hitSlop={8}>
-            <Text variant="caption" weight="700" color={dark.mint}>
+            <Text variant="caption" weight="700" color={dark.gold}>
               {action.label}
             </Text>
           </Pressable>
@@ -181,5 +181,5 @@ const styles = StyleSheet.create({
   thumb: { width: 52, height: 52, borderRadius: 10, backgroundColor: dark.raised },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   tile: { width: '47%', gap: 4 },
-  tileImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: colors.night },
+  tileImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: colors.mediaBackdrop },
 });

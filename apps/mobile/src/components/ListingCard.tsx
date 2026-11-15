@@ -1,10 +1,12 @@
 import { CONDITION_LABELS, formatListingPrice } from '@jefeli/shared';
 import { router } from 'expo-router';
-import { MapPin, Pin, Repeat } from 'lucide-react-native';
+import { Gift, MapPin, Pin, Repeat } from 'lucide-react-native';
 import { memo } from 'react';
+
+import { hasNewSellerExposure } from '@/lib/market';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Avatar, colors, dark, DemoBadge, light, shadow, spacing, Text, VerifiedBadge } from '@/design';
+import { Avatar, colors, dark, DemoBadge, radius, spacing, Text, VerifiedBadge } from '@/design';
 import { fill } from '@/design/fill';
 import type { ProductCard } from '@/lib/types';
 
@@ -29,7 +31,6 @@ function ListingCardInner({
   big = false,
   tone = 'light',
   showVerified = false,
-  surface = 'dark',
 }: {
   product: ProductCard;
   width: number;
@@ -37,8 +38,6 @@ function ListingCardInner({
   showPinned?: boolean;
   big?: boolean;
   tone?: 'light' | 'dark';
-  /** 'paper': white card for the white Explorer page. */
-  surface?: 'dark' | 'paper';
   /** Desktop grid (W1.4): seller line with the verified mark, only for real merchant verification. */
   showVerified?: boolean;
 }) {
@@ -50,18 +49,23 @@ function ListingCardInner({
   const roomy = width >= 220; // desktop / tablet grid: larger radius and padding
   const imageH = Math.round(big ? (width * 11) / 16 : roomy ? width * 1.15 : width * 1.25);
   const where = product.neighborhood ?? product.city;
+  // Pilot cut (g): a new seller's first listing, shown first in its aisle for 24 h, says so.
+  const fresh = !pinned && hasNewSellerExposure(product.new_seller_until);
   const badge = pinned
     ? 'ÉPINGLÉ'
-    : product.listing_mode === 'trade'
-      ? 'WECCI'
+    : fresh
+      ? 'NOUVEAU'
+    : product.listing_mode === 'give'
+      ? 'À DONNER'
+      : product.listing_mode === 'trade'
+      ? 'TROQUER'
       : product.listing_mode !== 'sale'
-        ? 'VENTE OU WECCI'
+        ? 'VENTE OU TROC'
         : product.condition === 'new'
           ? 'NEUF'
           : CONDITION_LABELS[product.condition].toUpperCase();
-  const radiusCard = roomy || big ? 20 : 16;
-  const paper = surface === 'paper';
-  const ink = paper ? light.ink : colors.ink;
+  const radiusCard = radius.card;
+  const ink = colors.ink;
   // The heart sits beside the card's link (not inside it): two separate buttons.
   return (
     <View style={{ width }}>
@@ -70,7 +74,6 @@ function ListingCardInner({
         onPress={() => router.push(`/p/${product.id}`)}
         style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
           styles.card,
-          paper && styles.cardPaper,
           { width, borderRadius: radiusCard },
           hovered && roomy && { transform: [{ translateY: -4 }] },
           pressed && { transform: [{ scale: 0.98 }] },
@@ -79,7 +82,7 @@ function ListingCardInner({
         accessibilityLabel={`${pinned ? 'Épinglé. ' : ''}${product.title}, ${formatListingPrice(product)}`}
       >
         <View>
-          <Thumb media={media} style={{ width, height: imageH, backgroundColor: paper ? light.surfaceMuted : colors.surfaceMuted }} />
+          <Thumb media={media} style={{ width, height: imageH, backgroundColor: colors.mediaBackdrop }} />
           {unavailable ? (
             <View style={styles.statusOverlay}>
               <Text variant="caption" weight="800" color={colors.white}>
@@ -87,9 +90,12 @@ function ListingCardInner({
               </Text>
             </View>
           ) : null}
-          <View style={styles.badge}>
+          {/* Wecci (Troquer, Donner) is the one mint badge; every other badge is the neutral chip. */}
+          <View style={[styles.badge, !pinned && product.listing_mode !== 'sale' && { backgroundColor: colors.wecci }]}>
             {pinned ? (
               <Pin size={10} color={colors.onPrimary} strokeWidth={2.6} />
+            ) : product.listing_mode === 'give' ? (
+              <Gift size={10} color={colors.onPrimary} strokeWidth={2.6} />
             ) : product.listing_mode !== 'sale' ? (
               <Repeat size={10} color={colors.onPrimary} strokeWidth={2.6} />
             ) : null}
@@ -102,24 +108,24 @@ function ListingCardInner({
           {showSeller && product.seller ? (
             <View style={styles.seller}>
               <Avatar path={product.seller.avatar_path} name={product.seller.display_name} size={18} />
-              <Text variant="caption" weight="600" color={paper ? light.textSecondary : colors.textSecondary} numberOfLines={1} style={{ fontSize: 11.5, flexShrink: 1 }}>
+              <Text variant="caption" weight="600" color={colors.textSecondary} numberOfLines={1} style={{ fontSize: 11.5, flexShrink: 1 }}>
                 {product.seller.display_name}
               </Text>
               {product.seller.verification_level === 'merchant_verified' ? <VerifiedBadge size={13} /> : null}
-              {product.seller.is_demo ? <DemoBadge tone={paper ? 'paper' : 'dark'} /> : null}
+              {product.seller.is_demo ? <DemoBadge tone="dark" /> : null}
             </View>
           ) : null}
           <Text serif color={ink} numberOfLines={2} style={big || roomy ? { fontSize: 22, lineHeight: 26 } : { fontSize: 18, lineHeight: 22 }}>
             {product.title}
           </Text>
           <View style={styles.meta}>
-            <MapPin size={12} color={paper ? light.accent : colors.mintAccent} strokeWidth={2.2} />
-            <Text variant="caption" color={paper ? light.textTertiary : colors.textTertiary} numberOfLines={1} style={{ flexShrink: 1, fontSize: 12 }}>
+            <MapPin size={12} color={colors.textTertiary} strokeWidth={2.2} />
+            <Text variant="caption" color={colors.textTertiary} numberOfLines={1} style={{ flexShrink: 1, fontSize: 12 }}>
               {[where, product.condition !== 'new' ? CONDITION_LABELS[product.condition] : 'Neuf'].filter(Boolean).join(' · ')}
             </Text>
           </View>
-          <View style={[styles.divider, paper && { backgroundColor: light.border }]} />
-          <PriceLabel product={product} size="card" tone={paper ? 'paper' : 'dark'} />
+          <View style={styles.divider} />
+          <PriceLabel product={product} size="card" tone="dark" />
         </View>
       </Pressable>
       <View style={styles.heart}>
@@ -181,9 +187,8 @@ export function gridItemWidth(screenWidth: number, columns = 2, padding: number 
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', ...shadow.paper },
-  cardPaper: { backgroundColor: light.surface, borderColor: light.border },
-  tile: { padding: INSET, backgroundColor: dark.surface, borderRadius: 16, borderWidth: 1, borderColor: dark.border },
+  card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+  tile: { padding: INSET, backgroundColor: dark.surface, borderRadius: radius.card, borderWidth: 1, borderColor: dark.border },
   body: { paddingHorizontal: 12, paddingTop: 11, paddingBottom: 13, gap: 6 },
   seller: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 5 },
@@ -196,7 +201,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(246, 245, 237, 0.94)',
+    backgroundColor: colors.mediaChip,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 7,

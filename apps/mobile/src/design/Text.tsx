@@ -19,14 +19,14 @@ const toneColor: Record<NonNullable<AppTextProps['tone']>, string> = {
   secondary: colors.textSecondary,
   tertiary: colors.textTertiary,
   inverse: colors.white,
-  danger: colors.danger,
-  accent: colors.accentDeep,
+  danger: colors.ink, // errors: ink text (AA), marked by a red border or icon — red is never small text
+  accent: colors.gold,
   // Atlantic After Dark (Home, Profile, Messages)
   fog: dark.text,
   fogSecondary: dark.textSecondary,
   fogTertiary: dark.textTertiary,
   gold: dark.gold,
-  mint: dark.mint,
+  mint: dark.gold,
 };
 
 export function Text({ variant = 'body', color, weight, align, tone = 'default', serif, style, ...rest }: AppTextProps) {

@@ -57,7 +57,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     });
     await expect(b.getByText('35 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
     await expect(b.getByText(LISTING, { exact: true }).last()).toBeVisible();
-    productUrl = b.url();
+    productUrl = b.url().replace(/\?first=1$/, '');
     expect(productUrl).toMatch(/\/p\/[0-9a-f-]{36}$/);
     await shot(b, DIR, 'B-product-owner-view');
 
@@ -114,16 +114,16 @@ test.describe.serial('Two-account social commerce journey', () => {
     await btn(a, 'Faire une offre').click();
     await field(a, 'Votre offre').fill('28000');
     await btn(a, 'Envoyer la proposition').click();
-    await expect(a.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible();
+    await expect(a.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
     await expect(a.getByText('28 000 F CFA').last()).toBeVisible();
     await shot(a, DIR, 'A-price-offer-sent');
 
     await b.reload();
-    await expect(b.getByText('OFFRE DE PRIX', { exact: true }).last()).toBeVisible();
-    await btn(b, 'Contre-proposer').click();
+    await expect(b.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
+    await btn(b, 'Contre-offre').click();
     await field(b, 'Votre nouveau prix').fill('32000');
-    await btn(b, 'Envoyer la contre-proposition').click();
-    await expect(b.getByText('CONTRE-PROPOSITION', { exact: false }).first()).toBeVisible();
+    await btn(b, 'Envoyer la contre-offre').click();
+    await expect(b.getByText(/^· Contre-offre$/).filter({ visible: true }).first()).toBeVisible();
 
     await expect(a.getByText('32 000 F CFA').last()).toBeVisible({ timeout: 20_000 });
     await shot(a, DIR, 'A-counter-received');
@@ -137,6 +137,13 @@ test.describe.serial('Two-account social commerce journey', () => {
   });
 
   test('MKT-03 · A proposes a barter (A-owned item + XOF difference); B accepts', async () => {
+    // Pilot cut (c): the accepted price deal reserved B's item. A cancels it, which puts the item
+    // back on sale, before proposing the barter.
+    await btn(a, 'Annuler l’accord').click();
+    await a.getByPlaceholder('Motif').fill('Je préfère proposer un troc');
+    await btn(a, 'Confirmer').click();
+    await expect(a.getByText('Accord annulé', { exact: true }).last()).toBeVisible();
+
     // A lists an item to trade.
     await publishListing(a, { file: FIXTURE('bag.jpg'), title: A_ITEM, mode: 'Vente ou troc', price: '18000', category: 'Sacs & accessoires', condition: 'Comme neuf' });
     await expect(a.getByText('18 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
@@ -148,7 +155,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     await a.getByRole('radio', { name: /Moi/ }).click();
     await shot(a, DIR, 'A-barter-composer');
     await btn(a, 'Envoyer la proposition').click();
-    await expect(a.getByText('PROPOSITION DE TROC', { exact: true }).last()).toBeVisible();
+    await expect(a.getByText(/^· (Troc|Contre-offre)$/).last()).toBeVisible();
     await expect(a.getByText('Vous ajoutez 15 000 F CFA', { exact: true }).last()).toBeVisible();
 
     await b.reload();

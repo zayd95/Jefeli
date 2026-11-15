@@ -10,7 +10,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ArrowRight, Heart, MapPin, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Heart, MapPin, Gift, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ContentMenu } from '@/components/ContentMenu';
 import { PostMedia } from '@/components/PostMedia';
 import { PriceLabel } from '@/components/PriceLabel';
+import { ShareBoutiqueMoment, StatusCardButton } from '@/components/ShareBoutique';
 import { ShareToStatusSheet } from '@/components/ShareToStatus';
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
@@ -32,7 +33,7 @@ import type { ProductCard } from '@/lib/types';
 import { goBack } from '@/lib/nav';
 
 export default function ProductScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, first } = useLocalSearchParams<{ id: string; first?: string }>();
   const { userId } = useAuth();
   const q = useQuery({ queryKey: ['product', id], queryFn: () => fetchProduct(id ?? '') });
 
@@ -64,10 +65,10 @@ export default function ProductScreen() {
       </Screen>
     );
   }
-  return <ProductDetail product={q.data} isOwner={q.data.seller_id === userId} />;
+  return <ProductDetail product={q.data} isOwner={q.data.seller_id === userId} firstListing={first === '1'} />;
 }
 
-function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: boolean }) {
+function ProductDetail({ product, isOwner, firstListing }: { product: ProductCard; isOwner: boolean; firstListing?: boolean }) {
   const { userId } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
@@ -75,6 +76,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const { width } = useWindowDimensions();
   const [menu, setMenu] = useState(false);
   const [statusSheet, setStatusSheet] = useState(false);
+  // Pilot cut (e): the « Partage ta boutique » moment, once, after the seller's first listing.
+  const [moment, setMoment] = useState(!!firstListing && isOwner);
   const [busy, setBusy] = useState<string | null>(null);
   const [ctaHeight, setCtaHeight] = useState(140);
   const saved = useQuery({ queryKey: ['product-saved', product.id], queryFn: () => isProductSaved(userId ?? '', product.id), enabled: !!userId && !isOwner });
@@ -82,8 +85,10 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
   const category = categories.data?.find((c) => c.slug === product.category_slug);
   const seller = product.seller;
   const unavailable = product.status !== 'active';
-  const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade';
-  const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale';
+  // A gift (Wecci « Donner ») takes no offer: the taker writes to the giver.
+  const gift = product.listing_mode === 'give';
+  const canOffer = !isOwner && product.status === 'active' && product.listing_mode !== 'trade' && !gift;
+  const canTrade = !isOwner && product.status === 'active' && product.listing_mode !== 'sale' && !gift;
   const { desktop } = useLayout();
   const [contentW, setContentW] = useState(width);
   // Desktop (W1.4): gallery left, a fixed action panel right; one column below 940 px of content.
@@ -169,8 +174,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
           </View>
           {product.pinned_at ? (
             <View style={styles.pinned}>
-              <Pin size={13} color={colors.accentDeep} />
-              <Text variant="caption" weight="700" color={colors.accentDeep}>
+              <Pin size={13} color={colors.gold} />
+              <Text variant="caption" weight="700" color={colors.gold}>
                 Épinglé par le vendeur
               </Text>
             </View>
@@ -227,7 +232,8 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
             {[
               product.city ? { key: 'where', icon: MapPin, label: [product.neighborhood, product.city].filter(Boolean).join(', '), hint: 'Localisation approximative' } : null,
               { key: 'handover', icon: Truck, label: product.delivery_options.map((d) => DELIVERY_LABELS[d] ?? d).join(' · '), hint: product.delivery_notes || undefined },
-              wecci ? { key: 'trade', icon: Repeat, label: 'Wecci : le vendeur accepte les propositions d’échange', hint: undefined } : null,
+              wecci && !gift ? { key: 'trade', icon: Repeat, label: 'Troquer : le vendeur accepte les propositions d’échange', hint: undefined } : null,
+              gift ? { key: 'give', icon: Gift, label: 'Donner : cet article est offert. Écrivez au donneur pour le demander.', hint: undefined } : null,
             ]
               .filter((d): d is NonNullable<typeof d> => d !== null)
               .map((d, i) => (
@@ -280,6 +286,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
                 // W1.2: show it in photos and in your own voice, the article attached.
                 <Button label="Présenter cet article" variant="soft" icon={Mic} accessibilityLabel="Présenter cet article en photos et en voix" onPress={() => router.push(`/publish/post?product=${product.id}`)} />
               ) : null}
+              {product.status === 'active' || product.status === 'reserved' ? <StatusCardButton product={product} /> : null}
             <View style={styles.ctaRow}>
               {product.status === 'active' ? (
                 <>
@@ -347,6 +354,7 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         }}
       />
       <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
+      <ShareBoutiqueMoment visible={moment} onClose={() => setMoment(false)} product={product} seller={seller ?? null} />
     </>
   );
 
@@ -454,16 +462,17 @@ function ProductDetail({ product, isOwner }: { product: ProductCard; isOwner: bo
         }}
       />
       <ShareToStatusSheet visible={statusSheet} onClose={() => setStatusSheet(false)} target={{ productId: product.id }} />
+      <ShareBoutiqueMoment visible={moment} onClose={() => setMoment(false)} product={product} seller={seller ?? null} />
     </View>
   );
 }
 
-/** Lovable product chip: paper with a hairline; Wecci in night with a gold label. */
+/** Product chip: surface with a hairline; Wecci (troc) in mint, the one colour reserved for it. */
 function Chip({ label, wecci, warning }: { label: string; wecci?: boolean; warning?: boolean }) {
   return (
     <View style={[styles.chip, wecci && styles.chipWecci, warning && styles.chipWarning]}>
-      {wecci ? <Repeat size={11} color={colors.gold} strokeWidth={2.6} /> : null}
-      <Text variant="caption" weight={wecci ? '700' : '600'} color={wecci ? colors.gold : warning ? colors.warning : colors.textSecondary} style={{ fontSize: 11.5 }}>
+      {wecci ? <Repeat size={11} color={colors.wecci} strokeWidth={2.6} /> : null}
+      <Text variant="caption" weight={wecci ? '700' : '600'} color={wecci ? colors.wecci : warning ? colors.warning : colors.textSecondary} style={{ fontSize: 11.5 }}>
         {label}
       </Text>
     </View>
@@ -494,7 +503,7 @@ const styles = StyleSheet.create({
   dScroll: { width: '100%', maxWidth: 1180, alignSelf: 'center', paddingHorizontal: 32, paddingBottom: 48 },
   dToolbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md },
   dRow: { flexDirection: 'row', gap: 40, alignItems: 'flex-start' },
-  dMedia: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.night, alignItems: 'center' },
+  dMedia: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.mediaBackdrop, alignItems: 'center' },
   dPanel: { gap: spacing.md },
   dPanelSide: { width: 380, position: 'sticky' as never, top: 16 },
   dCard: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: 20, gap: 4 },
@@ -504,7 +513,7 @@ const styles = StyleSheet.create({
   sheet: { marginTop: -24, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, backgroundColor: colors.background, paddingHorizontal: 20, paddingTop: 20, gap: 4 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
-  chipWecci: { backgroundColor: colors.night, borderColor: colors.night },
+  chipWecci: { backgroundColor: colors.wecciSoft, borderColor: colors.wecciSoft },
   chipWarning: { backgroundColor: colors.warningSoft, borderColor: colors.warningSoft },
   pinned: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.sm },
   title: { marginTop: spacing.md, fontSize: 28, lineHeight: 33, color: colors.ink },
@@ -513,7 +522,7 @@ const styles = StyleSheet.create({
   detailList: { marginTop: 20, backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.md },
   detail: { flexDirection: 'row', gap: spacing.md, alignItems: 'center', paddingVertical: spacing.md },
   detailDivider: { borderTopWidth: 1, borderTopColor: colors.border },
-  detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.mintSoft, alignItems: 'center', justifyContent: 'center' },
+  detailIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center' },
   shareRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg },
   sharePill: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   safety: { flexDirection: 'row', gap: spacing.sm, marginTop: 20, padding: spacing.md, backgroundColor: colors.inkWash, borderRadius: 16 },

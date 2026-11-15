@@ -83,8 +83,11 @@ export function ChatView({ id, aboutParam, embedded = false }: { id: string; abo
   const other = conv.data?.members.find((m) => m.user_id !== me);
   const mine = conv.data?.members.find((m) => m.user_id === me);
   const otherName = other?.profile?.display_name ?? 'Membre';
-  const items = useMemo(() => messages.data?.pages.flat() ?? [], [messages.data]);
+  const all = useMemo(() => messages.data?.pages.flat() ?? [], [messages.data]);
+  // Waxaale (P1): a voice note attached to an offer plays inside its card, not as its own bubble.
+  const voiceByOffer = useMemo(() => new Map(all.filter((m) => m.kind === 'voice' && m.offer_id && !m.deleted_at).map((m) => [m.offer_id as string, m])), [all]);
   const offerById = useMemo(() => new Map((offers.data ?? []).map((o) => [o.id, o])), [offers.data]);
+  const items = useMemo(() => all.filter((m) => !(m.kind === 'voice' && m.offer_id && offerById.has(m.offer_id))), [all, offerById]);
   const agreementByOffer = useMemo(() => new Map((agreements.data ?? []).map((a) => [a.offer_id, a])), [agreements.data]);
   const lastMine = items.find((m) => m.sender_id === me && m.kind !== 'system');
 
@@ -186,7 +189,7 @@ export function ChatView({ id, aboutParam, embedded = false }: { id: string; abo
           ListFooterComponent={
             !messages.hasNextPage && !messages.isPending ? (
               <View style={styles.safety}>
-                <ShieldCheck size={16} color={dark.mint} />
+                <ShieldCheck size={16} color={dark.gold} />
                 <Text variant="caption" tone="fogSecondary" style={{ flex: 1 }}>
                   {PLATFORM_DISCLAIMER} Ne partagez jamais de codes reçus par SMS.
                 </Text>
@@ -202,7 +205,7 @@ export function ChatView({ id, aboutParam, embedded = false }: { id: string; abo
               if (!offer) return null;
               return (
                 <View style={[styles.offerRow, isMine ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}>
-                  <OfferCard offer={offer} me={me} agreement={agreementByOffer.get(offer.id)} otherName={otherName} />
+                  <OfferCard offer={offer} me={me} agreement={agreementByOffer.get(offer.id)} otherName={otherName} voice={voiceByOffer.get(offer.id)} />
                 </View>
               );
             }

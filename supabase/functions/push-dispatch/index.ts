@@ -19,6 +19,8 @@ const CATEGORY: Record<string, 'messages' | 'offers' | 'social' | 'live' | 'syst
   offer_accepted: 'offers',
   offer_rejected: 'offers',
   offer_withdrawn: 'offers',
+  offer_closed: 'offers',
+  agreement_handover: 'offers',
   agreement_completed: 'offers',
   agreement_canceled: 'offers',
   agreement_disputed: 'offers',
@@ -55,6 +57,10 @@ function copy(type: string, actor: string): { title: string; body: string } {
       return { title: 'Contre-proposition', body: `${actor} a répondu à votre proposition` };
     case 'offer_accepted':
       return { title: 'Proposition acceptée', body: `${actor} a accepté votre proposition` };
+    case 'offer_closed':
+      return { title: 'Article réservé', body: 'Un autre acheteur a conclu : votre proposition est close' };
+    case 'agreement_handover':
+      return { title: 'Remise proposée', body: `${actor} propose un lieu et une heure` };
     case 'live_started':
       return { title: `${actor} est en direct`, body: 'Rejoignez le live sur Jëfëli' };
     default:
@@ -62,7 +68,10 @@ function copy(type: string, actor: string): { title: string; body: string } {
   }
 }
 
-function deepLink(n: { type: string; entity_type: string | null; entity_id: string | null }): string {
+function deepLink(n: { type: string; entity_type: string | null; entity_id: string | null; data?: Record<string, unknown> | null }): string {
+  // Every offer / deal notification opens its chat (pilot cut c).
+  const chat = typeof n.data?.conversation_id === 'string' && /^[0-9a-f-]{36}$/i.test(n.data.conversation_id) ? n.data.conversation_id : null;
+  if (chat && (n.entity_type === 'offer' || n.entity_type === 'agreement')) return `/chat/${chat}`;
   switch (n.entity_type) {
     case 'conversation':
       return `/chat/${n.entity_id}`;
@@ -88,9 +97,9 @@ Deno.serve(async (req) => {
 
   if (!/^[0-9a-f-]{36}$/i.test(notification_id)) return json({ error: 'invalid_body' }, 400);
   const db = admin();
-  const n = await db.maybeOne<{ id: string; recipient_id: string; type: string; entity_type: string | null; entity_id: string | null; pushed_at: string | null; actor: { display_name?: string } | null }>(
+  const n = await db.maybeOne<{ id: string; recipient_id: string; type: string; entity_type: string | null; entity_id: string | null; data: Record<string, unknown> | null; pushed_at: string | null; actor: { display_name?: string } | null }>(
     'notifications',
-    `select=id,recipient_id,type,entity_type,entity_id,pushed_at,actor:profiles!notifications_actor_id_fkey(display_name)&id=eq.${notification_id}`,
+    `select=id,recipient_id,type,entity_type,entity_id,data,pushed_at,actor:profiles!notifications_actor_id_fkey(display_name)&id=eq.${notification_id}`,
   );
   if (!n || n.pushed_at) return json({ ok: true, skipped: 'missing_or_sent' });
 

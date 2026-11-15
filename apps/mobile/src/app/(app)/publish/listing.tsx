@@ -3,7 +3,7 @@
  *
  * - The cover comes first, rendered by the same media block as the article page (PostMedia), so
  *   the seller sees what buyers will see; the gallery reorders by dragging or with buttons.
- * - Name and price are written in large type on the window itself; Vendre · Wecci (troc) · Les deux.
+ * - Name and price are written in large type on the window itself; Vendre · Troquer · Les deux · Donner.
  * - « Présenter en voix »: the same full-screen studio as publications; with several photos the
  *   seller taps the one being described. The voice is stored with the article (product_media,
  *   kind 'audio'): no publication is created behind the seller's back.
@@ -48,7 +48,7 @@ import { PostMedia } from '@/components/PostMedia';
 import { ReorderStrip } from '@/components/ReorderStrip';
 import { Button, Chip, colors, Field, fonts, IconButton, InlineRetry, radius, Screen, Sheet, spacing, Text, Toggle, useToast, WEB_NO_OUTLINE } from '@/design';
 import { createPost } from '@/lib/api/posts';
-import { createListing, fetchCategories } from '@/lib/api/products';
+import { countMyListings, createListing, fetchCategories } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import { keepMediaForDraft, restoreDraftMedia } from '@/lib/draftFiles';
 import { discardDraft, useDraft, useDraftGate } from '@/lib/drafts';
@@ -59,8 +59,10 @@ import { keepForDraft, restoreVoice, uploadVoice, type NarrationCue, type Record
 
 const MODES: { key: ListingMode; label: string }[] = [
   { key: 'sale', label: 'Vendre' },
-  { key: 'trade', label: 'Wecci (troc)' },
+  { key: 'trade', label: 'Troquer' },
   { key: 'sale_or_trade', label: 'Les deux' },
+  // Pilot cut (f): Wecci « Donner » — the one mode where the article costs 0 F.
+  { key: 'give', label: 'Donner' },
 ];
 const PRICES: { key: PriceMode; label: string; a11y: string; hint: string }[] = [
   { key: 'fixed', label: 'Prix affiché', a11y: 'Prix affiché', hint: 'Le prix est visible par tous.' },
@@ -147,13 +149,14 @@ function ListingEditor({ continued }: { continued: boolean }) {
   const photos = v.media.filter((m) => m.kind === 'image');
   const hasVideo = v.media.some((m) => m.kind === 'video');
   const isTrade = v.mode === 'trade';
+  const isGift = v.mode === 'give';
   const price = parseXOF(v.price);
   // What is sent: no hidden price for « Sur demande »; trade listings may carry a value.
   const sentPrice = !isTrade && priceMode === 'on_request' ? null : price && price > 0 ? price : null;
   const errors = {
     media: v.media.length === 0 ? 'Ajoutez au moins une photo ou une vidéo.' : null,
     title: v.title.trim().length < 3 ? 'Donnez un nom (3 caractères minimum).' : null,
-    price: !isTrade && priceMode === 'fixed' && !sentPrice ? 'Indiquez un prix, ou choisissez « Sur demande » ou « À discuter ».' : null,
+    price: !isTrade && !isGift && priceMode === 'fixed' && !sentPrice ? 'Indiquez un prix, ou choisissez « Sur demande » ou « À discuter ».' : null,
     category: !v.category ? 'Choisissez une catégorie.' : null,
     city: !v.city.trim() ? 'Indiquez une ville.' : null,
     delivery: v.delivery.length === 0 ? 'Choisissez au moins un mode de remise.' : null,
@@ -261,8 +264,8 @@ function ListingEditor({ continued }: { continued: boolean }) {
         {
           title: v.title.trim(),
           description: v.description.trim(),
-          price_xof: sentPrice,
-          price_mode: isTrade ? 'fixed' : priceMode,
+          price_xof: isGift ? 0 : sentPrice,
+          price_mode: isTrade || isGift ? 'fixed' : priceMode,
           category_slug: v.category,
           condition: v.condition,
           listing_mode: v.mode,
@@ -292,7 +295,9 @@ function ListingEditor({ continued }: { continued: boolean }) {
       // Partial failure is said plainly: the article exists, the feed share did not go out.
       if (shared) toast('Article mis en vente dans votre boutique', 'success');
       else toast('Article publié dans votre boutique, mais le partage dans votre fil a échoué. Vous pourrez le partager depuis une publication.', 'error');
-      router.replace(`/p/${id}`);
+      // Pilot cut (e): the seller's first listing opens the « Partage ta boutique » moment.
+      const first = await countMyListings(userId).then((n) => n === 1).catch(() => false);
+      router.replace(first ? `/p/${id}?first=1` : `/p/${id}`);
     } catch (e) {
       // The draft is kept: nothing typed, picked or recorded is lost; « Réessayer » sends it again.
       const message = e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e);
@@ -409,7 +414,11 @@ function ListingEditor({ continued }: { continued: boolean }) {
 
         <View style={{ gap: 4 }}>
           <View style={styles.priceRow}>
-            {isTrade || priceMode !== 'on_request' ? (
+            {isGift ? (
+              <Text variant="callout" weight="700" style={{ flex: 1 }}>
+                Gratuit · à donner
+              </Text>
+            ) : isTrade || priceMode !== 'on_request' ? (
               <View style={styles.priceField}>
                 <TextInput
                   value={v.price}
@@ -429,7 +438,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
                 Aucun prix affiché : les acheteurs vous écrivent.
               </Text>
             )}
-            {!isTrade ? (
+            {!isTrade && !isGift ? (
               <Pressable onPress={() => setSheet('price')} style={styles.pill} accessibilityRole="button" accessibilityLabel={`Mode de prix : ${priceInfo.a11y}. Changer`}>
                 <Text variant="caption" weight="700">
                   {priceInfo.label}
@@ -440,7 +449,12 @@ function ListingEditor({ continued }: { continued: boolean }) {
           </View>
           {isTrade ? (
             <Text variant="caption" tone="secondary">
-              Wecci : pas de prix à indiquer. Une valeur aide à équilibrer un troc.
+              Troquer : pas de prix à indiquer. Une valeur aide à équilibrer un troc.
+            </Text>
+          ) : null}
+          {isGift ? (
+            <Text variant="caption" tone="secondary">
+              Donner : l’article part gratuitement. Les intéressés vous écrivent ; vous choisissez à qui le donner.
             </Text>
           ) : null}
           {err('price') ? (
@@ -452,7 +466,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
 
         {voice ? (
           <View style={styles.voiceRow}>
-            <Mic size={18} color={colors.accentDeep} />
+            <Mic size={18} color={colors.gold} />
             <Text variant="callout" weight="700" style={{ flex: 1 }} numberOfLines={2}>
               {`Votre présentation · ${voiceSummary(voice.language, voice.durationMs)}${voice.cues && voice.cues.length > 1 ? ' · visite guidée' : ''}`}
             </Text>
@@ -464,14 +478,14 @@ function ListingEditor({ continued }: { continued: boolean }) {
           <Pressable
             onPress={() => setStudio(true)}
             disabled={hasVideo}
-            style={({ pressed }) => [styles.present, hasVideo && { opacity: 0.5 }, pressed && { backgroundColor: colors.mintSoft }]}
+            style={({ pressed }) => [styles.present, hasVideo && { opacity: 0.5 }, pressed && { backgroundColor: colors.goldSoft }]}
             accessibilityRole="button"
             accessibilityLabel="Présenter l’article en voix"
             accessibilityHint={hasVideo ? 'La vidéo garde son propre son' : 'Facultatif. Les acheteurs écoutent avant d’écrire'}
             accessibilityState={{ disabled: hasVideo }}
           >
             <View style={styles.presentIcon}>
-              <Mic size={20} color={colors.night} />
+              <Mic size={20} color={colors.gold} />
             </View>
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">Présenter en voix</Text>
@@ -512,7 +526,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
-        <Button label={isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56, width: '100%', maxWidth: 640, alignSelf: 'center' }} />
+        <Button label={isGift ? 'Donner cet article' : isTrade ? 'Proposer en troc' : 'Mettre en vente'} variant="cta" size="lg" pill fullWidth onPress={publish} style={{ height: 56, width: '100%', maxWidth: 640, alignSelf: 'center' }} />
       </View>
 
       <VoiceStudio
@@ -537,7 +551,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
                   {p.hint}
                 </Text>
               </View>
-              {on ? <Check size={18} color={colors.accentDeep} /> : null}
+              {on ? <Check size={18} color={colors.gold} /> : null}
             </Pressable>
           );
         })}
@@ -551,7 +565,7 @@ function ListingEditor({ continued }: { continued: boolean }) {
               <Text variant="bodyStrong" style={{ flex: 1 }}>
                 {l.label}
               </Text>
-              {on ? <Check size={18} color={colors.accentDeep} /> : null}
+              {on ? <Check size={18} color={colors.gold} /> : null}
             </Pressable>
           );
         })}
@@ -627,14 +641,14 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.serifSemibold, fontSize: 28, lineHeight: 34, color: colors.ink, paddingVertical: 4 },
   segment: { flexDirection: 'row', padding: 4, borderRadius: radius.pill, backgroundColor: colors.surfaceSubtle, gap: 4 },
   segmentItem: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  segmentOn: { backgroundColor: colors.night },
+  segmentOn: { backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.gold },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56 },
   priceField: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: 6, borderBottomWidth: 2, borderBottomColor: colors.border },
   price: { flex: 1, minWidth: 0, fontFamily: fonts.extrabold, fontSize: 28, lineHeight: 36, color: colors.ink, paddingVertical: 4 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface },
-  present: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: 20, borderWidth: 1, borderColor: colors.mint, backgroundColor: colors.surface },
-  presentIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center' },
-  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: spacing.md, borderRadius: 18, borderWidth: 1, borderColor: colors.mint, backgroundColor: colors.mintSoft },
+  present: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: 20, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.surface },
+  presentIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.goldLine, alignItems: 'center', justifyContent: 'center' },
+  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: spacing.md, borderRadius: 18, borderWidth: 1, borderColor: colors.gold, backgroundColor: colors.goldSoft },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   detail: { minWidth: 96, maxWidth: '48%', flexGrow: 1, minHeight: 56, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, justifyContent: 'center' },
   group: { gap: spacing.sm },
@@ -642,7 +656,7 @@ const styles = StyleSheet.create({
   idle: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, height: 40 },
   chipOn: { backgroundColor: colors.night, height: 40 },
   choice: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, paddingHorizontal: spacing.sm, borderRadius: 12 },
-  choiceOn: { backgroundColor: colors.mintSoft },
+  choiceOn: { backgroundColor: colors.goldSoft },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   qtyBtn: { width: 44, height: 44, borderRadius: radius.md, borderWidth: 1, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface },
   footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: colors.glassLight, borderTopWidth: 1, borderTopColor: colors.border },

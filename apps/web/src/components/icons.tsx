@@ -28,7 +28,7 @@ function Icon({ title, children, ...props }: IconProps & { children: React.React
 export const IconVerified = (p: IconProps) => (
   <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden focusable="false" {...p}>
     <circle cx="12" cy="12" r="10" fill="currentColor" />
-    <path d="M7.8 12.3l2.8 2.8 5.6-5.8" fill="none" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M7.8 12.3l2.8 2.8 5.6-5.8" fill="none" stroke="var(--c-white)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 

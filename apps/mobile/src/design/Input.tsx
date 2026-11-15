@@ -43,7 +43,7 @@ export const Field = forwardRef<ComponentRef<typeof TextInput>, FieldProps>(func
         <TextInput
           ref={ref}
           placeholderTextColor={colors.textTertiary}
-          selectionColor={colors.accentDeep}
+          selectionColor={colors.gold}
           multiline={multiline}
           maxLength={maxLength}
           value={value}
@@ -105,7 +105,7 @@ export function SearchBar({
         onSubmitEditing={onSubmit}
         autoFocus={autoFocus}
         autoCorrect={false}
-        selectionColor={colors.accentDeep}
+        selectionColor={colors.gold}
         accessibilityLabel="Rechercher"
         style={styles.searchInput}
         editable={!onPress}

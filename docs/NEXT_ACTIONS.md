@@ -1,5 +1,30 @@
 # Next actions
 
+## Owner (now): pilot cut — `feature/pilot-cut` (draft PR, base `feature/p1-identity`)
+
+Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15 Nov:
+staging backup + the two P1 migrations + 44/44 hosted probes; PR #12 (v1 baseline) merged as
+4b65ce3; drafts #1–#10 closed with a pointer; PR #11 rebased onto `main`.
+
+Done 15 Nov (owner GO): the four pilot-cut migrations are on jefeli-staging (backup, 49/49 probes);
+full E2E 81/0/12; public share pages open without login; PR #13 merged to `main`, tag `v0.9.1-pilot`.
+
+Next for the owner: **EAS Android build for a test phone** — `docs/ANDROID_RELEASE.md` §0
+(`eas init`, EAS preview env vars, `eas build -p android --profile pilot-apk`, install the APK).
+
+Owner actions still open:
+1. **Create the tag `v0.9-baseline` on 4b65ce3** (GitHub › Releases › Draft a new release ›
+   tag `v0.9-baseline`, target 4b65ce3). The session's git proxy refuses tag pushes (HTTP 403).
+2. **jefeli-app production is behind Vercel protection** (you declined making it public). So the
+   « Ouvrir dans l'app » / « Faire une offre » links of the public share pages reach a Vercel
+   login for visitors. Options: make jefeli-app production public (Vercel › jefeli-app ›
+   Settings › Deployment Protection › « Only Preview Deployments »), or keep it closed until the
+   Android build. Until then the web share pages themselves are public
+   (https://jefeli-web-habibjallow95-9380.vercel.app).
+3. Staging Auth URLs changed on 15 Nov (site URL = jefeli-app production; allow list + web
+   production + app preview wildcard). Previous state saved; say if you want it reverted.
+4. Play Console account ($25) when you are ready — not needed for the EAS config (item h).
+
 ## Owner (now): phone sign-up — `docs/PHONE_AUTH.md` (draft PR #7)
 
 1. Approve (or change) the SMS provider: Orange SMS API Sénégal behind our hook, about 10–20 F per

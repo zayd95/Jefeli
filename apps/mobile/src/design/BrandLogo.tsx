@@ -9,7 +9,7 @@ import { colors } from './theme';
 
 type Props = { height: number; color?: string; accessibilityLabel?: string };
 
-export function BrandLogo({ height, color = colors.mint, accessibilityLabel = 'Jëfëli' }: Props) {
+export function BrandLogo({ height, color = colors.logoMint, accessibilityLabel = 'Jëfëli' }: Props) {
   return (
     <Svg width={height * LOGO.aspect} height={height} viewBox={LOGO.viewBox} accessibilityLabel={accessibilityLabel} accessibilityRole="image">
       <Path d={LOGO.letters} fill={color} fillRule="evenodd" />
@@ -18,7 +18,7 @@ export function BrandLogo({ height, color = colors.mint, accessibilityLabel = 'J
   );
 }
 
-export function BrandMark({ height, color = colors.mint, accessibilityLabel = 'Jëfëli' }: Props) {
+export function BrandMark({ height, color = colors.gold, accessibilityLabel = 'Jëfëli' }: Props) {
   return (
     <Svg width={height * MARK.aspect} height={height} viewBox={MARK.viewBox} accessibilityLabel={accessibilityLabel} accessibilityRole="image">
       <Path d={MARK.j} fill={color} />
