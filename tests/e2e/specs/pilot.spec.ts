@@ -7,7 +7,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-import { btn, DEVICES, field, FIXTURE, newDevice, publishListing, runId, shot, signIn, signUp } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, publishListing, runId, shot, signIn, signUp, WEB_URL } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -149,4 +149,33 @@ test('PC-C1 · accept reserves the item, closes the other offer, handover, notif
   await shot(s, DIR, 'c5-seller-agreement-handover');
 
   await Promise.all([cs.close(), c1.close(), c2.close()]);
+});
+
+/**
+ * PC-D1 From the public web article page (apps/web, no login wall), « Faire une offre » opens the
+ * offer form of the app: a visitor without an account signs up, comes back to that offer, and
+ * sends it. (With the Android app installed, the same https link opens the app: App Links,
+ * apps/mobile/app.json › android.intentFilters — not testable in a browser.)
+ */
+test('PC-D1 · web article page « Faire une offre » → sign-up → back on the offer → sent', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const { ctx: seed, page: s } = await newDevice(browser, DEVICES.iphone15ProMax);
+  const article = await demoArticle(s);
+  await seed.close();
+
+  const { ctx, page } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await page.goto(`${WEB_URL}/p/${article.id}`);
+  const offer = page.getByTestId('web-make-offer');
+  await expect(offer).toBeVisible();
+  await expect(offer).toHaveAttribute('href', new RegExp(`/offer/${article.id}$`));
+  await shot(page, DIR, 'd1-web-article-offer-button');
+  await offer.click();
+  await expect(page).toHaveURL(new RegExp(`/offer/${article.id}`));
+  await signUpFromWall(page, { name: `Acheteur Web ${RUN}`, email: `web-${RUN}@e2e.jefeli.test`, handle: `web_${RUN}` });
+  await expect(page).toHaveURL(new RegExp(`/offer/${article.id}`), { timeout: 30_000 });
+  await field(page, 'Votre offre').fill('1000');
+  await btn(page, 'Envoyer la proposition').click();
+  await expect(page.getByText(/^· Offre$/).last()).toBeVisible();
+  await shot(page, DIR, 'd2-offer-sent-after-signup');
+  await ctx.close();
 });

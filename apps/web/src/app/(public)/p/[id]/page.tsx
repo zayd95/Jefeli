@@ -164,6 +164,23 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="cta-block cta-sticky">
+            {isAvailable ? (
+              // Pilot cut (d): straight to the offer form. The app opens it when installed (Android
+              // App Links on the app host); otherwise the web app asks to sign up, then comes back
+              // to this offer (apps/mobile/src/lib/returnTo.ts).
+              <div className="offer-row">
+                {product.listing_mode !== 'trade' ? (
+                  <a className="btn btn-outline" href={appLinks.offer(product.id)} data-testid="web-make-offer">
+                    Faire une offre
+                  </a>
+                ) : null}
+                {product.listing_mode !== 'sale' ? (
+                  <a className="btn btn-outline" href={appLinks.offer(product.id, 'barter')} data-testid="web-propose-trade">
+                    Proposer un troc
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
             <OpenInApp
               href={appLinks.product(product.id)}
               label={

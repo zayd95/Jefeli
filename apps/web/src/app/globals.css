@@ -169,6 +169,8 @@ button { font: inherit; color: inherit; }
 .btn-dark:hover { background: var(--c-surface-muted); }
 .btn-outline { background: var(--c-surface); color: var(--c-ink); border-color: var(--c-border-strong); }
 .btn-outline:hover { border-color: var(--c-text-secondary); }
+.offer-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.offer-row .btn { flex: 1; }
 .btn-ghost { background: transparent; color: var(--c-ink); }
 .btn-ghost:hover { background: var(--c-surface-subtle); }
 .btn-danger { background: var(--c-danger); color: var(--c-white); }

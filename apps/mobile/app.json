@@ -30,7 +30,39 @@
         "CAMERA",
         "RECORD_AUDIO"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "jefeli-app-habibjallow95-9380.vercel.app",
+              "pathPrefix": "/p/"
+            },
+            {
+              "scheme": "https",
+              "host": "jefeli-app-habibjallow95-9380.vercel.app",
+              "pathPrefix": "/offer/"
+            },
+            {
+              "scheme": "https",
+              "host": "jefeli-app-habibjallow95-9380.vercel.app",
+              "pathPrefix": "/u/"
+            },
+            {
+              "scheme": "https",
+              "host": "jefeli-app-habibjallow95-9380.vercel.app",
+              "pathPrefix": "/post/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "output": "single",
