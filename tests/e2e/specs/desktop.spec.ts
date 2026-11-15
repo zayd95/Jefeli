@@ -244,12 +244,13 @@ test.describe.serial('W1.4 desktop web', () => {
     await btn(b, 'Envoyer la proposition').click();
     await expect(b.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible();
 
-    // The seller accepts from their own desktop workspace (one pending proposal per article).
+    // The seller answers from their own desktop workspace (one pending proposal per article). They refuse
+    // here: an accepted offer reserves the article (Waxaale), and a reserved article takes no further proposal.
     await s.goto('/messages');
     await s.getByText(B.name).first().click();
     await expect(s.getByText(/^· (Offre|Contre-offre)$/).last()).toBeVisible({ timeout: 30_000 });
-    await btn(s, 'Accepter').first().click();
-    await expect(btn(s, 'Voir l’accord').first()).toBeVisible();
+    await btn(s, 'Refuser').first().click();
+    await expect(s.getByText('Proposition refusée').first()).toBeVisible();
 
     await b.goto(productUrl);
     await btn(b, 'Proposer un échange (troc)').click();
@@ -265,7 +266,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await expect(context).toBeVisible();
     await expect(context.getByText(ARTICLE).first()).toBeVisible();
     await expect(context.getByText(/^Offre de prix · 22\s000\sF\sCFA/)).toBeVisible();
-    await expect(context.getByText(/^Wecci \(troc\) · 5\s000\sF\sCFA/)).toBeVisible();
+    await expect(context.getByText(/^Troquer · 5\s000\sF\sCFA/)).toBeVisible();
     await shot(b, DIR, 'B-desktop-messages-workspace');
 
     // Below 1100 px the context pane folds away; the thread stays.
