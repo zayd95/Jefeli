@@ -30,7 +30,7 @@ the admin pages and desktop are all dark.
   (a toggle is a raised track with a gold thumb); secondary and repeated buttons (« Suivre »,
   « Écrire à … », « Publier » on the profile, « Voir l'accord ») = outline; the Waxaale card header is
   a raised band with a small gold tag. « Filled » = a gold background with a smaller side ≥ 28 px;
-  badges, dots and underlines below that are markers. `tests/e2e/specs/gold-budget.spec.ts` visits
+  badges, dots and underlines below that are markers. `tests/e2e/specs/zz-gold-budget.spec.ts` visits
   31 app screens and 5 web pages at 390 px and fails above one; the 15 Nov before/after lists and
   sheets are in `docs/evidence/p1-identity/gold-budget/`.
 - **Photos read true:** every container that shows a photo or video uses `colors.mediaBackdrop`

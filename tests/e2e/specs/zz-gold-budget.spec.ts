@@ -136,7 +136,7 @@ test.describe('gold budget', () => {
 
     for (const s of SCREENS) {
       const page = s.as === 'buyer' ? buyer?.page : fatou.page;
-      if (!page || s.path.includes('undefined') || s.path.endsWith('/undefined')) {
+      if (!page || s.path.includes('undefined') || (s.path.length > 1 && s.path.endsWith('/'))) {
         console.log(`GOLD skipped ${s.name} (no data)`);
         continue;
       }

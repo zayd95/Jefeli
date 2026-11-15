@@ -673,3 +673,19 @@ Owner brief « Step P1: identity sprint and the four pillars » (Wecci, Waxaale,
   and contrast), integration 327/327, E2E 72 passed / 0 failed / 10 skipped.
 - **Evidence:** `docs/evidence/p1-identity/consistency/` (10 screens × 390 / 1440 px, before / after,
   plus `nunito-accents-400-900.png`).
+
+### Pilot cut a–h — branch `feature/pilot-cut` (15 Nov, draft PR #13, base `feature/p1-identity`)
+- **a** Share pages on the free Vercel production URL (jefeli-web, from `main`): anonymous 200 with OG tags (`docs/evidence/pilot-cut/a-share-page-production.md`). jefeli-app production stays behind Vercel protection (owner declined making it public).
+- **b** `lib/returnTo.ts`: after sign-up / sign-in and onboarding the member returns to the article or offer they opened (allow-listed internal paths, 24 h). E2E PC-B1, PC-B2.
+- **c** Migration `20261115000100` (local): accepting an offer reserves the item (both in a barter), closes competing offers (buyers told, `offer_closed`), « Remise » step (`set_agreement_handover`), completed → sold, cancelled → back on sale, every offer/agreement notification carries `conversation_id` (in-app + push deep link to the chat). Integration 22 (9 tests), E2E PC-C1.
+- **d** « Faire une offre » / « Proposer un troc » on the public article page → `/offer/<id>`; Android App Links in `app.json` + `.well-known/assetlinks.json` written only from the real signing SHA-256 (`ANDROID_CERT_SHA256`). E2E PC-D1.
+- **e** « Partage ta boutique » moment after the first listing; 9:16 WhatsApp status card (`apps/web/.../status-card`, next/og, Nunito OFL) shared via the share sheet / download. E2E PC-E1.
+- **f** Wecci « Donner » (migrations `20261115000200/300`, price 0 only in this mode, no offer on a gift); swap mode renamed « Troquer ». Integration 23, E2E PC-F1.
+- **g** « Jëf lite »: `member_level` (read-only levels from completed sales + swaps, no balance) and the 24 h « Nouveau » exposure of a first listing (migration `20261115000400`). Integration 24 (7 tests), E2E PC-G1.
+- **h** EAS `pilot-internal` (AAB), `pilot-apk`, submit `internal` (draft); schema-validated; nothing built or submitted (`docs/ANDROID_RELEASE.md` § 0).
+- All four migrations are **local only**; the Vercel previews of PR #13 stop at the staging schema check until the owner's go.
+
+### Visual addendum, 15 Nov — canvas B, gold budget, CLAUDE.md
+- **1a** Canvas `#0B1311` (owner picked variant B after the A/B/C test in `docs/evidence/p1-identity/canvas-test/`); new `palette.media` / `colors.mediaBackdrop` behind every photo container (app and web); green surfaces kept for headers, sheets, raised panels. Contrast re-run: 19/19 pass (red icons 4.5:1 on the new canvas).
+- **1b** Gold budget (one filled gold element per screen): measured by `tests/e2e/specs/zz-gold-budget.spec.ts` on 31 app screens + 5 web pages at 390 px; 10 screens were over budget, 0 after. Fix list and before/after sheets: `docs/evidence/p1-identity/gold-budget/`.
+- **3** `CLAUDE.md` and the authoritative top of `docs/DESIGN_SYSTEM.md` now describe the system (tokens only, Nunito, three accents, gold budget, neutral photo backdrops).

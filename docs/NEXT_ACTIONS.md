@@ -6,6 +6,8 @@ Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15
 staging backup + the two P1 migrations + 44/44 hosted probes; PR #12 (v1 baseline) merged as
 4b65ce3; drafts #1–#10 closed with a pointer; PR #11 rebased onto `main`.
 
+Owner decision needed: **go to apply the four pilot-cut migrations to jefeli-staging** (`20261115000100`, `…200`, `…300`, `…400`; backup first, then hosted probes) so the PR #13 Vercel previews build. Until then they stay red on the schema check.
+
 Owner actions still open:
 1. **Create the tag `v0.9-baseline` on 4b65ce3** (GitHub › Releases › Draft a new release ›
    tag `v0.9-baseline`, target 4b65ce3). The session's git proxy refuses tag pushes (HTTP 403).

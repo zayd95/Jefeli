@@ -4,7 +4,7 @@ Règle : **un seul élément rempli d'or par écran** (l'action principale). Tou
 petit marqueur : onglet actif, Jëf, étiquette Waxaale, filet.
 
 ## Méthode (mesurée, pas à l'œil)
-`tests/e2e/specs/gold-budget.spec.ts` parcourt **31 écrans de l'app à 390 px** (visiteur, membre DÉMO,
+`tests/e2e/specs/zz-gold-budget.spec.ts` parcourt **31 écrans de l'app à 390 px** (visiteur, membre DÉMO,
 acheteur d'un accord ouvert ; feuilles « + » et « Filtres » ouvertes) et **5 pages web publiques**.
 Un « élément rempli d'or » = un fond à la valeur du token `gold` (ou `goldPressed`), dont le petit côté
 mesure **≥ 28 px** (boutons, chips sélectionnées, bandeaux, « + »). Les pastilles, points et filets

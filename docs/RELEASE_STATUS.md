@@ -41,6 +41,8 @@
   as market aisles with the « Je cherche » empty state). Two **local-only** migrations
   (`20261114000100`, `20261114000200`): staging unchanged, so the PR's Vercel previews stay red on
   the schema check until the owner's go. **Not merged, not deployed.**
+- **Pilot cut a–h (15 Nov), draft PR #13 → `feature/p1-identity`:** share pages on the free Vercel URL, return to the article after sign-up, Waxaale reservation + handover + chat deep links, web « Faire une offre », « Partage ta boutique » + WhatsApp status card, « Donner » / « Troquer », « Jëf lite » + 24 h « Nouveau », EAS internal-testing config (nothing built or submitted). Four **local-only** migrations (`20261115000100`–`400`); staging unchanged, so the previews stay red on the schema check until the owner's go. Baseline merged into `main` (PR #12, 4b65ce3); tag `v0.9-baseline` still to be created by the owner (git proxy refuses tags).
+- **Visual addendum (15 Nov):** canvas `#0B1311`, neutral photo backdrops, one filled gold element per screen (measured, 10 → 0 screens over budget), `CLAUDE.md` updated.
 - **P1 addendum — one visual system (15 Nov), PR #11:** dark everywhere (white Explorer reversed),
   three accents with one job each, Nunito only, cards 20 / pills / no shadows; no colour outside
   `tokens.ts` (guard test), WCAG AA pairs checked (19/19). Clean local run: check pass (54),
