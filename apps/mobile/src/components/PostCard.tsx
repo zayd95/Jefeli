@@ -17,7 +17,7 @@ import { Bookmark, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'luci
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Avatar, colors, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
+import { Avatar, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';

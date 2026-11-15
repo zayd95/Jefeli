@@ -1,6 +1,6 @@
 # Jëfëli — design system
 
-## One visual system (owner, 14 Nov 2026 — P1 addendum). Authoritative.
+## One visual system (owner, 14 Nov 2026 — P1 addendum; adjusted 15 Nov 2026). Authoritative.
 
 **This section supersedes everything below, including the 12 Nov « Explorer stays white »
 decision.** Like ProPulse, every screen uses one dark background, one action colour, one highlight
@@ -11,10 +11,11 @@ the admin pages and desktop are all dark.
 
 | Role | Token | Value | Used for — and nothing else |
 |---|---|---|---|
-| Canvas | `colors.background` / `palette.canvas` | `#061D18` | every page background |
-| Surface | `colors.surface` | `#0B2922` | cards, panels, fields |
+| Canvas | `colors.background` / `palette.canvas` | `#0B1311` | every page background: near-black with a slight green (owner choice B, 15 Nov 2026; `#000000` and the former `#061D18` were compared in `docs/evidence/p1-identity/canvas-test/`) |
+| **Media backdrop** | `palette.media` / `colors.mediaBackdrop` | `#0B1311` | behind every photo, video, thumbnail, gallery slide and loading state — neutral, never a tinted green, so product photos read true |
+| Surface | `colors.surface` | `#0B2922` | headers, sheets, cards, panels, fields, brand moments (the green stays here) |
 | Raised | `colors.raised` / `dark.raised` | `#12382F` | raised rows, own chat bubbles, active rows |
-| **Gold — action** | `colors.gold` / `primary`, `onPrimary` `#0A2922` | `#EFBD38` | every action and active state (primary buttons, active tab, « + », Waxaale offers, links) and everything Jëf |
+| **Gold — action** | `colors.gold` / `primary`, `onPrimary` `#0A2922` | `#EFBD38` | the primary action (one filled element per screen) and, as small markers only, the active tab, Jëf, the Waxaale tag, hairlines and selected-state borders — see « Gold budget » |
 | **Mint — Wecci** | `colors.wecci`, `wecciSoft` | `#7ED8BD` | Wecci (troc) badges and chips, discovery tags (feed eyebrows, Accueil chips, aisle icons, profile interests) |
 | **Red — attention** | `colors.red` / `danger` | `#DB4A35` | unread badges, favourites, error borders and icons |
 | Live | `colors.live` | `#D93A44` | only a real « EN DIRECT » |
@@ -22,6 +23,19 @@ the admin pages and desktop are all dark.
 | Logo | `palette.logoMint` | `#A3E4D7` | the « Jëfëli. » letters only (brand assets unchanged) |
 
 - The `light` token set and every « paper » variant are gone.
+- **Gold budget (owner, 15 Nov 2026): at most ONE filled gold element per screen — the primary
+  action** (on the tab screens it is the « + » in the dock). Every other use of gold is a small
+  marker: active tab, Jëf, Waxaale tag, hairline. Consequences, applied everywhere:
+  selected chips, toggles, segments, option rows and tiles = `raised` fill + gold border + ink text
+  (a toggle is a raised track with a gold thumb); secondary and repeated buttons (« Suivre »,
+  « Écrire à … », « Publier » on the profile, « Voir l'accord ») = outline; the Waxaale card header is
+  a raised band with a small gold tag. « Filled » = a gold background with a smaller side ≥ 28 px;
+  badges, dots and underlines below that are markers. `tests/e2e/specs/gold-budget.spec.ts` visits
+  31 app screens and 5 web pages at 390 px and fails above one; the 15 Nov before/after lists and
+  sheets are in `docs/evidence/p1-identity/gold-budget/`.
+- **Photos read true:** every container that shows a photo or video uses `colors.mediaBackdrop`
+  (app `Thumb`, `ListingCard`, `Media`, galleries; web `.product-card-media`, `.gallery-*`,
+  `.post-media`, covers). Never `surface` or `raised`.
 - Error **text** is ink (red on the canvas is 4.2:1, below AA for small text): errors are marked by
   a red border or icon next to ink text. Red is never used for small text.
 - Translucent values (scrims, glass, media overlays) are tokens too (`colors.media*`, `dark.*`).
