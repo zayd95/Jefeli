@@ -45,14 +45,14 @@ isOneToOne: true
                   ]
                 },"agreements": {
                   Row: {
-                    "amount_xof": number,"buyer_completed_at": string | null,"buyer_id": string,"cash_payer": string | null,"close_reason": string | null,"closed_by": string | null,"conversation_id": string,"created_at": string,"id": string,"kind": string,"offer_id": string,"offered_product_id": string | null,"product_id": string | null,"seller_completed_at": string | null,"seller_id": string,"status": string,"terms": NonNullable<Json>,"updated_at": string
+                    "amount_xof": number,"buyer_completed_at": string | null,"buyer_id": string,"cash_payer": string | null,"close_reason": string | null,"closed_by": string | null,"conversation_id": string,"created_at": string,"handover_at": string | null,"handover_by": string | null,"handover_place": string | null,"handover_set_at": string | null,"id": string,"kind": string,"offer_id": string,"offered_product_id": string | null,"product_id": string | null,"seller_completed_at": string | null,"seller_id": string,"status": string,"terms": NonNullable<Json>,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_xof": number,"buyer_completed_at"?: string | null,"buyer_id": string,"cash_payer"?: string | null,"close_reason"?: string | null,"closed_by"?: string | null,"conversation_id": string,"created_at"?: string,"id"?: string,"kind": string,"offer_id": string,"offered_product_id"?: string | null,"product_id"?: string | null,"seller_completed_at"?: string | null,"seller_id": string,"status"?: string,"terms": NonNullable<Json>,"updated_at"?: string
+                    "amount_xof": number,"buyer_completed_at"?: string | null,"buyer_id": string,"cash_payer"?: string | null,"close_reason"?: string | null,"closed_by"?: string | null,"conversation_id": string,"created_at"?: string,"handover_at"?: string | null,"handover_by"?: string | null,"handover_place"?: string | null,"handover_set_at"?: string | null,"id"?: string,"kind": string,"offer_id": string,"offered_product_id"?: string | null,"product_id"?: string | null,"seller_completed_at"?: string | null,"seller_id": string,"status"?: string,"terms": NonNullable<Json>,"updated_at"?: string
                   }
                   Update: {
-                    "amount_xof"?: number,"buyer_completed_at"?: string | null,"buyer_id"?: string,"cash_payer"?: string | null,"close_reason"?: string | null,"closed_by"?: string | null,"conversation_id"?: string,"created_at"?: string,"id"?: string,"kind"?: string,"offer_id"?: string,"offered_product_id"?: string | null,"product_id"?: string | null,"seller_completed_at"?: string | null,"seller_id"?: string,"status"?: string,"terms"?: NonNullable<Json>,"updated_at"?: string
+                    "amount_xof"?: number,"buyer_completed_at"?: string | null,"buyer_id"?: string,"cash_payer"?: string | null,"close_reason"?: string | null,"closed_by"?: string | null,"conversation_id"?: string,"created_at"?: string,"handover_at"?: string | null,"handover_by"?: string | null,"handover_place"?: string | null,"handover_set_at"?: string | null,"id"?: string,"kind"?: string,"offer_id"?: string,"offered_product_id"?: string | null,"product_id"?: string | null,"seller_completed_at"?: string | null,"seller_id"?: string,"status"?: string,"terms"?: NonNullable<Json>,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -72,6 +72,12 @@ isOneToOne: false
       columns: ["conversation_id"]
 isOneToOne: false
       referencedRelation: "conversations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "agreements_handover_by_fkey"
+      columns: ["handover_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "agreements_offer_id_fkey"
@@ -1500,6 +1506,9 @@ isOneToOne: false
       } },
 "send_friend_request":
 { Args: { "p_target": string }; Returns: string
+                           },
+"set_agreement_handover":
+{ Args: { "p_agreement_id": string,"p_at": string,"p_place": string }; Returns: undefined
                            },
 "set_listing_media":
 { Args: { "p_media": Json,"p_product_id": string }; Returns: undefined

@@ -13,7 +13,9 @@ import { Thumb } from '../Media';
 import { VoiceMessage } from './VoiceMessage';
 
 export const SYSTEM_COPY: Record<string, string> = {
-  offer_accepted: 'Proposition acceptée. Un accord a été enregistré : convenez du lieu et du paiement entre vous.',
+  offer_accepted: 'Proposition acceptée. L’article est réservé : fixez la remise dans l’accord.',
+  offer_closed: 'L’article a été réservé pour un autre acheteur. Cette proposition est close.',
+  agreement_handover: 'Remise proposée : lieu et heure dans l’accord.',
   offer_rejected: 'Proposition refusée.',
   offer_withdrawn: 'Proposition retirée.',
   agreement_completed: 'Échange déclaré terminé par les deux membres.',

@@ -7,7 +7,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-import { btn, DEVICES, field, newDevice, runId, shot, signIn } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, publishListing, runId, shot, signIn, signUp } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -69,4 +69,84 @@ test('PC-B2 · an offer link from the web page lands on the offer form after sig
   await expect(page.getByText(article.title).first()).toBeVisible();
   await shot(page, DIR, 'b2-offer-form-after-signup');
   await ctx.close();
+});
+
+/**
+ * PC-C1 Waxaale — three members: the seller accepts one buyer's offer. The item is reserved, the
+ * other buyer is told and their notification opens their chat with the « réservé » line; the
+ * winning buyer's notification opens the chat, then the agreement, where they set the handover;
+ * the seller's handover notification opens the same chat.
+ */
+test('PC-C1 · accept reserves the item, closes the other offer, handover, notifications open the chat', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const S = { name: `Vendeuse Remise ${RUN}`, email: `rs-${RUN}@e2e.jefeli.test`, handle: `remise_s_${RUN}`, password: PASSWORD };
+  const B1 = { name: `Gagnant Remise ${RUN}`, email: `r1-${RUN}@e2e.jefeli.test`, handle: `remise_a_${RUN}`, password: PASSWORD };
+  const B2 = { name: `Second Remise ${RUN}`, email: `r2-${RUN}@e2e.jefeli.test`, handle: `remise_b_${RUN}`, password: PASSWORD };
+  const TITLE = `Radio remise ${RUN}`;
+  const { ctx: cs, page: s } = await newDevice(browser, DEVICES.iphone15ProMax);
+  const { ctx: c1, page: b1 } = await newDevice(browser, DEVICES.iphone15ProMax);
+  const { ctx: c2, page: b2 } = await newDevice(browser, DEVICES.iphone15ProMax);
+
+  await signUp(s, S);
+  await publishListing(s, { file: FIXTURE('shoe.jpg'), title: TITLE, mode: 'Vente', price: '30000', category: 'Chaussures', condition: 'Bon état' });
+  await expect(s.getByText('30 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
+  const productUrl = s.url();
+
+  for (const [page, who, amount] of [
+    [b1, B1, '27000'],
+    [b2, B2, '25000'],
+  ] as const) {
+    await signUp(page, who);
+    await page.goto(productUrl);
+    await btn(page, 'Faire une offre').click();
+    await field(page, 'Votre offre').fill(amount);
+    await btn(page, 'Envoyer la proposition').click();
+    await expect(page.getByText(/^· Offre$/).last()).toBeVisible();
+  }
+
+  // The seller accepts B1's offer from the chat.
+  await s.goto('/messages');
+  await s.getByRole('button', { name: new RegExp(`Conversation avec ${B1.name}`) }).click();
+  await btn(s, 'Accepter').first().click();
+  await expect(s.getByText(/L’article est réservé/).first()).toBeVisible();
+  await shot(s, DIR, 'c1-seller-accepted-item-reserved');
+
+  // B2: told, and the notification opens B2's own chat with the closed line.
+  await b2.goto('/notifications');
+  await b2.getByText(/est réservé pour un autre acheteur/).first().click();
+  await expect(b2).toHaveURL(/\/chat\/[0-9a-f-]{36}/);
+  await expect(b2.getByText('L’article a été réservé pour un autre acheteur. Cette proposition est close.').first()).toBeVisible();
+  await expect(b2.getByText('Article réservé par un autre').first()).toBeVisible();
+  await shot(b2, DIR, 'c2-other-buyer-offer-closed');
+  // …and the item no longer takes offers.
+  await b2.goto(productUrl);
+  await expect(b2.getByText('Réservé').first()).toBeVisible();
+  await expect(btn(b2, 'Faire une offre')).toHaveCount(0);
+
+  // B1: the acceptance notification opens the chat; the agreement holds the handover step.
+  await b1.goto('/notifications');
+  await b1.getByText(/a accepté votre proposition/).first().click();
+  await expect(b1).toHaveURL(/\/chat\/[0-9a-f-]{36}/);
+  await btn(b1, 'Voir l’accord').first().click();
+  const card = b1.getByTestId('handover-card');
+  await expect(card).toBeVisible();
+  await card.getByRole('button', { name: 'Demain', exact: true }).click();
+  await card.getByRole('button', { name: '18 h', exact: true }).click();
+  await field(b1, 'Lieu').fill('Station Total, VDN');
+  await shot(b1, DIR, 'c3-buyer-sets-handover');
+  await btn(b1, 'Proposer la remise').click();
+  await expect(card.getByText(/Vous l’avez proposé/)).toBeVisible();
+  await expect(card.getByText('Station Total, VDN')).toBeVisible();
+
+  // Seller: the handover notification opens the same chat, with the handover line.
+  await s.goto('/notifications');
+  await s.getByText(/propose la remise : Station Total, VDN/).first().click();
+  await expect(s).toHaveURL(/\/chat\/[0-9a-f-]{36}/);
+  await expect(s.getByText('Remise proposée : lieu et heure dans l’accord.').first()).toBeVisible();
+  await shot(s, DIR, 'c4-seller-handover-in-chat');
+  await btn(s, 'Voir l’accord').first().click();
+  await expect(s.getByTestId('handover-card').getByText(`Proposé par ${B1.name}.`)).toBeVisible();
+  await shot(s, DIR, 'c5-seller-agreement-handover');
+
+  await Promise.all([cs.close(), c1.close(), c2.close()]);
 });

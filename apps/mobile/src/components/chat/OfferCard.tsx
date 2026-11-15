@@ -96,7 +96,7 @@ export function OfferCard({
   const status = offer.status as OfferStatus;
   const expiresAt = new Date(offer.expires_at).getTime();
   const expired = status === 'pending' && expiresAt <= now;
-  const closed = expired || status === 'rejected' || status === 'withdrawn' || status === 'expired';
+  const closed = expired || status === 'rejected' || status === 'withdrawn' || status === 'expired' || status === 'closed';
   const step = waxaaleStep(status, agreement);
 
   async function run(key: string, fn: () => Promise<unknown>, ok: string, after?: () => void) {

@@ -40,6 +40,7 @@ const DB_ERRORS: Record<string, string> = {
   invalid_cash_payer: 'Indiquez qui paie la différence.',
   offer_pending: 'Vous avez déjà une proposition en attente pour cet article.',
   offer_expired: 'Cette proposition a expiré.',
+  invalid_handover: 'Indiquez un lieu (2 à 120 caractères) et un moment dans les 30 prochains jours.',
   offer_voice_exists: 'Cette proposition a déjà un message vocal.',
   messages_restricted: 'Ce membre n’accepte pas les messages de tout le monde.',
   attachment_required: 'Pièce jointe manquante.',

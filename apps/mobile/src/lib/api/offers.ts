@@ -70,6 +70,11 @@ export async function confirmAgreementCompleted(id: string): Promise<string> {
   return unwrap(await supabase.rpc('confirm_agreement_completed', { p_agreement_id: id })) as string;
 }
 
+/** Pilot cut (c): propose (or change) when and where the two members meet. */
+export async function setAgreementHandover(id: string, at: string, place: string) {
+  unwrap(await supabase.rpc('set_agreement_handover', { p_agreement_id: id, p_at: at, p_place: place }));
+}
+
 export async function closeAgreement(id: string, outcome: 'canceled' | 'disputed', reason: string) {
   unwrap(await supabase.rpc('close_agreement', { p_agreement_id: id, p_outcome: outcome, p_reason: reason }));
 }

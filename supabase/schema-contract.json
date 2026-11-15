@@ -24,7 +24,8 @@
     "20261112000100_phone_auth_sms_guard.sql",
     "20261113000100_explore_discovery.sql",
     "20261114000100_waxaale_voice_offer.sql",
-    "20261114000200_market_aisles.sql"
+    "20261114000200_market_aisles.sql",
+    "20261115000100_waxaale_reserve_handover.sql"
   ],
   "tables": {
     "account_settings": [
@@ -59,7 +60,11 @@
       "closed_by",
       "close_reason",
       "created_at",
-      "updated_at"
+      "updated_at",
+      "handover_at",
+      "handover_place",
+      "handover_by",
+      "handover_set_at"
     ],
     "appeals": [
       "id",
@@ -816,6 +821,13 @@
     "send_friend_request": [
       [
         "p_target"
+      ]
+    ],
+    "set_agreement_handover": [
+      [
+        "p_agreement_id",
+        "p_at",
+        "p_place"
       ]
     ],
     "set_listing_media": [

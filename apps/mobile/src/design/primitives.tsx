@@ -124,8 +124,12 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
   return <View style={[{ height: 1, backgroundColor: colors.border }, style]} />;
 }
 
-export function Card({ children, style, padded = true }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean }) {
-  return <View style={[styles.card, padded && { padding: spacing.lg }, style]}>{children}</View>;
+export function Card({ children, style, padded = true, testID }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean; testID?: string }) {
+  return (
+    <View testID={testID} style={[styles.card, padded && { padding: spacing.lg }, style]}>
+      {children}
+    </View>
+  );
 }
 
 /** Gold eyebrow: a short gold rule and a spaced uppercase label above an editorial heading. */

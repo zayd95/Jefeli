@@ -3,7 +3,7 @@
  */
 import { formatXOF } from './format';
 
-export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'countered' | 'withdrawn' | 'expired';
+export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'countered' | 'withdrawn' | 'expired' | 'closed';
 export type CashPayer = 'buyer' | 'seller' | null;
 
 export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
@@ -13,6 +13,7 @@ export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   countered: 'Contre-proposition faite',
   withdrawn: 'Retirée',
   expired: 'Expirée',
+  closed: 'Article réservé par un autre',
 };
 
 export const AGREEMENT_STATUS_LABELS: Record<string, string> = {

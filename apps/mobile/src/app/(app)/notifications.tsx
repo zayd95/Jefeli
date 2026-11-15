@@ -11,6 +11,10 @@ import { incomingFriendRequests } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 
 function targetFor(n: NotificationItem): string | null {
+  // Pilot cut (c): every offer / deal notification opens its chat (the offer card and the
+  // agreement are both reached from there).
+  const chat = typeof n.data?.conversation_id === 'string' ? n.data.conversation_id : null;
+  if (chat && (n.entity_type === 'offer' || n.entity_type === 'agreement')) return `/chat/${chat}`;
   switch (n.entity_type) {
     case 'post':
       return `/post/${n.entity_id}`;

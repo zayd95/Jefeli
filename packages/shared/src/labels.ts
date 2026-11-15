@@ -153,6 +153,8 @@ export const NOTIFICATION_COPY: Record<string, (actor: string, data: Record<stri
   offer_accepted: (a) => `${a} a accepté votre proposition`,
   offer_rejected: (a) => `${a} a refusé votre proposition`,
   offer_withdrawn: (a) => `${a} a retiré sa proposition`,
+  offer_closed: (_a, d) => `« ${String(d.product_title ?? 'L’article')} » est réservé pour un autre acheteur : votre proposition est close`,
+  agreement_handover: (a, d) => `${a} propose la remise : ${String(d.place ?? '')}`,
   agreement_completed: (a) => `Échange déclaré terminé avec ${a}`,
   agreement_canceled: (a) => `${a} a annulé l’accord`,
   agreement_disputed: (a) => `${a} a signalé un litige sur votre accord`,

@@ -137,6 +137,13 @@ test.describe.serial('Two-account social commerce journey', () => {
   });
 
   test('MKT-03 · A proposes a barter (A-owned item + XOF difference); B accepts', async () => {
+    // Pilot cut (c): the accepted price deal reserved B's item. A cancels it, which puts the item
+    // back on sale, before proposing the barter.
+    await btn(a, 'Annuler l’accord').click();
+    await a.getByPlaceholder('Motif').fill('Je préfère proposer un troc');
+    await btn(a, 'Confirmer').click();
+    await expect(a.getByText('Accord annulé', { exact: true }).last()).toBeVisible();
+
     // A lists an item to trade.
     await publishListing(a, { file: FIXTURE('bag.jpg'), title: A_ITEM, mode: 'Vente ou troc', price: '18000', category: 'Sacs & accessoires', condition: 'Comme neuf' });
     await expect(a.getByText('18 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
