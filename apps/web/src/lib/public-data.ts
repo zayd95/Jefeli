@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import { HANDLE_PATTERN } from '@jefeli/shared';
-import type { ItemCondition, ListingMode, PriceMode, ProductStatus } from '@jefeli/shared';
+import type { ItemCondition, ListingMode, MemberLevel, PriceMode, ProductStatus } from '@jefeli/shared';
 import { publicClient } from './supabase/public';
 
 /**
@@ -322,3 +322,10 @@ export function ratingAverage(sum: number, count: number): string | null {
   if (!count) return null;
   return (Math.round((sum / count) * 10) / 10).toFixed(1).replace('.', ',');
 }
+
+/** Pilot cut (g): the public « Jëf lite » level (read-only; null if unavailable). */
+export const getMemberLevel = cache(async (userId: string): Promise<MemberLevel | null> => {
+  const { data, error } = await publicClient().rpc('member_level', { p_user: userId });
+  if (error) return null;
+  return (data as unknown as MemberLevel | null) ?? null;
+});

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
+import { describeMemberLevel, formatCount, plural, shareUrls, timeAgo } from '@jefeli/shared';
 import { OpenInApp } from '@/components/OpenInApp';
 import { appLinks, opensInBrowser } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
@@ -19,6 +19,7 @@ import {
   ratingAverage,
   type PostRow,
   type PublicProfile,
+  getMemberLevel,
 } from '@/lib/public-data';
 
 export const revalidate = 60;
@@ -115,11 +116,12 @@ export default async function ProfilePage({ params }: Props) {
     );
   }
 
-  const [boutique, products, posts, reviews] = await Promise.all([
+  const [boutique, products, posts, reviews, level] = await Promise.all([
     getBoutique(profile.id),
     getSellerProducts(profile.id),
     getRecentPosts(profile.id),
     profile.rating_count > 0 ? getRecentReviews(profile.id) : Promise.resolve([]),
+    getMemberLevel(profile.id),
   ]);
 
   const average = ratingAverage(profile.rating_sum, profile.rating_count);
@@ -146,6 +148,11 @@ export default async function ProfilePage({ params }: Props) {
               <span>
                 {profile.rating_count} {plural(profile.rating_count, 'avis', 'avis')} après échanges déclarés terminés
               </span>
+            </p>
+          ) : null}
+          {level ? (
+            <p className="rating-line" data-testid="web-member-level">
+              <strong>Niveau · {describeMemberLevel(level)}</strong>
             </p>
           ) : null}
           <div className="profile-actions">

@@ -259,3 +259,31 @@ test('PC-F1 · « Donner »: 0 F gift, no offer, the taker writes; « Troquer »
   await shot(t, DIR, 'f3-web-page-a-donner');
   await Promise.all([cg.close(), ct.close()]);
 });
+
+/**
+ * PC-G1 Jëf lite: a new seller's first listing carries « NOUVEAU » in Explorer (first in its aisle
+ * for 24 h, server-side order) and the profile shows the public level, in the app and on the web.
+ */
+test('PC-G1 · first listing « NOUVEAU » in Explorer; public level on the profile (app + web)', async ({ browser }) => {
+  test.setTimeout(180_000);
+  const S = { name: `Nouvelle ${RUN}`, email: `nv-${RUN}@e2e.jefeli.test`, handle: `nouvelle_${RUN}`, password: PASSWORD };
+  const TITLE = `Lampe nouvelle ${RUN}`;
+  const { ctx, page } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await signUp(page, S);
+  await publishListing(page, { file: FIXTURE('bag.jpg'), title: TITLE, mode: 'Vente', price: '7000', category: 'Sacs & accessoires', condition: 'Bon état' });
+
+  const { ctx: cv, page: v } = await newDevice(browser, DEVICES.iphone15ProMax);
+  await signIn(v, 'fatou@demo.jefeli.test', 'Demo-jefeli-2026!');
+  await v.goto('/explore');
+  const card = v.getByTestId('listing-card').filter({ hasText: TITLE }).first();
+  await expect(card).toBeVisible();
+  await expect(card.getByText('NOUVEAU', { exact: true })).toBeVisible();
+  await shot(v, DIR, 'g1-explorer-nouveau-badge');
+
+  await v.goto(`/u/${S.handle}`);
+  await expect(v.getByTestId('member-level')).toContainText('Nouveau');
+  await shot(v, DIR, 'g2-profile-level');
+  await v.goto(`${WEB_URL}/${S.handle}`);
+  await expect(v.getByTestId('web-member-level')).toHaveText(/Niveau · Nouveau/);
+  await Promise.all([ctx.close(), cv.close()]);
+});

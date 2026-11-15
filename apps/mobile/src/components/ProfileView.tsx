@@ -10,13 +10,14 @@
  * Statuses, highlights, reviews, boutique details, privacy, friends, report and block stay
  * reachable (avatar ring, « Plus d'infos » and sheets, the ⋯ menu), on the same native APIs.
  */
-import { formatMemberSince, plural, timeAgo, toFrenchError, INTENT_LABELS, isPostIntent } from '@jefeli/shared';
+import { describeMemberLevel, formatMemberSince, MEMBER_LEVEL_HINT, plural, timeAgo, toFrenchError, INTENT_LABELS, isPostIntent } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
   ArrowLeft,
+  Award,
   Check,
   ChevronDown,
   ChevronRight,
@@ -47,6 +48,7 @@ import { fetchPinnedPosts, fetchUserPosts } from '@/lib/api/posts';
 import { fetchBoutique, fetchCategories, fetchSellerProducts } from '@/lib/api/products';
 import {
   cancelFriendRequest,
+  fetchMemberLevel,
   follow,
   getRelationship,
   removeFriend,
@@ -139,6 +141,8 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const interestLabel = (slug: string) => categories.data?.find((c) => c.slug === slug)?.name ?? slug;
   const boutiqueCategory = profile.boutique_category_slug ? interestLabel(profile.boutique_category_slug) : null;
   const avgRating = profile.rating_count > 0 ? profile.rating_sum / profile.rating_count : null;
+  // Pilot cut (g): « Jëf lite » public level (read-only; no balance).
+  const level = useQuery({ queryKey: ['member-level', profile.id], queryFn: () => fetchMemberLevel(profile.id), staleTime: 60_000 });
   const coverUri = avatarUrl(profile.cover_path);
   const coverHeight = Math.max(136, insets.top + 96);
 
@@ -381,6 +385,16 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
             {friendButton()}
           </View>
         )}
+
+        {level.data && !locked ? (
+          // Pilot cut (g): the public « Jëf lite » level, visible without opening the infos.
+          <View testID="member-level" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }} accessible accessibilityLabel={`Niveau : ${describeMemberLevel(level.data)}. ${MEMBER_LEVEL_HINT}`}>
+            <Award size={14} color={dark.textSecondary} strokeWidth={2.2} />
+            <Text variant="caption" weight="700" tone="fogSecondary" style={{ fontSize: 12.5 }}>
+              {describeMemberLevel(level.data)}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.infoToggleRow}>
           <Pressable onPress={() => setShowInfo((v) => !v)} aria-expanded={showInfo} accessibilityRole="button" hitSlop={{ top: 4, bottom: 4, right: 12 }} style={styles.infoToggle}>

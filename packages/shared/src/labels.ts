@@ -190,3 +190,24 @@ export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number]['key'];
 export function voiceLanguageLabel(key: string | null | undefined): string | null {
   return VOICE_LANGUAGES.find((l) => l.key === key)?.label ?? null;
 }
+
+/**
+ * Pilot cut (g) — « Jëf lite » levels (public, read-only, from exchanges both members declared done;
+ * supabase/migrations/20261115000400_jef_lite_levels.sql). Text only — never a check mark nor
+ * « vérifié » (merchant verification stays the only verification badge).
+ */
+export type MemberLevelKey = 'nouveau' | 'fiable' | 'confirme' | 'jambaar';
+export type MemberLevel = { level: 1 | 2 | 3 | 4; key: MemberLevelKey; deals: number; swaps: number; partners: number };
+export const MEMBER_LEVEL_LABELS: Record<MemberLevelKey, string> = {
+  nouveau: 'Nouveau',
+  fiable: 'Fiable',
+  confirme: 'Confirmé',
+  jambaar: 'Jambaar',
+};
+export const MEMBER_LEVEL_HINT =
+  'Niveau calculé à partir des échanges que les deux membres ont déclarés terminés (ventes et trocs), du nombre de partenaires différents et des avis. Jëfëli ne vérifie pas les transactions.';
+/** « Fiable · 4 échanges conclus » (or « Nouveau » with no exchange yet). */
+export function describeMemberLevel(l: MemberLevel): string {
+  const n = l.deals + l.swaps;
+  return n === 0 ? MEMBER_LEVEL_LABELS[l.key] : `${MEMBER_LEVEL_LABELS[l.key]} · ${n} échange${n > 1 ? 's' : ''} conclu${n > 1 ? 's' : ''}`;
+}

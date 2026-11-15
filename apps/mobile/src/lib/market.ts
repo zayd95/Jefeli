@@ -30,3 +30,8 @@ export function aisleCounts(aisle: Aisle, counts: { category_slug: string; artic
   const rows = counts.filter((c) => aisle.categories.includes(c.category_slug));
   return { articles: rows.reduce((n, r) => n + r.articles, 0), sellers: rows.reduce((n, r) => n + r.sellers, 0) };
 }
+
+/** Pilot cut (g): the 24 h « Nouveau » exposure of a new seller's first listing is still running. */
+export function hasNewSellerExposure(until: string | null | undefined, now: number = Date.now()): boolean {
+  return !!until && new Date(until).getTime() > now;
+}

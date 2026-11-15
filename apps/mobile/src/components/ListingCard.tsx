@@ -2,6 +2,8 @@ import { CONDITION_LABELS, formatListingPrice } from '@jefeli/shared';
 import { router } from 'expo-router';
 import { Gift, MapPin, Pin, Repeat } from 'lucide-react-native';
 import { memo } from 'react';
+
+import { hasNewSellerExposure } from '@/lib/market';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Avatar, colors, dark, DemoBadge, radius, spacing, Text, VerifiedBadge } from '@/design';
@@ -47,8 +49,12 @@ function ListingCardInner({
   const roomy = width >= 220; // desktop / tablet grid: larger radius and padding
   const imageH = Math.round(big ? (width * 11) / 16 : roomy ? width * 1.15 : width * 1.25);
   const where = product.neighborhood ?? product.city;
+  // Pilot cut (g): a new seller's first listing, shown first in its aisle for 24 h, says so.
+  const fresh = !pinned && hasNewSellerExposure(product.new_seller_until);
   const badge = pinned
     ? 'ÉPINGLÉ'
+    : fresh
+      ? 'NOUVEAU'
     : product.listing_mode === 'give'
       ? 'À DONNER'
       : product.listing_mode === 'trade'

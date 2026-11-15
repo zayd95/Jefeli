@@ -925,14 +925,14 @@ isOneToOne: false
                   ]
                 },"products": {
                   Row: {
-                    "category_slug": string,"city": string | null,"collection_id": string | null,"condition": Database["public"]['Enums']["item_condition"],"created_at": string,"delivery_notes": string,"delivery_options": (string)[],"description": string,"id": string,"listing_mode": Database["public"]['Enums']["listing_mode"],"moderation_status": Database["public"]['Enums']["moderation_state"],"neighborhood": string | null,"pinned_at": string | null,"price_mode": string,"price_xof": number | null,"quantity": number,"save_count": number,"search_text": string | null,"seller_id": string,"sold_at": string | null,"status": Database["public"]['Enums']["product_status"],"title": string,"updated_at": string
+                    "category_slug": string,"city": string | null,"collection_id": string | null,"condition": Database["public"]['Enums']["item_condition"],"created_at": string,"delivery_notes": string,"delivery_options": (string)[],"description": string,"id": string,"listing_mode": Database["public"]['Enums']["listing_mode"],"moderation_status": Database["public"]['Enums']["moderation_state"],"neighborhood": string | null,"new_seller_until": string | null,"pinned_at": string | null,"price_mode": string,"price_xof": number | null,"quantity": number,"save_count": number,"search_text": string | null,"seller_id": string,"sold_at": string | null,"status": Database["public"]['Enums']["product_status"],"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category_slug": string,"city"?: string | null,"collection_id"?: string | null,"condition"?: Database["public"]['Enums']["item_condition"],"created_at"?: string,"delivery_notes"?: string,"delivery_options"?: (string)[],"description"?: string,"id"?: string,"listing_mode"?: Database["public"]['Enums']["listing_mode"],"moderation_status"?: Database["public"]['Enums']["moderation_state"],"neighborhood"?: string | null,"pinned_at"?: string | null,"price_mode"?: string,"price_xof"?: number | null,"quantity"?: number,"save_count"?: number,"search_text"?: never,"seller_id": string,"sold_at"?: string | null,"status"?: Database["public"]['Enums']["product_status"],"title": string,"updated_at"?: string
+                    "category_slug": string,"city"?: string | null,"collection_id"?: string | null,"condition"?: Database["public"]['Enums']["item_condition"],"created_at"?: string,"delivery_notes"?: string,"delivery_options"?: (string)[],"description"?: string,"id"?: string,"listing_mode"?: Database["public"]['Enums']["listing_mode"],"moderation_status"?: Database["public"]['Enums']["moderation_state"],"neighborhood"?: string | null,"new_seller_until"?: string | null,"pinned_at"?: string | null,"price_mode"?: string,"price_xof"?: number | null,"quantity"?: number,"save_count"?: number,"search_text"?: never,"seller_id": string,"sold_at"?: string | null,"status"?: Database["public"]['Enums']["product_status"],"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "category_slug"?: string,"city"?: string | null,"collection_id"?: string | null,"condition"?: Database["public"]['Enums']["item_condition"],"created_at"?: string,"delivery_notes"?: string,"delivery_options"?: (string)[],"description"?: string,"id"?: string,"listing_mode"?: Database["public"]['Enums']["listing_mode"],"moderation_status"?: Database["public"]['Enums']["moderation_state"],"neighborhood"?: string | null,"pinned_at"?: string | null,"price_mode"?: string,"price_xof"?: number | null,"quantity"?: number,"save_count"?: number,"search_text"?: never,"seller_id"?: string,"sold_at"?: string | null,"status"?: Database["public"]['Enums']["product_status"],"title"?: string,"updated_at"?: string
+                    "category_slug"?: string,"city"?: string | null,"collection_id"?: string | null,"condition"?: Database["public"]['Enums']["item_condition"],"created_at"?: string,"delivery_notes"?: string,"delivery_options"?: (string)[],"description"?: string,"id"?: string,"listing_mode"?: Database["public"]['Enums']["listing_mode"],"moderation_status"?: Database["public"]['Enums']["moderation_state"],"neighborhood"?: string | null,"new_seller_until"?: string | null,"pinned_at"?: string | null,"price_mode"?: string,"price_xof"?: number | null,"quantity"?: number,"save_count"?: number,"search_text"?: never,"seller_id"?: string,"sold_at"?: string | null,"status"?: Database["public"]['Enums']["product_status"],"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -957,14 +957,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "adult_confirmed_at": string | null,"avatar_path": string | null,"bio": string,"boutique_category_slug": string | null,"boutique_name": string | null,"city": string | null,"cover_path": string | null,"created_at": string,"display_name": string,"followers_count": number,"following_count": number,"friends_count": number,"handle": string,"id": string,"interests": (string)[],"is_demo": boolean,"is_merchant": boolean,"is_private": boolean,"neighborhood": string | null,"onboarded_at": string | null,"posts_count": number,"products_count": number,"rating_count": number,"rating_sum": number,"status": Database["public"]['Enums']["account_status"],"updated_at": string,"verification_level": Database["public"]['Enums']["verification_level"]
+                    "adult_confirmed_at": string | null,"avatar_path": string | null,"bio": string,"boutique_category_slug": string | null,"boutique_name": string | null,"city": string | null,"cover_path": string | null,"created_at": string,"display_name": string,"first_listing_at": string | null,"followers_count": number,"following_count": number,"friends_count": number,"handle": string,"id": string,"interests": (string)[],"is_demo": boolean,"is_merchant": boolean,"is_private": boolean,"neighborhood": string | null,"onboarded_at": string | null,"posts_count": number,"products_count": number,"rating_count": number,"rating_sum": number,"status": Database["public"]['Enums']["account_status"],"updated_at": string,"verification_level": Database["public"]['Enums']["verification_level"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "adult_confirmed_at"?: string | null,"avatar_path"?: string | null,"bio"?: string,"boutique_category_slug"?: string | null,"boutique_name"?: string | null,"city"?: string | null,"cover_path"?: string | null,"created_at"?: string,"display_name": string,"followers_count"?: number,"following_count"?: number,"friends_count"?: number,"handle": string,"id": string,"interests"?: (string)[],"is_demo"?: boolean,"is_merchant"?: boolean,"is_private"?: boolean,"neighborhood"?: string | null,"onboarded_at"?: string | null,"posts_count"?: number,"products_count"?: number,"rating_count"?: number,"rating_sum"?: number,"status"?: Database["public"]['Enums']["account_status"],"updated_at"?: string,"verification_level"?: Database["public"]['Enums']["verification_level"]
+                    "adult_confirmed_at"?: string | null,"avatar_path"?: string | null,"bio"?: string,"boutique_category_slug"?: string | null,"boutique_name"?: string | null,"city"?: string | null,"cover_path"?: string | null,"created_at"?: string,"display_name": string,"first_listing_at"?: string | null,"followers_count"?: number,"following_count"?: number,"friends_count"?: number,"handle": string,"id": string,"interests"?: (string)[],"is_demo"?: boolean,"is_merchant"?: boolean,"is_private"?: boolean,"neighborhood"?: string | null,"onboarded_at"?: string | null,"posts_count"?: number,"products_count"?: number,"rating_count"?: number,"rating_sum"?: number,"status"?: Database["public"]['Enums']["account_status"],"updated_at"?: string,"verification_level"?: Database["public"]['Enums']["verification_level"]
                   }
                   Update: {
-                    "adult_confirmed_at"?: string | null,"avatar_path"?: string | null,"bio"?: string,"boutique_category_slug"?: string | null,"boutique_name"?: string | null,"city"?: string | null,"cover_path"?: string | null,"created_at"?: string,"display_name"?: string,"followers_count"?: number,"following_count"?: number,"friends_count"?: number,"handle"?: string,"id"?: string,"interests"?: (string)[],"is_demo"?: boolean,"is_merchant"?: boolean,"is_private"?: boolean,"neighborhood"?: string | null,"onboarded_at"?: string | null,"posts_count"?: number,"products_count"?: number,"rating_count"?: number,"rating_sum"?: number,"status"?: Database["public"]['Enums']["account_status"],"updated_at"?: string,"verification_level"?: Database["public"]['Enums']["verification_level"]
+                    "adult_confirmed_at"?: string | null,"avatar_path"?: string | null,"bio"?: string,"boutique_category_slug"?: string | null,"boutique_name"?: string | null,"city"?: string | null,"cover_path"?: string | null,"created_at"?: string,"display_name"?: string,"first_listing_at"?: string | null,"followers_count"?: number,"following_count"?: number,"friends_count"?: number,"handle"?: string,"id"?: string,"interests"?: (string)[],"is_demo"?: boolean,"is_merchant"?: boolean,"is_private"?: boolean,"neighborhood"?: string | null,"onboarded_at"?: string | null,"posts_count"?: number,"products_count"?: number,"rating_count"?: number,"rating_sum"?: number,"status"?: Database["public"]['Enums']["account_status"],"updated_at"?: string,"verification_level"?: Database["public"]['Enums']["verification_level"]
                   }
                   Relationships: [
                     {
@@ -1255,6 +1255,7 @@ isOneToOne: false
 "listing_mode": Database["public"]['Enums']["listing_mode"],
 "moderation_status": Database["public"]['Enums']["moderation_state"],
 "neighborhood": string | null,
+"new_seller_until": string | null,
 "pinned_at": string | null,
 "price_mode": string,
 "price_xof": number | null,
@@ -1320,6 +1321,7 @@ isOneToOne: false
 "listing_mode": Database["public"]['Enums']["listing_mode"],
 "moderation_status": Database["public"]['Enums']["moderation_state"],
 "neighborhood": string | null,
+"new_seller_until": string | null,
 "pinned_at": string | null,
 "price_mode": string,
 "price_xof": number | null,
@@ -1352,6 +1354,7 @@ isOneToOne: false
 "listing_mode": Database["public"]['Enums']["listing_mode"],
 "moderation_status": Database["public"]['Enums']["moderation_state"],
 "neighborhood": string | null,
+"new_seller_until": string | null,
 "pinned_at": string | null,
 "price_mode": string,
 "price_xof": number | null,
@@ -1416,6 +1419,9 @@ isOneToOne: false
               "articles": number,"category_slug": string,"sellers": number
             }[]
                            },
+"member_level":
+{ Args: { "p_user": string }; Returns: Json
+                           },
 "message_about_product":
 { Args: { "p_body"?: string,"p_product_id": string }; Returns: string
                            },
@@ -1479,6 +1485,7 @@ isOneToOne: false
 "cover_path": string | null,
 "created_at": string,
 "display_name": string,
+"first_listing_at": string | null,
 "followers_count": number,
 "following_count": number,
 "friends_count": number,
@@ -1550,6 +1557,7 @@ isOneToOne: false
 "listing_mode": Database["public"]['Enums']["listing_mode"],
 "moderation_status": Database["public"]['Enums']["moderation_state"],
 "neighborhood": string | null,
+"new_seller_until": string | null,
 "pinned_at": string | null,
 "price_mode": string,
 "price_xof": number | null,
