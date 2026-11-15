@@ -366,6 +366,13 @@ dépense, contrôle du solde disponible, des plafonds et du flag `jef_spend`). T
 
 ### 3.7 Niveaux vendeur (proposition)
 
+> **Pilote (« Jëf lite », construit le 15 nov.) :** mêmes niveaux, **sans les seuils en Jëf**
+> (aucun registre). Fiable = ≥ 3 échanges conclus (ventes + trocs) avec ≥ 2 partenaires, note ≥ 4,0
+> si ≥ 3 avis ; Confirmé = ≥ 10 / ≥ 6 partenaires, aucun signalement retenu depuis 90 j ; Jambaar =
+> ≥ 30 / ≥ 15, note ≥ 4,5 sur ≥ 10 avis, aucun signalement retenu depuis 180 j
+> (`supabase/migrations/20261115000400_jef_lite_levels.sql`, `member_level`). Libellé ⚑ « Jambaar »
+> à valider par les vendeurs pilotes.
+
 Calculés chaque nuit à partir de `lifetime_net_earned` (après reprises) **et** de compteurs réels,
 pour qu'on ne puisse pas monter de niveau avec des réponses rapides seules. Un niveau ne baisse
 pas avec les dépenses ; il baisse après une reprise ou un signalement retenu.

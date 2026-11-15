@@ -30,6 +30,17 @@ de push (toast in-app seulement).
 
 ---
 
+## 0. Coupe pilote (15 nov. 2026) — ce qui est construit, ce qui est différé
+
+Construit sur `feature/pilot-cut` (PR #13). **Les migrations restent locales** jusqu'au « go » de l'owner pour staging.
+
+| Pilier | Construit (pilote) | Différé |
+|---|---|---|
+| Wecci | Mode « Donner » (0 F permis dans ce seul mode, aucune offre possible) ; mode troc renommé « Troquer » ; « Je cherche » dans l'état vide des allées (P1) | Filtre « Dons » dans Explorer ; correspondances J'ai / Je veux ; Wecci Day (flag `ritual_wecci_day`, non construit) |
+| Waxaale | L'acceptation réserve l'article (les deux en troc) et clôt les offres concurrentes (acheteurs prévenus) ; étape « Remise » (lieu + heure) ; chaque notification d'offre ou d'accord ouvre la bonne discussion ; annulation → remis en vente ; échange terminé → vendu | Rappels de remise, expiration automatique d'un accord non conclu |
+| Boutique | Moment « Partage ta boutique » après la 1re annonce ; carte statut WhatsApp 9:16 en un geste ; pages web publiques (Vercel Hobby) avec « Faire une offre » | Boutique Pro, statistiques |
+| Jëf | « Jëf lite » : niveaux publics Nouveau → Fiable → Confirmé → Jambaar, en lecture seule, calculés sur les échanges conclus ; 24 h d'exposition « Nouveau » pour la 1re annonce | **Registre (ledger), solde, gains, dépenses, Boost : non construits** (§ 4 reste une spécification) |
+
 ## 1. Wecci — petites annonces entre particuliers
 
 ### 1.1 User stories
