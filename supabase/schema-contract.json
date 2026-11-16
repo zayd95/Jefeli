@@ -28,7 +28,8 @@
     "20261115000100_waxaale_reserve_handover.sql",
     "20261115000200_wecci_give_mode_enum.sql",
     "20261115000300_wecci_give_mode.sql",
-    "20261115000400_jef_lite_levels.sql"
+    "20261115000400_jef_lite_levels.sql",
+    "20261116000100_studio_reels.sql"
   ],
   "tables": {
     "account_settings": [
@@ -68,6 +69,12 @@
       "handover_place",
       "handover_by",
       "handover_set_at"
+    ],
+    "app_config": [
+      "key",
+      "value",
+      "description",
+      "updated_at"
     ],
     "appeals": [
       "id",
@@ -333,7 +340,9 @@
       "deleted_at",
       "intent",
       "upvote_count",
-      "pinned_at"
+      "pinned_at",
+      "in_feed",
+      "in_reels"
     ],
     "product_media": [
       "id",
@@ -676,6 +685,13 @@
         "p_other"
       ]
     ],
+    "get_reels": [
+      [
+        "p_limit",
+        "p_offset",
+        "p_start"
+      ]
+    ],
     "get_story_rail": [
       []
     ],
@@ -851,6 +867,13 @@
         "p_kind",
         "p_id",
         "p_pinned"
+      ]
+    ],
+    "set_post_surfaces": [
+      [
+        "p_post_id",
+        "p_in_feed",
+        "p_in_reels"
       ]
     ],
     "set_report_status": [

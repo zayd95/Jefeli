@@ -105,6 +105,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"app_config": {
+                  Row: {
+                    "description": string,"key": string,"updated_at": string,"value": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "description"?: string,"key": string,"updated_at"?: string,"value": NonNullable<Json>
+                  }
+                  Update: {
+                    "description"?: string,"key"?: string,"updated_at"?: string,"value"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"appeals": {
                   Row: {
                     "body": string,"created_at": string,"id": string,"moderation_action_id": string,"resolution_note": string | null,"resolved_at": string | null,"resolved_by": string | null,"status": string,"user_id": string
@@ -853,14 +867,14 @@ isOneToOne: false
                   ]
                 },"posts": {
                   Row: {
-                    "author_id": string,"body": string,"city": string | null,"comment_count": number,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"intent": string,"kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"pinned_at": string | null,"save_count": number,"updated_at": string,"upvote_count": number,"visibility": string
+                    "author_id": string,"body": string,"city": string | null,"comment_count": number,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"in_feed": boolean,"in_reels": boolean,"intent": string,"kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"pinned_at": string | null,"save_count": number,"updated_at": string,"upvote_count": number,"visibility": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
+                    "author_id": string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
                   }
                   Update: {
-                    "author_id"?: string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
+                    "author_id"?: string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
                   }
                   Relationships: [
                     {
@@ -1389,6 +1403,11 @@ isOneToOne: false
 "get_or_create_conversation":
 { Args: { "p_other": string }; Returns: string
                            },
+"get_reels":
+{ Args: { "p_limit"?: number,"p_offset"?: number,"p_start"?: string }; Returns: {
+              "post_id": string,"reason": string,"score": number
+            }[]
+                           },
 "get_story_rail":
 { Args: Record<PropertyKey, never>; Returns: {
               "author_id": string,"has_unseen": boolean,"latest_at": string,"story_count": number
@@ -1522,6 +1541,9 @@ isOneToOne: false
                            },
 "set_pinned":
 { Args: { "p_id": string,"p_kind": string,"p_pinned": boolean }; Returns: undefined
+                           },
+"set_post_surfaces":
+{ Args: { "p_in_feed": boolean,"p_in_reels": boolean,"p_post_id": string }; Returns: undefined
                            },
 "set_report_status":
 { Args: { "p_report_id": string,"p_status": string }; Returns: undefined
