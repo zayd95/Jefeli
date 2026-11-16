@@ -70,7 +70,13 @@ describe('P2 — Reel destinations', () => {
     const notReel = await videoPost(A, [], 'followers');
     const strangerReel = await videoPost(C);
     await rpc(C.client, 'set_post_surfaces', { p_post_id: strangerReel, p_in_feed: true, p_in_reels: true });
-    const list = await rpc<{ post_id: string; reason: string }[]>(B.client, 'get_reels', { p_limit: 20 });
+    // A shared local database can hold many Reels: read every page.
+    const list: { post_id: string; reason: string }[] = [];
+    for (let offset = 0; offset < 400; offset += 20) {
+      const page = await rpc<{ post_id: string; reason: string }[]>(B.client, 'get_reels', { p_limit: 20, p_offset: offset });
+      list.push(...page);
+      if (page.length < 20) break;
+    }
     const ids = list.map((r) => r.post_id);
     expect(ids).toContain(mine);
     expect(ids).toContain(strangerReel);
@@ -89,7 +95,12 @@ describe('P2 — Reel destinations', () => {
     await rpc(D.client, 'set_post_surfaces', { p_post_id: withProduct, p_in_feed: true, p_in_reels: true });
     const without = await videoPost(E);
     await rpc(E.client, 'set_post_surfaces', { p_post_id: without, p_in_feed: true, p_in_reels: true });
-    const list = await rpc<{ post_id: string; reason: string }[]>(C.client, 'get_reels', { p_limit: 20 });
+    const list: { post_id: string; reason: string }[] = [];
+    for (let offset = 0; offset < 400; offset += 20) {
+      const page = await rpc<{ post_id: string; reason: string }[]>(C.client, 'get_reels', { p_limit: 20, p_offset: offset });
+      list.push(...page);
+      if (page.length < 20) break;
+    }
     expect(list.find((r) => r.post_id === withProduct)?.reason).toBe('product');
     expect(list.findIndex((r) => r.post_id === withProduct)).toBeLessThan(list.findIndex((r) => r.post_id === without));
   });
@@ -99,7 +110,12 @@ describe('P2 — Reel destinations', () => {
     const reel = await videoPost(X);
     await rpc(X.client, 'set_post_surfaces', { p_post_id: reel, p_in_feed: true, p_in_reels: true });
     must(await C.client.from('blocks').insert({ blocker_id: C.id, blocked_id: X.id }));
-    const ids = (await rpc<{ post_id: string }[]>(C.client, 'get_reels', { p_limit: 20 })).map((r) => r.post_id);
+    const ids: string[] = [];
+    for (let offset = 0; offset < 400; offset += 20) {
+      const page = await rpc<{ post_id: string }[]>(C.client, 'get_reels', { p_limit: 20, p_offset: offset });
+      ids.push(...page.map((r) => r.post_id));
+      if (page.length < 20) break;
+    }
     expect(ids).not.toContain(reel);
   });
 });
@@ -177,8 +193,8 @@ describe('P2 — « Le garder en Reel ? »', () => {
     expect(copy.error).toBeNull();
     const id = await rpc<string>(S.client, 'create_post', { p_body: 'Arrivage', p_visibility: 'public', p_media: [videoMedia(hot.path)], p_product_ids: [] });
     await rpc(S.client, 'set_post_surfaces', { p_post_id: id, p_in_feed: false, p_in_reels: true });
-    const ids = (await rpc<{ post_id: string }[]>(V1.client, 'get_reels', { p_limit: 20 })).map((r) => r.post_id);
-    expect(ids).toContain(id);
+    const pinned = await rpc<{ post_id: string }[]>(V1.client, 'get_reels', { p_limit: 5, p_start: id });
+    expect(pinned[0]?.post_id).toBe(id);
   });
 });
 
