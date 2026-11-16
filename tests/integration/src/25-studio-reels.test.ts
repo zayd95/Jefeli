@@ -6,7 +6,7 @@
  */
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { adminClient, createListing, createStory, createUser, expectError, expectPermissionDenied, follow, mediaJson, must, notificationsOf, rpc, token, uploadImage, type Bucket, type TestUser } from './helpers';
+import { adminClient, anonClient, createListing, createStory, createUser, expectError, expectPermissionDenied, follow, mediaJson, must, notificationsOf, rpc, token, uploadImage, type Bucket, type TestUser } from './helpers';
 
 const MP4_BYTES = Buffer.from('000000186674797069736f6d0000020069736f6d69736f32', 'hex');
 
@@ -101,6 +101,15 @@ describe('P2 — Reel destinations', () => {
     must(await C.client.from('blocks').insert({ blocker_id: C.id, blocked_id: X.id }));
     const ids = (await rpc<{ post_id: string }[]>(C.client, 'get_reels', { p_limit: 20 })).map((r) => r.post_id);
     expect(ids).not.toContain(reel);
+  });
+});
+
+describe('P2 — Reels are for signed-in members', () => {
+  it('anonymous visitors cannot call get_reels, set_post_surfaces or purge_expired_stories', async () => {
+    const anon = anonClient();
+    expect((await anon.rpc('get_reels', { p_limit: 5 })).error?.code).toBe('42501');
+    expect((await anon.rpc('set_post_surfaces', { p_post_id: '00000000-0000-0000-0000-000000000000', p_in_feed: true, p_in_reels: true })).error?.code).toBe('42501');
+    expect((await anon.rpc('purge_expired_stories')).error?.code).toBe('42501');
   });
 });
 

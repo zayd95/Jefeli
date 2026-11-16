@@ -118,6 +118,18 @@ if s == 200 and isinstance(rows, list) and rows:
 s, b = req("POST", "/rest/v1/products", {"title": "probe", "price_xof": 0, "listing_mode": "give", "price_mode": "fixed"}, {"Prefer": "return=minimal"})
 check("anon cannot list a gift (price 0)", s in (401, 403) or (isinstance(b, dict) and b.get("code") == "42501"), f"HTTP {s} {json.dumps(b)[:100]}")
 
+# --- 10. P2 Studio / Reels (20261116000100) ---------------------------------
+s, b = req("POST", "/rest/v1/rpc/set_post_surfaces", {"p_post_id": ZERO, "p_in_feed": True, "p_in_reels": True})
+check("anon set_post_surfaces refused", s in (401, 403) or (isinstance(b, dict) and b.get("code") in ("42501", "PGRST202")), f"HTTP {s} {json.dumps(b)[:100]}")
+s, b = req("POST", "/rest/v1/rpc/get_reels", {"p_limit": 5})
+check("anon get_reels refused", s in (401, 403) or (isinstance(b, dict) and b.get("code") in ("42501", "PGRST202")), f"HTTP {s} {json.dumps(b)[:100]}")
+s, b = req("PATCH", f"/rest/v1/posts?id=eq.{ZERO}", {"in_reels": True}, {"Prefer": "return=minimal"})
+check("anon cannot write posts.in_reels", s in (401, 403, 404) or (isinstance(b, dict) and b.get("code") in ("42501", "PGRST204")), f"HTTP {s} {json.dumps(b)[:100]}")
+s, b = req("GET", "/rest/v1/app_config?select=key,value")
+check("anon cannot read app_config", s in (401, 403, 404) or (s == 200 and b == []) or (isinstance(b, dict) and b.get("code") in ("42501", "42P01")), f"HTTP {s} {json.dumps(b)[:100]}")
+s, b = req("POST", "/rest/v1/rpc/purge_expired_stories", {})
+check("anon purge_expired_stories refused", s in (401, 403) or (isinstance(b, dict) and b.get("code") in ("42501", "PGRST202")), f"HTTP {s} {json.dumps(b)[:100]}")
+
 if len(sys.argv) > 2:
     accts = json.load(open(sys.argv[2]))
     for role in ("buyer", "seller"):
@@ -142,6 +154,14 @@ if len(sys.argv) > 2:
             followed = {f["followee_id"] for f in fol} if isinstance(fol, list) else set()
             oks = isinstance(vis, list) and len(vis) == len(rows) and all(v["status"] == "active" and not v["is_private"] for v in vis) and not (followed & {r["id"] for r in rows})
         check(f"{role} suggested_sellers: public fields, visible, not followed, never self", oks, f"HTTP {s} {len(rows) if isinstance(rows, list) else rows}")
+        s, rows = req("POST", "/rest/v1/rpc/get_reels", {"p_limit": 20}, HA)
+        check(f"{role} get_reels: a list of Reels (real data only)", s == 200 and isinstance(rows, list) and all(set(r) == {"post_id", "score", "reason"} for r in rows), f"HTTP {s} {len(rows) if isinstance(rows, list) else rows}")
+        s, rows = req("GET", "/rest/v1/app_config?select=key", None, HA)
+        check(f"{role} cannot read app_config", s in (401, 403, 404) or (s == 200 and rows == []), f"HTTP {s} {json.dumps(rows)[:80]}")
+        s, b = req("POST", "/rest/v1/rpc/set_post_surfaces", {"p_post_id": ZERO, "p_in_feed": True, "p_in_reels": True}, HA)
+        check(f"{role} set_post_surfaces on a post that is not theirs is refused", isinstance(b, dict) and b.get("message") == "post_not_found", f"HTTP {s} {json.dumps(b)[:100]}")
+        s, b = req("PATCH", f"/rest/v1/posts?id=eq.{ZERO}", {"in_reels": True}, {**HA, "Prefer": "return=minimal"})
+        check(f"{role} cannot write posts.in_reels directly", s in (401, 403) or (isinstance(b, dict) and b.get("code") == "42501"), f"HTTP {s} {json.dumps(b)[:100]}")
 
 bad = [r for r in results if not r[1]]
 for name, ok, detail in results:

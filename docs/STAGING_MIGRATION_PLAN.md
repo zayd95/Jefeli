@@ -190,3 +190,22 @@ schema fingerprint vs local → `schema:check` → hosted probes (add: `in_feed`
 Rollback: drop the two functions and the config table, drop `in_feed` / `in_reels`, restore the previous bodies of `purge_expired_stories`
 and `get_story_rail` from the backup's `schema.functions`, re-create the previous `notifications_type_check`.
 The feed filter for Reel-only publications (`in_feed = false`) is client-side in this version (`fetchFeed`); `get_feed` is not changed.
+
+**16 Nov 2026 (P2 go): the two P2 migrations were applied to `jefeli-staging`.**
+- Identity: `jefeli-staging`, ref `gbsoifwllbacwsknydkq`, eu-west-1, Postgres 17.11; history 29 (up to `20261115000400_jef_lite_levels`).
+- Backup before anything: logical, 83 tables / 530 rows (`public`, `auth`, `storage`, migration history) + schema JSON (columns, constraints, enums,
+  functions, grants, indexes, policies, triggers, buckets, cron). SHA-256 per file verified; the 45 `public` tables reloaded into a scratch local schema and
+  matched row by row (0 mismatches). Kept outside the repository (it holds members' data).
+- Pre-check (read-only): new objects absent; 0 public video publications, so the `in_reels` backfill touches 0 rows.
+- Apply: `20261116000100_studio_reels` (history 29 → 30), counts identical (3 users, 3 profiles, 15 posts, 25 post_media, 5 products, 8 product_media, 2 stories,
+  38 objects); `app_config.reel_keep_min_views = 100`; 15/15 posts `in_feed`, 0 `in_reels`.
+- The first hosted probes found that `get_reels` was callable by `anon` (Supabase's default privileges grant it; the migration only revoked `public`). It returns only
+  what RLS lets a visitor read, but the design says signed-in members only, so `20261116000200_reels_anon_revoke` (one `REVOKE … FROM anon`) was applied
+  (history 30 → 31), with a local integration test.
+- Schema: 1 201 objects identical to a local database built from the same migrations (only the three trigram-index prints differ, as before).
+- Deploy check: `✓ Schema compatible: 46 tables, 66 functions`.
+- Hosted security probes (public key, `scripts/staging-security-probe.py`): **54/54** (49 existing + 5 for P2: anon `set_post_surfaces`, `get_reels`,
+  `purge_expired_stories` refused; anon cannot write `posts.in_reels`; `app_config` unreadable). With member accounts the script also checks `get_reels`
+  shape, `app_config` hidden, `set_post_surfaces` on a post that is not theirs refused, `in_reels` not writable (not run: no test accounts on staging).
+- Rollback: not needed. To undo, drop `get_reels`, `set_post_surfaces`, `app_config`, the two columns, restore the previous bodies of `purge_expired_stories` and
+  `get_story_rail` and the previous `notifications_type_check` from the backup's `schema.functions` / `schema.constraints`.
