@@ -112,7 +112,7 @@ test.describe('P2 evidence', () => {
       const storyId = sql(`select id from stories where author_id=(select id from profiles where handle='awa_couture') and media_kind='video' and deleted_at is null order by created_at desc limit 1`);
       const awa = sql(`select id from profiles where handle='awa_couture'`);
       if (storyId && awa) {
-        sql(`insert into notifications (recipient_id, type, entity_type, entity_id, data) values ('${awa}', 'reel_candidate', 'story', '${storyId}', '{\"views\": 132}')`);
+        sql(`insert into notifications (recipient_id, type, entity_type, entity_id, data) values ('${awa}', 'reel_candidate', 'story', '${storyId}', jsonb_build_object('views', 132))`);
         const n = await newDevice(browser, { width, height: 780 });
         await signIn(n.page, 'awa@demo.jefeli.test', 'Demo-jefeli-2026!');
         await n.page.goto('/notifications');
