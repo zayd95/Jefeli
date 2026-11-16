@@ -84,3 +84,18 @@ long (infobulle au survol sur le web). Boutons longs convertis :
 
 ## 7. Vérifications
 Voir `docs/IMPLEMENTATION_LOG.md` (entrée du 16 nov.) pour les nombres exacts et le SHA.
+
+## 8. Questions ouvertes
+1. **Voix sur une vidéo** : demandée (« narration sur photos/vidéo »), mais le serveur la refuse (`audio_with_video`).
+   Aujourd'hui : narration sur photos uniquement, une vidéo garde son son. Autoriser = une petite migration + règle de lecture.
+2. **Boutique** : la vitrine liste tous les articles ; la case est donc cochée et verrouillée tant que l'interrupteur est actif.
+3. **Miniature galerie** : montre la dernière prise/choisie ; la vraie dernière photo de la galerie demande `expo-media-library`.
+4. **Statut 24 h** : audience = réglage par défaut du compte (pas de sélecteur dans le Studio). Fil a son sélecteur.
+5. **Reel depuis un statut** : publié en Reels seulement (pas dans le fil). À confirmer.
+6. **Caméra native** : `expo-camera` (plugin ajouté à `app.json`) non essayé sur appareil ; sur le web, enregistrement via MediaRecorder.
+7. **Seuil 100 vues** : dans `app_config` (SQL) ; pas d'écran d'administration.
+8. **Rail** : « vendeurs proches » = même ville (pas de distance). Filtre « Reels seuls hors fil » côté client.
+
+## 9. Estimations
+Validation sur téléphone (EAS APK, caméra/flash/vidéo/Reels, perf du préchargement) : ~1 jour ; staging (sauvegarde + migration +
+sondes + aperçus) : ~½ jour ; voix sur vidéo : ~½ jour ; sélecteur d'audience de statut + écran admin du seuil : ~1 jour.

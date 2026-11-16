@@ -1,5 +1,11 @@
 # Jëfëli — release status
 
+## 16 Nov 2026 — P2 (Studio, Reels, icônes) prêt pour revue, **non fusionné**
+
+Branche `feature/p2-studio` (PR brouillon). Dépend d'une migration locale non appliquée à staging : les aperçus Vercel
+de la branche resteront rouges sur le contrôle de schéma jusqu'à votre « go » (`docs/STAGING_MIGRATION_PLAN.md`).
+Caméra native (`expo-camera`) non vérifiée sur téléphone : à valider avec le build EAS. Voir `docs/P2_STUDIO.md`.
+
 ## 15 Nov 2026 — pilot cut verified, merged to `main`, tag `v0.9.1-pilot`
 
 - Four pilot-cut migrations (`20261115000100`–`400`) applied to **jefeli-staging** after a verified

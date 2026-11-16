@@ -704,3 +704,17 @@ Staging migrations, 49/49 hosted probes, full E2E 81/0/12 (3 runs), public share
 login wall: all green. PR #13 retargeted from `feature/p1-identity` to `main` (it contains PR #11)
 and merged with a merge commit; tag `v0.9.1-pilot` requested (the session git proxy may refuse tag
 pushes — see NEXT_ACTIONS).
+
+## 16 Nov 2026 — P2: Studio, Statuts → Reels, barre d'onglets, actions en icônes (`feature/p2-studio`, non fusionné)
+
+Détail fonctionnel et liste des boutons convertis : `docs/P2_STUDIO.md`. Schéma : migration **locale**
+`20261116000100_studio_reels.sql` (non appliquée à staging, voir `docs/STAGING_MIGRATION_PLAN.md`).
+- `pnpm check` : vert (shared 71 tests dont dock 7 et Studio 11). Intégration : 359/359 (nouveau fichier
+  `25-studio-reels.test.ts` : surfaces, `get_reels`, seuil et notification « Le garder en Reel ? », ordre du rail).
+- E2E (Playwright, caméra factice) : nouveaux `p2-tabbar`, `p2-actions`, `p2-studio` (9), `p2-status-reels` (3),
+  `p2-studio-narration` (6) ; `create.spec` et `smart-create.spec` (anciens menu/éditeurs) remplacés ; les autres
+  specs migrés vers le Studio. Résultat final : voir la mention du dernier commit / `docs/RELEASE_STATUS.md`.
+- Constats en route : `expo-camera` n'enregistre pas la vidéo sur le web → enregistrement `MediaRecorder` (webm) ;
+  le serveur refuse une voix sur une vidéo (`audio_with_video`) → pas de narration sur vidéo ; les zones de tape du
+  statut n'avaient pas de rôle `button` (corrigé) ; le compte à rebours d'un statut attend désormais le chargement de
+  son article ; la fin d'un statut affiche la carte « Voir les Reels » au lieu de fermer.

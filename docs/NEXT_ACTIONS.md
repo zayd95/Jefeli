@@ -1,5 +1,12 @@
 # Next actions
 
+## Owner (now): revue de P2 — `feature/p2-studio` (PR brouillon, rien n'est fusionné)
+
+Décisions attendues (détail dans `docs/P2_STUDIO.md` § questions ouvertes) : go pour la migration staging
+`20261116000100`, voix sur vidéo (nécessite d'assouplir la règle serveur `audio_with_video`), case Boutique
+verrouillée quand l'interrupteur est actif, miniature galerie réelle (`expo-media-library`), essai du build EAS
+(caméra native).
+
 ## Owner (now): pilot cut — `feature/pilot-cut` (draft PR, base `feature/p1-identity`)
 
 Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15 Nov:
