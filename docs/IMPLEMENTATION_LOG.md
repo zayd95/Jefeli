@@ -713,7 +713,7 @@ Détail fonctionnel et liste des boutons convertis : `docs/P2_STUDIO.md`. Schém
   `25-studio-reels.test.ts` : surfaces, `get_reels`, seuil et notification « Le garder en Reel ? », ordre du rail).
 - E2E (Playwright, caméra factice) : nouveaux `p2-tabbar`, `p2-actions`, `p2-studio` (9), `p2-status-reels` (3),
   `p2-studio-narration` (6) ; `create.spec` et `smart-create.spec` (anciens menu/éditeurs) remplacés ; les autres
-  specs migrés vers le Studio. Résultat final : voir la mention du dernier commit / `docs/RELEASE_STATUS.md`.
+  specs migrés vers le Studio. Résultat final (suite complète, 3e exécution) : **92 passés, 0 échec, 16 ignorés** (specs hébergés ou conditionnés).
 - Constats en route : `expo-camera` n'enregistre pas la vidéo sur le web → enregistrement `MediaRecorder` (webm) ;
   le serveur refuse une voix sur une vidéo (`audio_with_video`) → pas de narration sur vidéo ; les zones de tape du
   statut n'avaient pas de rôle `button` (corrigé) ; le compte à rebours d'un statut attend désormais le chargement de
