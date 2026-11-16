@@ -26,6 +26,7 @@ import { fetchFeed } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
+import { useDockScroll } from '@/lib/dockVisibility';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
 import { useLayout } from '@/lib/layout';
@@ -41,6 +42,7 @@ export default function Home() {
   useDarkStatusBar();
   const { userId, profile, signOut } = useAuth();
   const dockSpace = useDockSpace();
+  const onDockScroll = useDockScroll();
   const liveEnabled = useFlag('live_streaming');
   const { desktop, wide } = useLayout();
   const [tab, setTab] = useState<HomeTab>('for_you');
@@ -237,6 +239,8 @@ export default function Home() {
       {top}
       {tab === 'live' ? (
         <FlatList
+          onScroll={onDockScroll}
+          scrollEventThrottle={16}
           data={live.data ?? []}
           keyExtractor={(l) => l.id}
           ListHeaderComponent={listHeader}
@@ -248,6 +252,8 @@ export default function Home() {
       ) : (
         <ActivePostContext.Provider value={focused ? activePostId : null}>
         <FlatList<PostCardData>
+          onScroll={onDockScroll}
+          scrollEventThrottle={16}
           key="posts"
           data={tab === 'nearby' && !profile?.city ? [] : postItems}
           keyExtractor={(p) => p.id}

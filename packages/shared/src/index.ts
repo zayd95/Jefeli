@@ -19,3 +19,4 @@ export type Agreement = Tables<'agreements'>;
 export type LiveSession = Tables<'live_sessions'>;
 export type NotificationRow = Tables<'notifications'>;
 export type Category = Tables<'categories'>;
+export * from './dock';

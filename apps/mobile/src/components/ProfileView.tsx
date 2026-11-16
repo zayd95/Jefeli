@@ -60,6 +60,7 @@ import {
 import { fetchActiveStories, fetchHighlights } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
+import { useDockScroll } from '@/lib/dockVisibility';
 import { avatarUrl } from '@/lib/media';
 import { goBack } from '@/lib/nav';
 import { shareLinks, whatsappLinks } from '@/lib/share';
@@ -86,6 +87,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const toast = useToast();
   const insets = useSafeAreaInsets();
   const dockSpace = useDockSpace();
+  const onDockScroll = useDockScroll();
   const { width } = useWindowDimensions();
   const { desktop } = useLayout();
   const [contentW, setContentW] = useState(width);
@@ -505,6 +507,8 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   return (
     <View style={{ flex: 1, backgroundColor: dark.background }} onLayout={(e) => setContentW(e.nativeEvent.layout.width)}>
       <FlatList<Item>
+        onScroll={onDockScroll}
+        scrollEventThrottle={16}
         data={data}
         keyExtractor={(item, i) => (item.type === 'post' || item.type === 'expanded' ? `${item.type}-${item.post.id}` : item.type === 'row' ? item.items.map((p) => p.id).join('-') : `${item.type}-${i}`)}
         ListHeaderComponent={header}

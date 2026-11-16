@@ -3,12 +3,14 @@ import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { CreateMenu } from '@/components/CreateMenu';
 import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
-import { DOCK_GAP } from '@/lib/dock';
+import { DOCK_GAP, DOCK_HEIGHT } from '@/lib/dock';
+import { resetDock, useDockHidden } from '@/lib/dockVisibility';
 import { useLayout } from '@/lib/layout';
 
 const TABS: Record<string, { label: string; icon: LucideIcon }> = {
@@ -53,11 +55,29 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
       hide.remove();
     };
   }, []);
+  const reduceMotion = useReducedMotion();
+  // Hidden by scroll (or by a full-screen surface). With reduced motion the dock stays put.
+  const hiddenByScroll = useDockHidden() && !reduceMotion;
+  const slide = useSharedValue(0);
+  const travel = DOCK_HEIGHT + Math.max(insets.bottom, DOCK_GAP) + 8;
+  useEffect(() => {
+    // Under 250 ms: a duration-bound spring (Reanimated 4) with a slight overshoot.
+    slide.value = withSpring(hiddenByScroll ? 1 : 0, { duration: 220, dampingRatio: 0.85 });
+  }, [hiddenByScroll, slide]);
+  // Changing tab always shows the dock again.
+  useEffect(() => {
+    resetDock();
+  }, [state.index]);
+  const slideStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slide.value * travel }] }));
   if (keyboard) return null;
 
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, DOCK_GAP) }]}>
+    <Animated.View
+      pointerEvents={hiddenByScroll ? 'none' : 'box-none'}
+      style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, DOCK_GAP) }, slideStyle]}
+      aria-hidden={hiddenByScroll}
+    >
       <View style={[styles.dock, styles.dockDark, shadow.floating]} accessibilityRole="tablist" aria-label="Navigation principale">
         {state.routes.map((route, index) => {
           const meta = TABS[route.name];
@@ -106,7 +126,7 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
         })}
       </View>
       <CreateMenu visible={creating} onClose={() => setCreating(false)} />
-    </View>
+    </Animated.View>
   );
 }
 
