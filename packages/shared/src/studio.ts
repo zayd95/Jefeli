@@ -35,6 +35,8 @@ export interface StudioInput {
   sell: boolean;
   /** The account has a Boutique (the switch is on by default for it). */
   hasBoutique?: boolean;
+  /** Who sees the publication in Fil (default public). A Reel and an article are always public. */
+  feedAudience?: 'public' | 'followers' | 'friends';
 }
 
 export interface DestinationState {
@@ -69,11 +71,12 @@ export function destinationStates(i: StudioInput): DestinationState[] {
     reason: visual || i.hasVoice ? null : 'Un statut a besoin d’une photo, d’une vidéo ou d’une voix.',
     defaultOn: false,
   };
+  const publicFeed = (i.feedAudience ?? 'public') === 'public';
   const reel: DestinationState = {
     key: 'reel',
-    available: i.hasVideo,
-    reason: i.hasVideo ? null : 'Un Reel est une vidéo.',
-    defaultOn: i.hasVideo,
+    available: i.hasVideo && publicFeed,
+    reason: !i.hasVideo ? 'Un Reel est une vidéo.' : publicFeed ? null : 'Un Reel est public : choisissez « Tout le monde » pour Fil.',
+    defaultOn: i.hasVideo && publicFeed,
   };
   const boutique: DestinationState = {
     key: 'boutique',

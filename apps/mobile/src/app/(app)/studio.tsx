@@ -77,6 +77,7 @@ export default function Studio() {
     sell: null as boolean | null,
     item: { mode: 'sale', priceMode: 'fixed', price: '', category: '', condition: 'new', neighborhood: profile?.neighborhood ?? '' } as ItemDraft,
     destinations: null as Destination[] | null,
+    feedAudience: 'public' as Audience,
     linkProductId: null as string | null,
   });
   const v = draft.value;
@@ -130,6 +131,7 @@ export default function Studio() {
     hasVoice: !!v.voice,
     hasText: v.caption.trim().length > 0,
     hasBoutique: !!profile?.is_merchant,
+    feedAudience: v.feedAudience,
   };
   const canSell = canSellRule(baseInput) && !v.linkProductId;
   const sell = canSell && (v.sell ?? sellDefault({ ...baseInput, sell: false }));
@@ -205,6 +207,7 @@ export default function Studio() {
           : null,
         starter: v.starter,
         statusAudience,
+        feedAudience: v.feedAudience,
         linkProductId: v.linkProductId,
         onProgress: setProgress,
         signal: abort.current.signal,
@@ -226,7 +229,9 @@ export default function Studio() {
       if (result.listingId) {
         const first = await countMyListings(userId).then((n) => n === 1).catch(() => false);
         router.replace(first ? `/p/${result.listingId}?first=1` : `/p/${result.listingId}`);
-      } else goBack();
+      } else if (result.postId && selected.includes('feed')) router.replace(`/post/${result.postId}`);
+      else if (result.postId && selected.includes('reel')) router.replace(`/reels?start=${result.postId}`);
+      else goBack();
     } catch (e) {
       setError(e instanceof UploadError ? uploadErrorMessage(e) : toFrenchError(e));
     } finally {
@@ -250,7 +255,14 @@ export default function Studio() {
           starter={v.starter}
           onText={(caption, starter) => set({ caption, starter })}
           onPhotos={(photos) => setMedia(photos, null)}
-          onVideo={(video) => setMedia([], video)}
+          onVideo={(video) => {
+            setMedia([], video);
+            // A video keeps its own sound (the database refuses a voice over a video): the voice is dropped.
+            if (video && v.voice) {
+              set({ voice: null });
+              toast('Votre voix a été retirée : une vidéo garde son propre son.', 'info');
+            }
+          }}
           onOpenVoice={() => setStudio(true)}
           onNext={() => set({ step: 'compose' })}
           onClose={() => goBack()}
@@ -270,6 +282,8 @@ export default function Studio() {
           categories={categories.data ?? []}
           selected={selected}
           onToggle={toggle}
+          feedAudience={v.feedAudience}
+          onFeedAudience={(feedAudience) => set({ feedAudience })}
           statusAudienceLabel={`Visible par : ${AUDIENCE_LABELS[statusAudience].toLowerCase()}`}
           error={error}
           restored={draft.restored && hasContent}

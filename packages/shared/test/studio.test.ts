@@ -21,6 +21,14 @@ describe('Studio destinations', () => {
     expect(defaultSelection({ ...base, hasVideo: true })).toEqual(['feed', 'reel']);
   });
 
+  it('a Reel is public: a restricted Fil audience takes it away', () => {
+    const v = { ...base, hasVideo: true };
+    expect(destinationStates({ ...v, feedAudience: 'friends' }).find((s) => s.key === 'reel')?.available).toBe(false);
+    expect(normalizeSelection({ ...v, feedAudience: 'friends' }, ['feed', 'reel'])).toEqual(['feed']);
+    expect(defaultSelection({ ...v, feedAudience: 'followers' })).toEqual(['feed']);
+    expect(defaultSelection(v)).toEqual(['feed', 'reel']);
+  });
+
   it('Boutique only when the switch is on, and forced then', () => {
     const photo = { ...base, photos: 2 };
     expect(destinationStates(photo).find((s) => s.key === 'boutique')?.available).toBe(false);

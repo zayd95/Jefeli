@@ -9,6 +9,8 @@
  *  - One gold button, « Publier ».
  */
 import {
+  AUDIENCE_LABELS,
+  type Audience,
   CONDITION_LABELS,
   CONDITION_OPTIONS,
   DESTINATION_LABELS,
@@ -22,7 +24,7 @@ import {
   type PriceMode,
   type StudioInput,
 } from '@jefeli/shared';
-import { Check, ChevronLeft, Mic } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronLeft, Mic } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,6 +69,8 @@ export interface ComposerProps {
   categories: { slug: string; name: string }[];
   selected: Destination[];
   onToggle: (d: Destination) => void;
+  feedAudience: Audience;
+  onFeedAudience: (a: Audience) => void;
   statusAudienceLabel: string;
   error: string | null;
   restored: boolean;
@@ -81,7 +85,7 @@ export interface ComposerProps {
 export function StudioComposer(p: ComposerProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const [sheet, setSheet] = useState<null | 'price' | 'category' | 'condition' | 'place'>(null);
+  const [sheet, setSheet] = useState<null | 'price' | 'category' | 'condition' | 'place' | 'audience'>(null);
   const previewW = Math.min(width, 520) - spacing.lg * 2;
   const states = destinationStates(p.input);
   const hasMedia = p.media.length > 0;
@@ -219,29 +223,39 @@ export function StudioComposer(p: ComposerProps) {
                     ? st.reason
                     : null;
             return (
-              <Pressable
-                key={d}
-                onPress={() => available && !locked && p.onToggle(d)}
-                disabled={!available || locked}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: on, disabled: !available || locked }}
-                aria-checked={on}
-                accessibilityLabel={DESTINATION_LABELS[d]}
-                style={[styles.destRow, !available && { opacity: 0.5 }]}
-                testID={`studio-dest-${d}`}
-              >
-                <View style={[styles.box, on && styles.boxOn]}>{on ? <Check size={16} color={colors.ink} strokeWidth={3} /> : null}</View>
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyStrong" tone="fog">
-                    {DESTINATION_LABELS[d]}
-                  </Text>
-                  {hint ? (
-                    <Text variant="caption" tone="fogSecondary">
-                      {hint}
+              <View key={d} style={[styles.destRow, !available && { opacity: 0.5 }]}>
+                <Pressable
+                  onPress={() => available && !locked && p.onToggle(d)}
+                  disabled={!available || locked}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: on, disabled: !available || locked }}
+                  aria-checked={on}
+                  aria-disabled={!available || locked}
+                  accessibilityLabel={DESTINATION_LABELS[d]}
+                  style={styles.destMain}
+                  testID={`studio-dest-${d}`}
+                >
+                  <View style={[styles.box, on && styles.boxOn]}>{on ? <Check size={16} color={colors.ink} strokeWidth={3} /> : null}</View>
+                  <View style={{ flex: 1 }}>
+                    <Text variant="bodyStrong" tone="fog">
+                      {DESTINATION_LABELS[d]}
                     </Text>
-                  ) : null}
-                </View>
-              </Pressable>
+                    {hint ? (
+                      <Text variant="caption" tone="fogSecondary">
+                        {hint}
+                      </Text>
+                    ) : null}
+                  </View>
+                </Pressable>
+                {d === 'feed' && on ? (
+                  <Pressable onPress={() => setSheet('audience')} style={styles.audiencePill} accessibilityRole="button" accessibilityLabel={`Visible par : ${AUDIENCE_LABELS[p.feedAudience].toLowerCase()}. Changer`} testID="studio-feed-audience">
+                    <Text variant="caption" weight="700" tone="fog">
+                      {{ public: 'Tout le monde', followers: 'Abonnés', friends: 'Amis' }[p.feedAudience]}
+                    </Text>
+                    <ChevronDown size={14} color={dark.text} />
+                  </Pressable>
+                ) : null}
+              </View>
             );
           })}
         </View>
@@ -296,6 +310,14 @@ export function StudioComposer(p: ComposerProps) {
           )}
           <Button label="Terminé" variant="outlineDark" pill onPress={() => setSheet(null)} />
         </View>
+      </Sheet>
+      <Sheet visible={sheet === 'audience'} onClose={() => setSheet(null)} title="Qui voit votre publication ?" tone="dark">
+        {(['public', 'followers', 'friends'] as const).map((a) => (
+          <Choice key={a} label={AUDIENCE_LABELS[a]} on={p.feedAudience === a} onPress={() => (p.onFeedAudience(a), setSheet(null))} />
+        ))}
+        <Text variant="caption" tone="fogSecondary" style={{ marginTop: spacing.sm }}>
+          Un Reel et un article sont toujours publics.
+        </Text>
       </Sheet>
       <Sheet visible={sheet === 'category'} onClose={() => setSheet(null)} title="Catégorie" tone="dark" scroll>
         {p.categories.map((c) => (
@@ -368,7 +390,9 @@ const styles = StyleSheet.create({
   chipWarn: { borderColor: colors.gold },
   chipOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   dest: { alignSelf: 'stretch', gap: spacing.sm },
-  destRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52, paddingHorizontal: spacing.md, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
+  destRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 52, paddingRight: spacing.sm, borderRadius: 16, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border },
+  destMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52, paddingLeft: spacing.md },
+  audiencePill: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.background },
   box: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, borderColor: dark.borderStrong, alignItems: 'center', justifyContent: 'center' },
   boxOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   choice: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52, paddingHorizontal: spacing.sm, borderRadius: 12, borderWidth: 1, borderColor: 'transparent' },

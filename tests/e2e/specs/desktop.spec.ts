@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { btn, DEVICES, field, FIXTURE, newDevice, pickFile, publishListing, runId, shot, signUp } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile } from './helpers';
 
 /**
  * W1.4 desktop web: the same app, backend and media in a desktop layout, in a real browser.
@@ -123,61 +123,55 @@ test.describe.serial('W1.4 desktop web', () => {
     await publishListing(s, { file: FIXTURE('dress.jpg'), title: ARTICLE, mode: 'Vente ou troc', price: '25000', category: 'Chaussures', condition: 'Très bon état' });
     productUrl = new URL(s.url()).pathname;
 
-    // « Créer » in the sidebar opens the same three-card menu as the phone's +.
+    // « Créer » in the sidebar opens the Studio, the same one as the phone's + (in a phone-width column).
     await s.goto('/');
     await sidebar(s).getByRole('button', { name: 'Créer' }).click();
-    await s.getByTestId('create-post').click();
-    await expect(s.getByRole('textbox', { name: 'Texte de la publication' })).toBeVisible();
-    await expect(s.getByText('APERÇU DANS LE FIL · TEL QU’IL APPARAÎTRA')).toBeVisible();
-
+    await expect(s.getByTestId('studio-capture')).toBeVisible();
     const chooser = s.waitForEvent('filechooser');
-    await s.getByRole('button', { name: 'Média', exact: true }).click();
+    await s.getByTestId('studio-gallery').click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg')]);
-    await expect(s.locator('text="1/2" >> visible=true').first()).toBeVisible();
+    await expect(s.getByText('2/8')).toBeVisible();
 
-    await s.getByRole('button', { name: 'Voix', exact: true }).click();
+    await s.getByRole('tab', { name: 'Voix', exact: true }).click();
+    await s.getByRole('button', { name: 'Enregistrer ma voix' }).click();
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
     await s.waitForTimeout(2500);
     await s.getByRole('button', { name: 'Montrer la photo 2' }).click();
     await s.waitForTimeout(2500);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Votre explication · 0:0[4-6] · visite guidée$/)).toBeVisible();
+    await expect(s.getByText(/^Voix · 0:0[4-6]$/)).toBeVisible();
+    await s.getByTestId('studio-next').click();
 
-    await s.getByRole('button', { name: 'Article', exact: true }).click();
-    await s.getByRole('checkbox', { name: ARTICLE }).click();
+    await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click();
+    await s.getByTestId('studio-caption').fill(`Ma robe expliquée depuis l’ordinateur ${RUN}`);
+    await s.getByRole('button', { name: /^Prix : / }).click();
+    await s.getByRole('textbox', { name: 'Prix', exact: true }).fill('25000');
     await btn(s, 'Terminé').click();
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Ma robe expliquée depuis l’ordinateur ${RUN}`);
-    // The preview pane is the feed's own card, with the caption and the article as they will appear.
-    const preview = s.getByLabel('Aperçu dans le fil');
-    await expect(preview.getByText(`Ma robe expliquée depuis l’ordinateur ${RUN}`)).toBeVisible();
-    await expect(preview.getByText(ARTICLE).first()).toBeVisible();
+    await s.getByRole('button', { name: /^Catégorie : / }).click();
+    await btn(s, 'Chaussures').click();
     expect(await overflowX(s)).toBeLessThanOrEqual(0);
-    await shot(s, DIR, 'S-desktop-editor-preview');
+    await shot(s, DIR, 'S-desktop-studio-composer');
 
-    await btn(s, 'Publier').click();
-    await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 90_000 });
+    await s.getByTestId('studio-publish').click();
+    await expect(s).toHaveURL(/\/p\/[0-9a-f-]{36}/, { timeout: 90_000 });
+    if (s.url().endsWith('?first=1')) await s.getByTestId('share-boutique-moment').getByRole('button', { name: 'Plus tard', exact: true }).click().catch(() => {});
     await expect(s.getByRole('button', { name: /^Écouter l’explication/ }).last()).toBeVisible();
   });
 
   test('DT-04 · seller on desktop: a 40-second video publication and a 12-second video status', async () => {
-    await s.goto('/publish/post');
-    if (await s.getByTestId('draft-choice').isVisible().catch(() => false)) {
-      await btn(s, 'Nouvelle publication').click();
-      await btn(s, 'Supprimer et commencer').click();
-    }
-    await pickFile(s, () => btn(s, 'Média').click(), clip(40));
-    await expect(s.getByRole('button', { name: 'Couverture (vidéo)' })).toBeVisible({ timeout: 30_000 });
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Défilé en vidéo ${RUN}`);
-    await btn(s, 'Publier').click();
+    await studioWithFile(s, clip(40), '/studio');
+    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
+    await s.getByTestId('studio-caption').fill(`Défilé en vidéo ${RUN}`);
+    await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click({ timeout: 2000 }).catch(() => {});
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
 
-    await s.goto('/publish/status');
-    await pickFile(s, () => btn(s, 'Photo ou vidéo de la galerie').click(), clip(12));
-    await btn(s, 'Écrire sur le statut').click();
-    await s.getByRole('textbox', { name: 'Texte du statut' }).fill(`Statut vidéo bureau ${RUN}`);
-    await btn(s, 'Publier le statut').click();
+    await studioWithFile(s, clip(12), '/studio?dest=status');
+    await s.getByTestId('studio-caption').fill(`Statut vidéo bureau ${RUN}`);
+    await s.getByTestId('studio-dest-feed').click(); // Statut only
+    await s.getByTestId('studio-publish').click();
     await expect(sidebar(s)).toBeVisible({ timeout: 60_000 });
-    await expect(s).not.toHaveURL(/publish/, { timeout: 60_000 });
+    await expect(s).not.toHaveURL(/studio/, { timeout: 60_000 });
   });
 
   test('DT-05 · buyer on desktop: the narration moves the photos; the video plays muted, one at a time', async () => {

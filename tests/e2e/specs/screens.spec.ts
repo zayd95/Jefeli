@@ -61,15 +61,15 @@ for (const [device, size] of Object.entries(SIZES)) {
     await capture(page, device, '09-status-viewer');
 
     // W1.1: Live is no longer offered (not even as a disabled tile), and /live/host leads home.
-    await page.goto('/publish');
-    await expect(page.getByRole('textbox', { name: 'Texte de la publication' }).or(page.getByTestId('draft-choice'))).toBeVisible();
+    await page.goto('/studio');
+    await expect(page.getByTestId('studio-capture')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Live\b/ })).toHaveCount(0);
-    await capture(page, device, '10-publish-composer');
+    await capture(page, device, '10-studio');
     await page.goto('/live/host');
     await expect(page.getByRole('button', { name: 'Notifications' })).toBeVisible();
 
-    await page.goto('/publish/listing');
-    await capture(page, device, '11-listing-composer');
+    await page.goto('/studio?sell=1');
+    await capture(page, device, '11-studio-sell');
 
     await page.goto('/notifications');
     await capture(page, device, '12-notifications');

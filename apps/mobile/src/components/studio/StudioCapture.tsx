@@ -239,14 +239,25 @@ export function StudioCapture(p: CaptureProps) {
           </View>
         ) : p.mode === 'voice' ? (
           <View style={[StyleSheet.absoluteFill, styles.panel]}>
-            <Pressable onPress={p.onOpenVoice} style={styles.micBig} accessibilityRole="button" accessibilityLabel="Enregistrer ma voix">
+            <Pressable
+              onPress={p.onOpenVoice}
+              disabled={!!p.video}
+              style={[styles.micBig, !!p.video && { opacity: 0.4 }]}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !!p.video }}
+              accessibilityLabel="Enregistrer ma voix"
+            >
               <Mic size={34} color={colors.night} />
             </Pressable>
             <Text variant="headline" weight="800" tone="fog" align="center">
-              {p.voiceLabel ?? 'Parlez, c’est tout.'}
+              {p.video ? 'Une vidéo garde son propre son.' : (p.voiceLabel ?? 'Parlez, c’est tout.')}
             </Text>
             <Text variant="callout" tone="fogSecondary" align="center" style={{ maxWidth: 300 }}>
-              {total > 0 ? 'Votre voix racontera vos photos ou votre vidéo.' : 'Une voix seule, jusqu’à 3 minutes. Vous pouvez aussi la poser sur des photos.'}
+              {p.video
+                ? 'La voix se pose sur des photos, ou se publie seule.'
+                : p.photos.length > 0
+                  ? 'Votre voix racontera vos photos : touchez celle dont vous parlez.'
+                  : 'Une voix seule, jusqu’à 3 minutes. Vous pouvez aussi la poser sur des photos.'}
             </Text>
           </View>
         ) : (

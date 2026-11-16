@@ -38,6 +38,8 @@ export interface StudioPublishArgs {
   item: StudioItem | null;
   starter: TextStarter | null;
   statusAudience: Audience;
+  /** Who sees the Fil publication (a Reel and an article are always public). */
+  feedAudience?: Audience;
   /** An article that already exists (« Présenter cet article »): tagged on the publication and the status. */
   linkProductId?: string | null;
   onProgress?: (f: number) => void;
@@ -69,8 +71,10 @@ export async function publishStudio(a: StudioPublishArgs): Promise<StudioResult>
   const narratedOrMulti = (visualCount > 0 && !!a.voice) || photos > 1;
   const statusViaFeed = sel.has('status') && narratedOrMulti;
   const directStatus = sel.has('status') && !statusViaFeed;
-  const needsPublic = sel.has('feed') || sel.has('reel') || sel.has('boutique') || statusViaFeed;
-  const needsPrivate = directStatus;
+  const feedAudience: Audience = a.feedAudience ?? 'public';
+  const feedPublic = feedAudience === 'public';
+  const needsPublic = (sel.has('feed') && feedPublic) || sel.has('reel') || sel.has('boutique');
+  const needsPrivate = directStatus || ((sel.has('feed') || statusViaFeed) && !feedPublic);
   const first: Bucket = needsPublic ? 'public-media' : 'private-media';
   const total = visualCount + (a.voice ? 1 : 0) || 1;
   const share = a.voice ? visualCount / total : 1;
@@ -128,7 +132,7 @@ export async function publishStudio(a: StudioPublishArgs): Promise<StudioResult>
     try {
       result.postId = await createPost({
         body: a.caption.trim(),
-        visibility: 'public',
+        visibility: feedAudience,
         media: attach(uploaded),
         productIds: result.listingId ?? a.linkProductId ? [(result.listingId ?? a.linkProductId) as string] : [],
         intent: visualCount === 0 && !a.voice ? textIntent(a.starter) : 'share',

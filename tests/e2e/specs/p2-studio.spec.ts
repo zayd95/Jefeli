@@ -11,7 +11,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
-import { btn, DEVICES, FIXTURE, newDevice, runId, shot, signIn, studioWithFile } from './helpers';
+import { btn, DEVICES, FIXTURE, goldFills, newDevice, runId, shot, signIn, studioWithFile } from './helpers';
 
 const RUN = runId();
 const DIR = 'p2-studio';
@@ -59,6 +59,8 @@ test.describe('P2.2 Studio', () => {
     await expect(seller.page.getByTestId('studio-item-chips')).toBeVisible();
     await expect(seller.page.getByTestId('studio-dest-boutique')).toBeVisible();
     await expect(seller.page.getByTestId('studio-dest-reel')).toHaveAttribute('aria-disabled', 'true'); // a photo is not a Reel
+    // Gold budget: the one filled gold element of the composer is « Publier ».
+    expect((await goldFills(seller.page)).map((h) => h.text)).toEqual(['Publier']);
     await shot(seller.page, DIR, 'composer-switch-on');
     await sw.click();
     await expect(sw).toHaveAttribute('aria-checked', 'false');
@@ -189,6 +191,32 @@ test.describe('P2.2 Studio', () => {
     await shot(page, DIR, 'composer-video-reel');
     await page.getByTestId('studio-publish').click();
     await expect(page.getByText('Publié', { exact: true })).toBeVisible({ timeout: 90_000 });
+    await ctx.close();
+  });
+
+  test('ST-9 a friends-only publication stays private (audience pill on Fil), a Reel needs « Tout le monde »', async ({ browser }) => {
+    const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { camera: true });
+    await signIn(page, ...MEMBER);
+    await openStudio(page);
+    await page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
+    await page.getByRole('tab', { name: 'Photo', exact: true }).click();
+    await page.getByTestId('studio-shutter').click();
+    await expect(page.getByTestId('studio-strip')).toBeVisible();
+    await page.getByTestId('studio-next').click();
+    await page.getByTestId('studio-caption').fill(`Pour mes amis ${RUN}`);
+    await page.getByTestId('studio-feed-audience').click();
+    await page.getByRole('button', { name: 'Mes amis', exact: true }).click();
+    await shot(page, DIR, 'composer-fil-audience-friends');
+    await page.getByTestId('studio-publish').click();
+    await expect(page).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 60_000 });
+    const path = new URL(page.url()).pathname;
+    await expect(page.getByText(`Pour mes amis ${RUN}`).filter({ visible: true }).first()).toBeVisible();
+
+    const other = await newDevice(browser, DEVICES.iphone15);
+    await signIn(other.page, ...SELLER);
+    await other.page.goto(path);
+    await expect(other.page.getByText(`Pour mes amis ${RUN}`)).toHaveCount(0);
+    await other.ctx.close();
     await ctx.close();
   });
 });

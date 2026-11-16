@@ -176,3 +176,39 @@ export async function latestAuthLink(to: string, subject: RegExp, timeoutMs = 15
   }
   throw new Error(`No e-mail matching ${subject} for ${to}`);
 }
+
+export type GoldHit = { tag: string; text: string; w: number; h: number };
+
+/** Filled-gold elements on the page right now. */
+export async function goldFills(page: Page): Promise<GoldHit[]> {
+  return page.evaluate(() => {
+    const GOLD = [
+      [239, 189, 56],
+      [243, 198, 77],
+    ];
+    const hits: { tag: string; text: string; w: number; h: number }[] = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) < 0.1) continue;
+      const m = cs.backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+      if (!m) continue;
+      const a = m[4] === undefined ? 1 : Number(m[4]);
+      if (a < 0.9) continue;
+      if (!GOLD.some(([r, g, b]) => r === +m[1]! && g === +m[2]! && b === +m[3]!)) continue;
+      const r = el.getBoundingClientRect();
+      if (Math.min(r.width, r.height) < 28) continue;
+      if (r.bottom <= 0 || r.right <= 0) continue; // off-screen (skip link before focus)
+      // Under a sheet or scrim (centre inside the viewport but not on top): not on screen.
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      if (cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight) {
+        const top = document.elementFromPoint(cx, cy);
+        if (top && !el.contains(top) && !top.contains(el)) continue;
+      }
+      hits.push({ tag: el.tagName.toLowerCase(), text: (el.innerText || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 40), w: Math.round(r.width), h: Math.round(r.height) });
+    }
+    // Nested gold boxes (a gold button inside a gold wrapper) count once.
+    return hits.filter((h, i) => !hits.some((o, j) => j !== i && o.text === h.text && o.w >= h.w && o.h >= h.h && j < i));
+  });
+}
+

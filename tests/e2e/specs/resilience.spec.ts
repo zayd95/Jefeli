@@ -8,7 +8,7 @@
  */
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
-import { btn, field, FIXTURE, newDevice, publishListing, runId, shot, signUp, WEB_URL } from './helpers';
+import { btn, field, FIXTURE, newDevice, publishListing, runId, shot, signUp, studioWithFile, WEB_URL } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -94,23 +94,18 @@ test.describe.serial('P1 resilience: network, double taps, restarts, expired ses
 
   test('an unfinished article survives the app being closed, and is only deleted on request (local draft)', async () => {
     const draftTitle = `Brouillon ${RUN}`;
-    await s.goto('/publish/listing');
-    await field(s, 'Nom de l’article').fill(draftTitle);
-    await s.getByRole('button', { name: /^Description : facultatif/ }).click();
-    await field(s, 'Description (facultatif)').fill('Cuir véritable, cousu main.');
-    await btn(s, 'Terminé').click();
+    await studioWithFile(s, FIXTURE('bag.jpg'), '/studio?sell=1');
+    await s.getByTestId('studio-caption').fill(`${draftTitle}\nCuir véritable, cousu main.`);
     await s.waitForTimeout(900); // the draft is saved 400 ms after the last keystroke
     await s.reload();
-    // W1.3: the draft is never restored or replaced silently: the editor asks first.
-    await expect(visible(s.getByTestId('draft-choice'))).toBeVisible({ timeout: 20_000 });
-    await expect(visible(s.getByText(new RegExp(`Brouillon : « ${draftTitle} »`)))).toBeVisible();
-    await btn(s, 'Continuer le brouillon').click();
-    await expect(visible(s.getByRole('textbox', { name: 'Nom de l’article' }))).toHaveValue(draftTitle);
-    await expect(visible(s.getByRole('button', { name: /^Description : Cuir véritable/ }))).toBeVisible();
+    // P2: the Studio brings the draft back at the step it was left, and says so.
+    await expect(s.getByTestId('studio-composer')).toBeVisible({ timeout: 20_000 });
+    await expect(s.getByTestId('studio-caption')).toHaveValue(`${draftTitle}\nCuir véritable, cousu main.`);
+    await expect(s.getByRole('button', { name: /Brouillon repris/ })).toBeVisible();
+    // It is only deleted on request.
+    await s.getByRole('button', { name: /Brouillon repris/ }).click();
     await s.reload();
-    await btn(s, 'Nouvel article').click();
-    await btn(s, 'Supprimer et commencer').click();
-    await expect(visible(s.getByRole('textbox', { name: 'Nom de l’article' }))).toHaveValue('');
+    await expect(s.getByTestId('studio-capture')).toBeVisible({ timeout: 20_000 });
     await shot(s, DIR, 'S-draft-continued-then-deleted-on-request');
   });
 

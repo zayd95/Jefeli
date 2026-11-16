@@ -7,7 +7,7 @@
  */
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
-import { FIXTURE, btn, field, newDevice, publishListing, runId, shot, signUp, WEB_URL } from './helpers';
+import { FIXTURE, btn, field, newDevice, publishListing, runId, shot, signUp, studioWithFile, WEB_URL } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -45,13 +45,14 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
   });
 
   test('a « Prix affiché » article cannot be published without a price (the window says what is missing)', async () => {
-    await s.goto('/publish/listing');
-    await field(s, 'Nom de l’article').fill('Article sans prix');
-    await btn(s, 'Mettre en vente').click();
-    await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « Sur demande » ou « À discuter »/))).toBeVisible();
-    await expect(visible(s.getByText(/^À compléter : une photo, le prix, la catégorie$/))).toBeVisible();
-    // Still on the editor: nothing was published without a price.
-    await expect(s).toHaveURL(/\/publish\/listing$/);
+    await studioWithFile(s, FIXTURE('dress.jpg'), '/studio?sell=1');
+    await s.getByTestId('studio-caption').fill('Article sans prix');
+    await s.getByRole('button', { name: /^Catégorie : / }).click();
+    await btn(s, 'Mode femme').click();
+    await s.getByTestId('studio-publish').click();
+    await expect(visible(s.getByText(/Indiquez un prix, ou choisissez « À discuter » ou « Sur demande »/))).toBeVisible();
+    // Still in the Studio: nothing was published without a price.
+    await expect(s).toHaveURL(/\/studio/);
     await shot(s, DIR, 'S-price-required-for-fixed');
   });
 
@@ -134,6 +135,6 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
   test('negotiable listing page offers the WhatsApp share and a direct message', async () => {
     await b.goto(negotiableUrl);
     await expect(visible(b.getByRole('button', { name: 'Partager sur WhatsApp' }))).toBeVisible();
-    await expect(visible(b.getByRole('button', { name: 'Envoyer un message' }))).toBeVisible();
+    await expect(visible(b.getByRole('button', { name: 'Envoyer un message au vendeur' }))).toBeVisible();
   });
 });

@@ -32,8 +32,8 @@ test('PI-01 · market aisles, and an empty aisle invites « Je cherche »', asyn
   await expect(page.getByTestId('seek-invite')).toBeVisible();
   await shot(page, DIR, 'aisle-empty-seek');
   await btn(page, 'Publier « Je cherche »').click();
-  await expect(page).toHaveURL(/publish\/post/);
-  await expect(page.getByPlaceholder(/Que cherchez-vous/).filter({ visible: true }).first()).toBeVisible();
+  await expect(page).toHaveURL(/\/studio/);
+  await expect(page.getByTestId('studio-text')).toBeVisible();
   await ctx.close();
 });
 
