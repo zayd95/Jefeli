@@ -110,7 +110,8 @@
         {
           "photosPermission": "Jëfëli affiche votre dernière photo dans la vignette de la galerie du Studio.",
           "savePhotosPermission": false,
-          "isAccessMediaLocationEnabled": false
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": ["photo", "video"]
         }
       ],
       "expo-video",
