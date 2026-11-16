@@ -13,11 +13,11 @@
 import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bookmark, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
+import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Avatar, dark, IconButton, Motif, radius, spacing, Text, useToast } from '@/design';
+import { Avatar, dark, IconButton, Motif, radius, RoundAction, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
@@ -281,6 +281,12 @@ function PostCardInner({
             width={mediaWidth}
             active={activeOnScreen}
             onOpen={() => openPost()}
+            overlay={
+              visual[0]?.kind === 'video' && post.in_reels ? (
+                // P2: any public video of the feed opens in Reels, at this video.
+                <RoundAction variant="overlay" icon={Clapperboard} label="Ouvrir en Reels" onPress={() => router.push(`/reels?start=${post.id}`)} testID="open-in-reels" />
+              ) : null
+            }
           />
           {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
         </>

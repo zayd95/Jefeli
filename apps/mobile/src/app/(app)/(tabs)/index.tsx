@@ -114,7 +114,16 @@ export default function Home() {
     <View style={styles.header}>
       {desktop ? null : (
       <View style={styles.headerRow}>
-        <Wordmark size={30} color={dark.text} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <Wordmark size={30} color={dark.text} />
+          {!isProduction ? (
+            <View style={styles.envTag} accessibilityLabel="Version pilote">
+            <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 10, letterSpacing: 1.2 }}>
+              PILOTE
+            </Text>
+          </View>
+          ) : null}
+        </View>
         <View style={styles.headerActions}>
           <IconButton icon={Search} label="Rechercher" variant="glass" size={20} color={dark.text} onPress={() => router.push('/search')} />
           <IconButton icon={Bell} label="Notifications" variant="glass" size={20} color={dark.text} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
@@ -138,13 +147,26 @@ export default function Home() {
             </Pressable>
           );
         })}
-        {!isProduction ? (
+        {desktop && !isProduction ? (
           <View style={styles.envTag} accessibilityLabel="Version pilote">
             <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 10, letterSpacing: 1.2 }}>
               PILOTE
             </Text>
           </View>
         ) : null}
+        {/* P2: « Fil · Reels » — Reels is a full-screen feed of permanent videos. */}
+        <View style={styles.filReels} accessibilityRole="tablist" accessibilityLabel="Fil ou Reels">
+          <View style={[styles.filReelsItem, styles.filReelsOn]} accessibilityRole="tab" accessibilityState={{ selected: true }}>
+            <Text variant="caption" weight="800" color={dark.text}>
+              Fil
+            </Text>
+          </View>
+          <Pressable onPress={() => router.push('/reels')} style={styles.filReelsItem} accessibilityRole="tab" accessibilityState={{ selected: false }} accessibilityLabel="Reels" testID="home-reels">
+            <Text variant="caption" weight="700" color={dark.textSecondary}>
+              Reels
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -336,7 +358,10 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, paddingHorizontal: spacing.lg },
   tab: { height: 40, justifyContent: 'center' },
   tabLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 2, backgroundColor: colors.gold },
-  envTag: { marginLeft: 'auto', backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  envTag: { backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  filReels: { marginLeft: 'auto', flexDirection: 'row', padding: 3, borderRadius: 20, backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.border },
+  filReelsItem: { minWidth: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  filReelsOn: { backgroundColor: dark.raised, borderWidth: 1, borderColor: dark.gold },
   chips: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: dark.borderStrong },
   chipOn: { borderColor: dark.goldLine, backgroundColor: dark.raised },

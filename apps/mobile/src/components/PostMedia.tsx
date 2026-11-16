@@ -52,6 +52,7 @@ export function PostMedia({
   height,
   active,
   onOpen,
+  overlay,
 }: {
   visual: MediaRow[];
   voice: MediaVoice | null;
@@ -63,6 +64,8 @@ export function PostMedia({
   active?: boolean;
   /** Feed only: a tap on a photo opens the publication. */
   onOpen?: () => void;
+  /** Top-right action over the media (« Ouvrir en Reels »). */
+  overlay?: React.ReactNode;
 }) {
   const cues = useMemo(() => parseCues(voice?.cues), [voice?.cues]);
   // The gallery follows the narration until the member swipes it themselves.
@@ -100,6 +103,7 @@ export function PostMedia({
           {carousel}
         </Pressable>
       )}
+      {overlay ? <View style={styles.overlay}>{overlay}</View> : null}
       {voice ? <NarrationBar uri={voice.uri} durationMs={voice.durationMs} waveform={voice.waveform} language={voice.language} active={active} onPosition={onNarration} /> : null}
       {product ? (
         <Pressable
@@ -128,6 +132,7 @@ export function PostMedia({
 }
 
 const styles = StyleSheet.create({
+  overlay: { position: 'absolute', top: 10, right: 10 },
   productChip: {
     position: 'absolute',
     left: spacing.lg,

@@ -1,4 +1,4 @@
-import { formatListingPrice, timeAgo, timeLeft, toFrenchError } from '@jefeli/shared';
+import { timeAgo, timeLeft, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,12 +6,12 @@ import { router } from 'expo-router';
 import { useEventListener } from 'expo';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useVideoPlayer, VideoView, type VideoPlayerStatus } from 'expo-video';
-import { Bookmark, Eye, Flag, Heart, Mic, MoreHorizontal, Pause, Play, Send, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
+import { Bookmark, Clapperboard, Eye, Flag, Heart, Mic, MoreHorizontal, Pause, Play, Send, Trash2, Volume2, VolumeX, X } from 'lucide-react-native';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Avatar, Button, colors, dark, Field, fieldFontSize, fonts, IconButton, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, Field, fieldFontSize, fonts, IconButton, RoundAction, Sheet, SheetAction, spacing, Text, useToast } from '@/design';
 import { fetchPost } from '@/lib/api/posts';
 import { fetchProduct } from '@/lib/api/products';
 import { addToHighlight, deleteStory, fetchStoryViewers, likeStory, markStoryViewed, replyToStory } from '@/lib/api/stories';
@@ -23,8 +23,10 @@ import type { ProfileLite, StoryRow } from '@/lib/types';
 import { fill, videoFill } from '@/design/fill';
 
 import { voiceSummary } from './audio/Voice';
-import { Thumb } from './Media';
+import { ProductSticker } from './ProductSticker';
 import { parseCues, photoAt } from './PostMedia';
+import { keepStoryAsReel } from '@/lib/reels';
+import { openProductChat, QUICK_REACTIONS } from '@/lib/statusActions';
 import { useLayout } from '@/lib/layout';
 import { goBack } from '@/lib/nav';
 
@@ -44,6 +46,8 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   const [viewers, setViewers] = useState(false);
   const [highlightSheet, setHighlightSheet] = useState(false);
   const [highlightTitle, setHighlightTitle] = useState('Nouveautés');
+  const [ended, setEnded] = useState(false);
+  const [keeping, setKeeping] = useState(false);
   const story = stories[index];
   const isOwner = story?.author_id === userId;
   const startedAt = useRef(0);
@@ -54,8 +58,9 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
     if (index < stories.length - 1) {
       setProgress(0);
       setIndex((i) => i + 1);
-    } else close();
-  }, [index, stories.length, close]);
+    } else if (isHighlight) close();
+    else setEnded(true); // P2: an end card, « Voir les Reels »
+  }, [index, stories.length, close, isHighlight]);
   const prev = () => {
     setProgress(0);
     setIndex((i) => Math.max(0, i - 1));
@@ -84,7 +89,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
   const typing = reply.length > 0;
   useEffect(() => {
     if (!timed) return;
-    if (paused || typing || menu || viewers || highlightSheet) {
+    if (paused || typing || menu || viewers || highlightSheet || ended) {
       elapsedBefore.current += Date.now() - startedAt.current;
       return;
     }
@@ -97,7 +102,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
       } else setProgress(p);
     }, 50);
     return () => clearInterval(t);
-  }, [timed, paused, typing, menu, viewers, highlightSheet, duration, next]);
+  }, [timed, paused, typing, menu, viewers, highlightSheet, ended, duration, next]);
 
   const mediaUri = useMediaUrl('private-media', story?.storage_path);
   const posterUri = useMediaUrl('private-media', story?.poster_path);
@@ -127,6 +132,50 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
     }
   }
 
+  const canOffer = !!product.data && product.data.listing_mode !== 'trade' && product.data.listing_mode !== 'give';
+  const canTrade = !!product.data && product.data.listing_mode !== 'sale' && product.data.listing_mode !== 'give';
+
+  /** A quick reaction: a private reply; with an article, the chat opens with the item card attached. */
+  async function react(emoji: string) {
+    if (!story || !userId) return;
+    try {
+      if (product.data) {
+        const cid = await openProductChat(userId, product.data.id, { storyId: story.id, text: emoji });
+        router.replace(`/chat/${cid}?about=${product.data.id}`);
+      } else {
+        await replyToStory(story.id, emoji);
+        toast('Réaction envoyée', 'success');
+      }
+    } catch (e) {
+      toast(toFrenchError(e), 'error');
+    }
+  }
+
+  /** « Faire une offre »: the chat with the item card, then the offer form on top of it. */
+  async function makeOffer() {
+    if (!product.data || !userId) return;
+    try {
+      const cid = await openProductChat(userId, product.data.id);
+      router.replace(`/chat/${cid}?about=${product.data.id}`);
+      router.push({ pathname: '/offer/[productId]', params: { productId: product.data.id, kind: canOffer ? 'price' : 'barter' } });
+    } catch (e) {
+      toast(toFrenchError(e), 'error');
+    }
+  }
+
+  async function keepReel() {
+    if (!story) return;
+    setKeeping(true);
+    try {
+      await keepStoryAsReel(story);
+      toast('Gardé en Reel', 'success');
+    } catch (e) {
+      toast(toFrenchError(e), 'error');
+    } finally {
+      setKeeping(false);
+    }
+  }
+
   async function toggleLike() {
     if (!story || !userId) return;
     const nextLiked = !liked[story.id];
@@ -145,7 +194,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               uri={mediaUri}
               posterUri={posterUri}
               muted={muted}
-              paused={paused || typing || menu || viewers || highlightSheet}
+              paused={paused || typing || menu || viewers || highlightSheet || ended}
               onProgress={setProgress}
               onEnd={next}
               onError={() => {
@@ -162,7 +211,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               uri={mediaUri}
               durationMs={story.duration_ms}
               author={author}
-              paused={audioPaused || paused || typing || menu || viewers || highlightSheet}
+              paused={audioPaused || paused || typing || menu || viewers || highlightSheet || ended}
               onProgress={setProgress}
               onEnd={next}
             />
@@ -175,7 +224,7 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
               durationMs={sharedVoice!.duration_ms}
               author={author}
               label={voiceSummary(sharedVoice!.language, sharedVoice!.duration_ms) || 'Publication vocale'}
-              paused={audioPaused || paused || typing || menu || viewers || highlightSheet}
+              paused={audioPaused || paused || typing || menu || viewers || highlightSheet || ended}
               onProgress={setProgress}
               onEnd={next}
               backdrop={
@@ -275,44 +324,39 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
         ) : null}
 
         {product.data ? (
-          <Pressable style={styles.sticker} onPress={() => router.push(`/p/${product.data!.id}`)} accessibilityRole="button" accessibilityLabel={`Voir l’article ${product.data.title}`}>
-            <Thumb media={product.data.media[0]} style={{ width: 52, height: 52, borderRadius: 8 }} />
-            <View style={{ flex: 1 }}>
-              <Text variant="callout" weight="700" numberOfLines={1}>
-                {product.data.title}
-              </Text>
-              <Text variant="callout" weight="800">
-                {formatListingPrice(product.data)}
-              </Text>
-            </View>
-            <View style={styles.stickerCta}>
-              <ShoppingBag size={16} color={colors.ink} />
-              <Text variant="caption" weight="800">
-                Voir
-              </Text>
-            </View>
-          </Pressable>
+          <View style={styles.productZone}>
+            <ProductSticker product={product.data} />
+            {!isOwner && product.data.status === 'active' && (canOffer || canTrade) ? (
+              <Button
+                label={canOffer ? 'Faire une offre' : 'Proposer un troc'}
+                variant="cta"
+                pill
+                onPress={() => void makeOffer()}
+                testID="status-offer"
+              />
+            ) : null}
+          </View>
         ) : null}
 
         {isOwner ? (
           <View style={styles.ownerBar}>
-            <Pressable style={styles.ownerBtn} onPress={() => setViewers(true)} accessibilityRole="button">
-              <Eye size={20} color={colors.white} />
-              <Text variant="callout" weight="600" color={colors.white}>
-                Vues
-              </Text>
-            </Pressable>
-            {!isHighlight ? (
-              <Pressable style={styles.ownerBtn} onPress={() => setHighlightSheet(true)} accessibilityRole="button">
-                <Bookmark size={20} color={colors.white} />
-                <Text variant="callout" weight="600" color={colors.white}>
-                  Garder sur mon profil
-                </Text>
-              </Pressable>
+            <RoundAction variant="overlay" icon={Eye} label="Voir qui a vu ce statut" onPress={() => setViewers(true)} testID="status-views" />
+            {!isHighlight ? <RoundAction variant="overlay" icon={Bookmark} label="Garder sur mon profil" onPress={() => setHighlightSheet(true)} testID="status-keep-profile" /> : null}
+            {story.media_kind === 'video' && !isHighlight ? (
+              <RoundAction variant="overlay" icon={Clapperboard} label="Garder en Reel" disabled={keeping} onPress={() => void keepReel()} testID="status-keep-reel" />
             ) : null}
           </View>
         ) : (
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            {!typing ? (
+              <View style={styles.reactions} accessibilityLabel="Réactions rapides">
+                {QUICK_REACTIONS.map((emoji) => (
+                  <Pressable key={emoji} onPress={() => void react(emoji)} style={styles.reaction} accessibilityRole="button" accessibilityLabel={`Réagir ${emoji}`} testID={`status-react-${emoji}`}>
+                    <Text style={{ fontSize: 22, lineHeight: 28 }}>{emoji}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
             <View style={styles.replyBar}>
               <TextInput
                 value={reply}
@@ -334,6 +378,22 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
           </KeyboardAvoidingView>
         )}
       </SafeAreaView>
+
+      {ended ? (
+        <View style={styles.endCard} testID="status-end-card" accessibilityViewIsModal>
+          <Clapperboard size={40} color={dark.textSecondary} />
+          <Text variant="headline" weight="800" tone="fog" align="center" accessibilityRole="header">
+            C’est tout pour ce statut
+          </Text>
+          <Text variant="callout" tone="fogSecondary" align="center">
+            Des vidéos à découvrir, publiées par des membres de Jëfëli.
+          </Text>
+          <View style={{ gap: spacing.sm, alignSelf: 'stretch' }}>
+            <Button label="Voir les Reels" variant="cta" pill onPress={() => router.replace('/reels')} testID="status-see-reels" />
+            <Button label="Fermer" variant="outlineDark" pill onPress={close} />
+          </View>
+        </View>
+      ) : null}
 
       <Sheet visible={menu} onClose={() => setMenu(false)}>
         {isOwner ? (
@@ -434,8 +494,8 @@ function VoiceBackdrop({ author, label, children }: { author: ProfileLite | null
     <View style={[StyleSheet.absoluteFill, styles.voiceBackdrop]}>
       <Avatar path={author?.avatar_path} name={author?.display_name ?? '?'} size={112} />
       <View style={styles.voiceBadge}>
-        <Mic size={16} color={colors.night} />
-        <Text variant="callout" weight="700" color={colors.night}>
+        <Mic size={16} color={colors.ink} />
+        <Text variant="callout" weight="700" color={colors.ink}>
           {label}
         </Text>
       </View>
@@ -580,7 +640,7 @@ const styles = StyleSheet.create({
   desktopBackdrop: { flex: 1, backgroundColor: colors.night, alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
   desktopStage: { flex: 1, borderRadius: 16, overflow: 'hidden' },
   voiceBackdrop: { backgroundColor: dark.surface, alignItems: 'center', justifyContent: 'center', gap: spacing.lg },
-  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.gold },
+  voiceBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 40, borderRadius: 20, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.borderStrong },
   textBackdrop: { backgroundColor: dark.surface, justifyContent: 'center', padding: spacing.xxl },
   shadeTop: { position: 'absolute', top: 0, left: 0, right: 0, height: 180 },
   shadeBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280 },
@@ -594,9 +654,12 @@ const styles = StyleSheet.create({
   narrationLoading: { position: 'absolute', top: '50%', alignSelf: 'center' },
   caption: { paddingHorizontal: spacing.xl, marginBottom: spacing.lg, textShadowColor: colors.mediaScrimStrong, textShadowRadius: 6 },
   sticker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.md, padding: spacing.sm, borderRadius: 14, backgroundColor: colors.surface },
-  stickerCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.action, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
+  stickerCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.raised, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 },
+  productZone: { gap: spacing.sm, alignItems: 'flex-start', marginHorizontal: spacing.lg, marginBottom: spacing.sm },
+  reactions: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm, paddingBottom: spacing.sm },
+  reaction: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.mediaScrim, borderWidth: 1, borderColor: colors.mediaTextSoft },
+  endCard: { ...fill, backgroundColor: colors.mediaBackdrop, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
   replyBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
   replyInput: { flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: colors.mediaTextSoft, paddingHorizontal: spacing.lg, color: colors.white, fontFamily: fonts.medium, fontSize: fieldFontSize(15), backgroundColor: colors.mediaScrim },
   ownerBar: { flexDirection: 'row', justifyContent: 'center', gap: spacing.md, paddingBottom: spacing.md },
-  ownerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.md, height: 44, borderRadius: 22, backgroundColor: colors.mediaScrim },
 });
