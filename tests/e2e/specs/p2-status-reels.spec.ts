@@ -75,15 +75,15 @@ test.describe('P2.3 statuses', () => {
     await expect(sticker.getByText(/18\s?000/)).toBeVisible();
     await expect(sticker.getByText('WECCI')).toBeVisible(); // « Vendre + Troquer » is a Wecci article
     await expect(page.getByTestId('status-offer')).toBeVisible();
-    await shot(page, DIR, 'status-product-sticker-reactions-offer');
 
-    // The sticker opens the article.
+    // The sticker opens the article (at once: a photo status moves on after 5.5 s).
     await sticker.click();
     await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}/);
     await expect(page.getByText(title).filter({ visible: true }).first()).toBeVisible();
 
     // A quick reaction opens the chat with the item card attached.
     await openStatusWithItem(page, title);
+    await shot(page, DIR, 'status-product-sticker-reactions-offer');
     await page.getByTestId('status-react-🔥').click();
     await expect(page).toHaveURL(/\/chat\/[0-9a-f-]{36}/);
     await expect(page.getByText(title).filter({ visible: true }).first()).toBeVisible();
@@ -112,6 +112,7 @@ test.describe('P2.3 statuses', () => {
 });
 
 test.describe('P2.4 Reels', () => {
+  test.setTimeout(240_000);
   test('SR-4 an item video is a Reel: sticker, gold pill, offer', async ({ browser }) => {
     const title = `Reel vente ${RUN}`;
     const seller = await newDevice(browser, DEVICES.iphone15, { camera: true, mic: true });
@@ -156,7 +157,7 @@ test.describe('P2.4 Reels', () => {
     await page.getByRole('tab', { name: 'Publier' }).click();
     await page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
     await page.getByTestId('studio-shutter').click();
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(9000); // long enough to walk to it before it ends
     await page.getByTestId('studio-shutter').click();
     await page.getByTestId('studio-next').click();
     await page.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click(); // off: a plain video

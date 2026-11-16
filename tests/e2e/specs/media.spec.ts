@@ -157,7 +157,7 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
     await b.waitForTimeout(8_000);
     await expect(caption).toBeVisible();
     expect((await playing(b))[0]?.t ?? 0).toBeGreaterThan(6);
-    // At the end of the video it moves on (only status: the viewer closes).
-    await expect(caption).toBeHidden({ timeout: 15_000 });
+    // At the end of the video it moves on (only status: P2 shows the end card « Voir les Reels »).
+    await expect(b.getByTestId('status-end-card')).toBeVisible({ timeout: 20_000 });
   });
 });

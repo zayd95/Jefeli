@@ -86,10 +86,13 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
     if (story && userId && !isOwner) markStoryViewed(userId, story.id).then(() => qc.invalidateQueries({ queryKey: ['story-rail'] })).catch(() => {});
   }, [story?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const product = useQuery({ queryKey: ['product', story?.product_id], queryFn: () => fetchProduct(story?.product_id as string), enabled: !!story?.product_id });
+  // The countdown starts once what the status carries (its article, its publication) has loaded.
+  const contextLoading = (!!story?.product_id && !product.isFetched) || (!!story?.post_id && !sharedPost.isFetched);
   const typing = reply.length > 0;
   useEffect(() => {
     if (!timed) return;
-    if (paused || typing || menu || viewers || highlightSheet || ended) {
+    if (paused || typing || menu || viewers || highlightSheet || ended || contextLoading) {
       elapsedBefore.current += Date.now() - startedAt.current;
       return;
     }
@@ -102,11 +105,10 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
       } else setProgress(p);
     }, 50);
     return () => clearInterval(t);
-  }, [timed, paused, typing, menu, viewers, highlightSheet, ended, duration, next]);
+  }, [timed, paused, typing, menu, viewers, highlightSheet, ended, contextLoading, duration, next]);
 
   const mediaUri = useMediaUrl('private-media', story?.storage_path);
   const posterUri = useMediaUrl('private-media', story?.poster_path);
-  const product = useQuery({ queryKey: ['product', story?.product_id], queryFn: () => fetchProduct(story?.product_id as string), enabled: !!story?.product_id });
   const sharedVisual = sharedPost.data?.media.find((m) => m.kind !== 'audio') ?? null;
   const sharedPhotos = (sharedPost.data?.media ?? []).filter((m) => m.kind === 'image');
   const sharedCues = parseCues(sharedVoice?.cues);
@@ -259,8 +261,8 @@ export function StoryViewer({ stories, author, isHighlight }: { stories: StoryRo
       </View>
 
       <View style={styles.tapZones}>
-        <Pressable style={{ flex: 1 }} onPress={prev} onLongPress={() => setPaused(true)} onPressOut={() => setPaused(false)} accessibilityLabel="Statut précédent" />
-        <Pressable style={{ flex: 2 }} onPress={next} onLongPress={() => setPaused(true)} onPressOut={() => setPaused(false)} accessibilityLabel="Statut suivant" />
+        <Pressable style={{ flex: 1 }} onPress={prev} onLongPress={() => setPaused(true)} onPressOut={() => setPaused(false)} accessibilityRole="button" accessibilityLabel="Statut précédent" />
+        <Pressable style={{ flex: 2 }} onPress={next} onLongPress={() => setPaused(true)} onPressOut={() => setPaused(false)} accessibilityRole="button" accessibilityLabel="Statut suivant" />
       </View>
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.overlay} pointerEvents="box-none">

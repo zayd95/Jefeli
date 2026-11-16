@@ -207,7 +207,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await b.waitForTimeout(8_000);
     await expect(caption).toBeVisible();
     expect((await playing(b))[0]?.t ?? 0).toBeGreaterThan(6);
-    await expect(caption).toBeHidden({ timeout: 15_000 });
+    await expect(b.getByTestId('status-end-card')).toBeVisible({ timeout: 20_000 }); // P2: the end card follows the last status
   });
 
   test('DT-07 · buyer on desktop: Explorer grid and the two-column article', async () => {
@@ -219,7 +219,7 @@ test.describe.serial('W1.4 desktop web', () => {
     );
     if (tops.length >= 4) expect(tops.filter((t) => t === tops[0]).length).toBeGreaterThanOrEqual(4);
     await b.goto(productUrl);
-    const title = b.getByText(ARTICLE, { exact: true }).first();
+    const title = b.getByText(ARTICLE, { exact: true }).filter({ visible: true }).last();
     await expect(title).toBeVisible();
     const media = (await b.getByTestId('product-media').first().boundingBox())!;
     const head = (await title.boundingBox())!;
