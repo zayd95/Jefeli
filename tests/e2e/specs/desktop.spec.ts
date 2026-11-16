@@ -162,13 +162,11 @@ test.describe.serial('W1.4 desktop web', () => {
     await studioWithFile(s, clip(40), '/studio');
     await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
     await s.getByTestId('studio-caption').fill(`Défilé en vidéo ${RUN}`);
-    await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click({ timeout: 2000 }).catch(() => {});
     await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
 
     await studioWithFile(s, clip(12), '/studio?dest=status');
     await s.getByTestId('studio-caption').fill(`Statut vidéo bureau ${RUN}`);
-    await s.getByTestId('studio-dest-feed').click(); // Statut only
     await s.getByTestId('studio-publish').click();
     await expect(sidebar(s)).toBeVisible({ timeout: 60_000 });
     await expect(s).not.toHaveURL(/studio/, { timeout: 60_000 });

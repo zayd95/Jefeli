@@ -143,7 +143,6 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
     await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(12));
     await s.getByTestId('studio-next').click();
     await s.getByTestId('studio-caption').fill(`Arrivage en vidéo ${RUN}`);
-    await s.getByTestId('studio-dest-feed').click(); // Statut only
     await s.getByTestId('studio-publish').click();
     await expect(s.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });
 

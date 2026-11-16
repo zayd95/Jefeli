@@ -104,6 +104,10 @@ const PRICE_MODE_LABELS = { 'Prix affiché': 'Prix affiché', 'Prix sur demande'
 export async function studioWithFile(page: Page, file: string, path = '/studio') {
   await page.goto(path);
   const gallery = page.getByTestId('studio-gallery');
+  const restart = page.getByRole('button', { name: /Brouillon repris/ });
+  await expect(gallery.or(restart)).toBeVisible();
+  // A draft left by an earlier step of the same test comes back: start over, as a member would.
+  if (await restart.isVisible()) await restart.click();
   await expect(gallery).toBeVisible();
   await pickFile(page, () => gallery.click(), file);
   await page.getByTestId('studio-next').click();

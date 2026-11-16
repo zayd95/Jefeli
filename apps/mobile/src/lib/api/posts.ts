@@ -71,7 +71,8 @@ export async function fetchFeed(
     ranked.map((r) => r.post_id),
   );
   const reasons = new Map(ranked.map((r) => [r.post_id, r.reason]));
-  const items = posts.map((p) => ({ ...p, reason: reasons.get(p.id) }));
+  // A publication shown in Reels only (Studio: Fil unticked) is not part of the feed.
+  const items = posts.filter((p) => p.in_feed !== false).map((p) => ({ ...p, reason: reasons.get(p.id) }));
   const last = ranked[ranked.length - 1];
   const next =
     ranked.length < FEED_PAGE

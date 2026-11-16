@@ -7,6 +7,7 @@
  *   SR-5 a video status turns into a Reel (« Garder en Reel »)
  */
 import { expect, test, type Page } from '@playwright/test';
+import { execSync } from 'node:child_process';
 
 import { btn, DEVICES, FIXTURE, newDevice, runId, shot, signIn, studioWithFile } from './helpers';
 
@@ -15,6 +16,15 @@ const DIR = 'p2-status-reels';
 const SELLER = ['awa@demo.jefeli.test', 'Demo-jefeli-2026!'] as const;
 const BUYER = ['fatou@demo.jefeli.test', 'Demo-jefeli-2026!'] as const;
 const PHOTO = FIXTURE('shoe.jpg');
+
+/** Earlier runs' test statuses are hidden first, so the viewer walk stays short (local stack only). */
+function hideOldTestStatuses() {
+  try {
+    execSync(`docker exec supabase_db_jefeli psql -U postgres -c "update stories set deleted_at = now() where deleted_at is null and (caption like 'Sandales statut%' or caption like 'Statut vidéo %' or caption like 'Arrivage en vidéo%' or caption like 'Statut studio%')"`, { stdio: 'ignore' });
+  } catch {
+    /* the walk is only slower */
+  }
+}
 
 /** Publishes an item as a status (photo → Statut + Boutique, no Fil). `trade` also opens it to swaps. */
 async function publishStatusItem(page: Page, title: string, opts: { trade?: boolean } = {}) {
@@ -41,7 +51,7 @@ async function openStatusWithItem(page: Page, title: string) {
   const anySticker = page.getByTestId('product-sticker');
   for (let i = 0; i < 20 && !(await sticker.isVisible().catch(() => false)); i++) {
     // Let the status settle (its article loads after the photo) before deciding to move on.
-    await anySticker.first().waitFor({ state: 'visible', timeout: 1500 }).catch(() => {});
+    await anySticker.first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
     if (await sticker.isVisible().catch(() => false)) break;
     await page.getByRole('button', { name: 'Statut suivant' }).click({ position: { x: 150, y: 300 } }).catch(() => {});
     await page.waitForTimeout(300);
@@ -53,6 +63,7 @@ async function openStatusWithItem(page: Page, title: string) {
 test.describe('P2.3 statuses', () => {
   test('SR-1/2/3 sticker, reaction, offer and end card', async ({ browser }) => {
     const title = `Sandales statut ${RUN}`;
+    hideOldTestStatuses();
     const seller = await newDevice(browser, DEVICES.iphone15);
     await signIn(seller.page, ...SELLER);
     await publishStatusItem(seller.page, title, { trade: true });
