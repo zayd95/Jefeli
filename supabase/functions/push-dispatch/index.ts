@@ -26,6 +26,7 @@ const CATEGORY: Record<string, 'messages' | 'offers' | 'social' | 'live' | 'syst
   agreement_disputed: 'offers',
   review_received: 'offers',
   live_started: 'live',
+  reel_candidate: 'social',
   moderation_action: 'system',
   report_resolved: 'system',
   verification_result: 'system',
@@ -61,6 +62,8 @@ function copy(type: string, actor: string): { title: string; body: string } {
       return { title: 'Article réservé', body: 'Un autre acheteur a conclu : votre proposition est close' };
     case 'agreement_handover':
       return { title: 'Remise proposée', body: `${actor} propose un lieu et une heure` };
+    case 'reel_candidate':
+      return { title: 'Votre statut a été très regardé', body: 'Le garder en Reel ?' };
     case 'live_started':
       return { title: `${actor} est en direct`, body: 'Rejoignez le live sur Jëfëli' };
     default:

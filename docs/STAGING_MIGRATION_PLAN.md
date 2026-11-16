@@ -166,3 +166,27 @@ public.suggested_sellers(integer);` — nothing else depends on them except the 
 - Hosted security probes (public key, `scripts/staging-security-probe.py`): **49/49** (40 existing + 9 for the pilot cut: handover only through the
   RPC, `new_seller_until` / `first_listing_at` / `handover_*` not writable, `member_level` public and read-only with no balance, private helper not exposed).
 - Rollback: not needed. The four files only add (constraints widened, columns, functions); to undo, restore the replaced function bodies from the backup's `schema.functions`.
+
+## 16 Nov 2026 — P2 Studio / Reels (`20261116000100_studio_reels.sql`) — local only, awaiting the owner's go
+
+Nothing here has been applied to `jefeli-staging`. The `feature/p2-studio` previews build against staging, so they stay on the
+schema check's red until this migration is applied (same as the pilot cut before 15 Nov). The migration only adds:
+
+| Object | Why | Risk |
+|---|---|---|
+| `posts.in_feed boolean default true`, `posts.in_reels boolean default false`, `check (in_feed or in_reels)` | where a publication shows | additive; every existing row satisfies the check |
+| backfill `in_reels = true` for public video posts | existing public videos become Reels | one `UPDATE` on `posts` (visible in the counts: updated rows = public posts with a video) |
+| `public.set_post_surfaces(uuid, bool, bool)` | the author's Studio choice | security definer; author only; a Reel must be public and carry a video; refused for 0 destinations |
+| `public.get_reels(int, int, uuid)` | ranked Reels page | security invoker (RLS applies); authenticated only |
+| `public.app_config` (+ row `reel_keep_min_views = 100`) | tunable threshold | RLS on, **no policy**, no grant: readable only by definer functions |
+| `notifications_type_check` + `reel_candidate` | « Le garder en Reel ? » | constraint re-created with the full previous list plus one value |
+| `purge_expired_stories()` replaced | notify + hold the file 48 h | still service-role/cron only (`jefeli-purge-statuses` hourly); highlights and expiry unchanged |
+| `get_story_rail()` replaced | order: yours, unseen, followed, same city | invoker; same columns and grants |
+
+Apply procedure (same as 15 Nov): identity check → verified logical backup (rows per table, schema JSON, SHA-256, reload test) →
+pre-check (the new objects absent; the `check` and the notification list hold) → apply → counts (only `posts` changes: the backfill) →
+schema fingerprint vs local → `schema:check` → hosted probes (add: `in_feed` / `in_reels` not writable by a member; `app_config` unreadable;
+`set_post_surfaces` refused to anon and to non-authors; `get_reels` refused to anon) → rebuild the previews.
+Rollback: drop the two functions and the config table, drop `in_feed` / `in_reels`, restore the previous bodies of `purge_expired_stories`
+and `get_story_rail` from the backup's `schema.functions`, re-create the previous `notifications_type_check`.
+The feed filter for Reel-only publications (`in_feed = false`) is client-side in this version (`fetchFeed`); `get_feed` is not changed.
