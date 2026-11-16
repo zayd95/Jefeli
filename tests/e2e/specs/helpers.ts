@@ -24,10 +24,10 @@ export function runId(): string {
 export async function newDevice(
   browser: Browser,
   size: { width: number; height: number } = DEVICES.iphone15,
-  opts: { mic?: boolean } = {},
+  opts: { mic?: boolean; camera?: boolean } = {},
 ): Promise<{ ctx: BrowserContext; page: Page }> {
   const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 2, locale: 'fr-FR', timezoneId: 'Africa/Dakar' });
-  if (opts.mic) await ctx.grantPermissions(['microphone'], { origin: APP_URL });
+  if (opts.mic || opts.camera) await ctx.grantPermissions([...(opts.mic ? (['microphone'] as const) : []), ...(opts.camera ? (['camera', 'microphone'] as const) : [])], { origin: APP_URL });
   const page = await ctx.newPage();
   page.on('dialog', (d) => d.accept()); // confirm() used for destructive confirmations on web
   return { ctx, page };
@@ -94,20 +94,29 @@ export async function pickFile(page: Page, trigger: () => Promise<void>, file: s
 }
 
 /**
- * Publishes an article through the W1.3 « vitrine »: the cover first, then the name and price
- * written on the window, how it is offered (Vendre / Troquer / Les deux / Donner), how the price is
- * shown (a pill), and the details sheet (catégorie, état…). If a draft is waiting, starts anew
- * after the explicit confirmation.
+ * Publishes an article through the Studio (P2): the gallery photo, the caption (its first line is the
+ * name), the « Vendre ou troquer cet article » switch, the inline chips (price, Vendre · Troquer ·
+ * Donner, catégorie, état), then « Publier ». Vendre + Troquer both on = « Les deux ».
  */
-const MODE_LABELS = { Vente: 'Vendre', 'Vente ou troc': 'Les deux', Troc: 'Troquer', Donner: 'Donner' } as const;
+const PRICE_MODE_LABELS = { 'Prix affiché': 'Prix affiché', 'Prix sur demande': 'Sur demande', 'À discuter': 'À discuter' } as const;
+
+/** Opens the Studio and brings one gallery file to the composer. */
+export async function studioWithFile(page: Page, file: string, path = '/studio') {
+  await page.goto(path);
+  const gallery = page.getByTestId('studio-gallery');
+  await expect(gallery).toBeVisible();
+  await pickFile(page, () => gallery.click(), file);
+  await page.getByTestId('studio-next').click();
+  await expect(page.getByTestId('studio-composer')).toBeVisible();
+}
 
 export async function publishListing(
   page: Page,
   opts: {
     file: string;
     title: string;
-    mode?: keyof typeof MODE_LABELS;
-    priceMode?: 'Prix affiché' | 'Prix sur demande' | 'À discuter';
+    mode?: 'Vente' | 'Vente ou troc' | 'Troc' | 'Donner';
+    priceMode?: keyof typeof PRICE_MODE_LABELS;
     price?: string;
     category: string;
     condition: string;
@@ -116,28 +125,28 @@ export async function publishListing(
     keepMoment?: boolean;
   },
 ) {
-  await page.goto('/publish/listing');
-  const add = page.getByRole('button', { name: 'Ajouter des photos ou une vidéo' });
-  await expect(add.or(page.getByTestId('draft-choice'))).toBeVisible();
-  if (await page.getByTestId('draft-choice').isVisible()) {
-    await btn(page, 'Nouvel article').click();
-    await btn(page, 'Supprimer et commencer').click();
+  await studioWithFile(page, opts.file);
+  const sell = page.getByRole('switch', { name: 'Vendre ou troquer cet article' });
+  if ((await sell.getAttribute('aria-checked')) !== 'true') await sell.click();
+  await page.getByTestId('studio-caption').fill(opts.description ? `${opts.title}\n${opts.description}` : opts.title);
+  const chip = (name: string) => page.getByTestId('studio-item-chips').getByRole('button', { name, exact: true });
+  if (opts.mode === 'Vente ou troc') await chip('Troquer').click();
+  if (opts.mode === 'Troc') {
+    await chip('Troquer').click();
+    await chip('Vendre').click();
   }
-  await pickFile(page, () => add.click(), opts.file);
-  await expect(page.getByText('APERÇU ACHETEUR').last()).toBeVisible();
-  await field(page, 'Nom de l’article').fill(opts.title);
-  if (opts.mode) await page.getByRole('radio', { name: MODE_LABELS[opts.mode], exact: true }).click();
-  if (opts.priceMode) {
-    await page.getByRole('button', { name: /^Mode de prix/ }).click();
-    await page.getByRole('radio', { name: opts.priceMode, exact: true }).click();
+  if (opts.mode === 'Donner') await chip('Donner').click();
+  if (opts.priceMode || opts.price) {
+    await page.getByRole('button', { name: /^Prix : / }).click();
+    if (opts.priceMode) await page.getByRole('radio', { name: PRICE_MODE_LABELS[opts.priceMode], exact: true }).click();
+    if (opts.price) await field(page, /^(Prix|Valeur estimée)/).fill(opts.price);
+    await btn(page, 'Terminé').click();
   }
-  if (opts.price) await field(page, /^(Prix|Valeur estimée)/).fill(opts.price);
   await page.getByRole('button', { name: /^Catégorie : / }).click();
   await btn(page, opts.category).click();
+  await page.getByRole('button', { name: /^État : / }).click();
   await btn(page, opts.condition).click();
-  if (opts.description) await field(page, 'Description (facultatif)').fill(opts.description);
-  await btn(page, 'Terminé').click();
-  await page.getByRole('button', { name: opts.mode === 'Troc' ? 'Proposer en troc' : opts.mode === 'Donner' ? 'Donner cet article' : 'Mettre en vente', exact: true }).click();
+  await page.getByTestId('studio-publish').click();
   await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}(\?first=1)?$/, { timeout: 60_000 });
   // A seller's first listing opens « Partage ta boutique » (pilot cut e): close it unless asked.
   if (page.url().endsWith('?first=1') && !opts.keepMoment) {

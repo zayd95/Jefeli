@@ -1,15 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { Compass, House, MessageCircle, Plus, UserRound, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { CreateMenu } from '@/components/CreateMenu';
 import { colors, dark, shadow, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { DOCK_GAP, DOCK_HEIGHT } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
 import { resetDock, useDockHidden } from '@/lib/dockVisibility';
 import { useLayout } from '@/lib/layout';
 
@@ -45,7 +46,6 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
     refetchInterval: 60_000,
   });
   const [keyboard, setKeyboard] = useState(false);
-  const [creating, setCreating] = useState(false);
   useEffect(() => {
     if (Platform.OS !== 'android') return undefined;
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true));
@@ -96,9 +96,9 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
               accessibilityState={{ selected }}
               aria-selected={selected}
               accessibilityLabel={unreadCount ? meta.label + ', ' + unreadCount + ' non lus' : meta.label}
-              accessibilityHint={route.name === 'publish' ? 'Ouvre le menu : publication, article ou statut' : undefined}
+              accessibilityHint={route.name === 'publish' ? 'Ouvre le Studio : photo, vidéo, voix ou texte' : undefined}
               onPress={() => {
-                if (route.name === 'publish') setCreating(true);
+                if (route.name === 'publish') router.push(STUDIO.open);
                 else navigateToTab(route.key);
               }}
               style={({ pressed }) => [
@@ -125,7 +125,6 @@ function JefeliTabBar({ state, navigateToTab, insets }: TabBarProps) {
           );
         })}
       </View>
-      <CreateMenu visible={creating} onClose={() => setCreating(false)} />
     </Animated.View>
   );
 }

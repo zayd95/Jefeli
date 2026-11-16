@@ -37,6 +37,7 @@ import {
 import { follow } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
 import { useDockScroll } from '@/lib/dockVisibility';
 import { useLayout } from '@/lib/layout';
 import { aisleCounts, LAUNCH_AISLES, otherAisles, type Aisle } from '@/lib/market';
@@ -379,7 +380,7 @@ export default function Explore() {
           ) : (
             <SeekInvite
               title={aisle ? `L’allée ${aisle.label} attend ses premiers articles` : near ? `Rien pour l’instant à ${near}` : filtered ? 'Rien pour ces filtres' : 'Le marché ouvre bientôt'}
-              onSeek={() => router.push({ pathname: '/publish/post', params: { intent: 'seek' } })}
+              onSeek={() => router.push(STUDIO.seek)}
               onClear={filtered ? clear : undefined}
             />
           )

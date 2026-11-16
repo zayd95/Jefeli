@@ -60,6 +60,7 @@ import {
 import { fetchActiveStories, fetchHighlights } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
 import { useDockScroll } from '@/lib/dockVisibility';
 import { avatarUrl } from '@/lib/media';
 import { goBack } from '@/lib/nav';
@@ -246,7 +247,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         <View style={styles.avatarRow}>
           {isSelf || hasStories ? (
             <Pressable
-              onPress={() => (hasStories ? router.push(`/statut/${profile.id}`) : router.push('/publish/status'))}
+              onPress={() => (hasStories ? router.push(`/statut/${profile.id}`) : router.push(STUDIO.status))}
               accessibilityRole="button"
               accessibilityLabel={hasStories ? (isSelf ? 'Voir mon statut' : 'Voir ses statuts') : 'Ajouter un statut'}
               style={({ pressed }) => pressed && { transform: [{ scale: 0.96 }] }}
@@ -356,7 +357,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         {isSelf ? (
           <View style={styles.actions}>
             <Button label="Modifier le profil" variant="outlineDark" pill style={{ flex: 1 }} onPress={() => router.push('/edit-profile')} />
-            <RoundAction icon={Plus} label="Publier" testID="act-publish" onPress={() => router.push('/publish/post')} />
+            <RoundAction icon={Plus} label="Publier" testID="act-publish" onPress={() => router.push(STUDIO.open)} />
             <RoundAction icon={Share2} label="Partager le profil" testID="act-share-profile" onPress={() => setShareSheet(true)} />
           </View>
         ) : r.blocked ? (
@@ -422,7 +423,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                 {(highlights.data ?? []).map((h) => (
                   <InfoLink key={h.id} icon={Star} label={`Sélection · ${h.title} (${h.items.length})`} onPress={() => router.push(`/highlight/${h.id}`)} />
                 ))}
-                {isSelf ? <InfoLink icon={Plus} label="Publier un statut (24 h)" onPress={() => router.push('/publish/status')} /> : null}
+                {isSelf ? <InfoLink icon={Plus} label="Publier un statut (24 h)" onPress={() => router.push(STUDIO.status)} /> : null}
                 <BoutiqueInfo boutique={boutique.data} isSelf={isSelf} />
               </>
             ) : null}
@@ -548,7 +549,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
                 <Text variant="callout" tone="fogSecondary" align="center">
                   Aucune publication pour l’instant.
                 </Text>
-                {isSelf ? <Button label="Publier" variant="outline" pill size="sm" onPress={() => router.push('/publish/post')} style={{ marginTop: spacing.md }} /> : null}
+                {isSelf ? <Button label="Publier" variant="outline" pill size="sm" onPress={() => router.push(STUDIO.open)} style={{ marginTop: spacing.md }} /> : null}
               </View>
             )
           ) : (
@@ -556,7 +557,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
               <Text variant="callout" tone="fogSecondary" align="center">
                 {isSelf ? 'Votre boutique apparaît avec votre premier article. Gratuite, sans abonnement.' : 'Pas encore d’article.'}
               </Text>
-              {isSelf ? <Button label="Ajouter un article" variant="outline" pill size="sm" icon={Plus} onPress={() => router.push('/publish/listing')} style={{ marginTop: spacing.md }} /> : null}
+              {isSelf ? <Button label="Ajouter un article" variant="outline" pill size="sm" icon={Plus} onPress={() => router.push(STUDIO.article)} style={{ marginTop: spacing.md }} /> : null}
             </View>
           );
         }}

@@ -26,6 +26,7 @@ import { fetchFeed } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
 import { useDockScroll } from '@/lib/dockVisibility';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
@@ -207,9 +208,9 @@ export default function Home() {
       );
     }
     const map: Record<HomeTab, { icon: LucideIcon; title: string; body: string; action?: [string, () => void] }> = {
-      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push('/publish/post')] },
+      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push(STUDIO.open)] },
       following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
-      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push('/publish/post')] },
+      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push(STUDIO.open)] },
       live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les directs des vendeurs suivis apparaîtront ici.' },
     };
     const e = map[tab];

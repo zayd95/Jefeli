@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Skeleton, spacing, StoryRing } from '@/design';
 import { fetchStoryRail } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth';
+import { STUDIO } from '@/lib/studioLinks';
 
 /** Lovable story rail on Atlantic night: « Votre statut » first, then members with a live status. */
 export function StoryRail() {
@@ -22,7 +23,7 @@ export function StoryRail() {
         label={mine ? 'Mon statut' : 'Votre statut'}
         seen={false}
         addBadge={!mine}
-        onPress={() => (mine ? router.push(`/statut/${userId}`) : router.push('/publish/status'))}
+        onPress={() => (mine ? router.push(`/statut/${userId}`) : router.push(STUDIO.status))}
       />
       {rail.isPending
         ? [0, 1, 2, 3].map((i) => (

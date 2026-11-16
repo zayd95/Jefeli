@@ -8,6 +8,7 @@ import { Button, Field, Header, Screen, spacing, Text, useToast } from '@/design
 import { fetchBoutique, updateBoutique } from '@/lib/api/products';
 import { useAuth } from '@/lib/auth';
 import { goBack } from '@/lib/nav';
+import { STUDIO } from '@/lib/studioLinks';
 
 export default function BoutiqueEdit() {
   const { userId } = useAuth();
@@ -24,7 +25,7 @@ function NoBoutique() {
       <Text tone="secondary" style={{ padding: spacing.lg }}>
         Votre boutique sera créée automatiquement avec votre premier article.
       </Text>
-      <Button label="Ajouter un article" variant="cta" onPress={() => router.replace('/publish/listing')} style={{ margin: spacing.lg }} />
+      <Button label="Ajouter un article" variant="cta" onPress={() => router.replace(STUDIO.article)} style={{ margin: spacing.lg }} />
     </Screen>
   );
 }

@@ -57,7 +57,7 @@ export function useDraft<T extends object>(key: string, initial: T) {
 // starting anew asks before deleting it.
 // ---------------------------------------------------------------------------
 
-export type DraftKind = 'post' | 'listing';
+export type DraftKind = 'post' | 'listing' | 'studio';
 
 /** W1.2 kept article presentations and community requests in their own drafts: adopt them once. */
 const LEGACY_POST_KEYS = ['post-present', 'post-seek', 'post-offer', 'post-opinion'];

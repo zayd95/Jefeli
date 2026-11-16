@@ -31,6 +31,7 @@ import { useMediaUrl } from '@/lib/media';
 import { shareLinks, whatsappLinks } from '@/lib/share';
 import type { ProductCard } from '@/lib/types';
 import { goBack } from '@/lib/nav';
+import { STUDIO } from '@/lib/studioLinks';
 
 export default function ProductScreen() {
   const { id, first } = useLocalSearchParams<{ id: string; first?: string }>();
@@ -263,7 +264,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
             <View style={{ gap: 8 }}>
               {product.status === 'active' ? (
                 // W1.2: show it in photos and in your own voice, the article attached.
-                <Button label="Présenter cet article" variant="soft" icon={Mic} accessibilityLabel="Présenter cet article en photos et en voix" onPress={() => router.push(`/publish/post?product=${product.id}`)} />
+                <Button label="Présenter cet article" variant="soft" icon={Mic} accessibilityLabel="Présenter cet article en photos et en voix" onPress={() => router.push(STUDIO.present(product.id))} />
               ) : null}
               {product.status === 'active' || product.status === 'reserved' ? <StatusCardButton product={product} /> : null}
             <View style={styles.ctaRow}>

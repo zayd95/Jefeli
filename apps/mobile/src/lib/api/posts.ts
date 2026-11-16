@@ -136,6 +136,11 @@ export async function createPost(args: {
   ) as string;
 }
 
+/** Where a publication shows: Accueil « Fil », and/or the Reels feed (a public video only). */
+export async function setPostSurfaces(postId: string, inFeed: boolean, inReels: boolean): Promise<void> {
+  unwrap(await supabase.rpc('set_post_surfaces', { p_post_id: postId, p_in_feed: inFeed, p_in_reels: inReels }));
+}
+
 export async function editPost(id: string, body: string) {
   unwrap(await supabase.from('posts').update({ body }).eq('id', id));
 }
