@@ -215,3 +215,12 @@ export const IconPushpin = (p: IconProps) => (
     <path d="M9 3.5h6M10 3.5l-.6 5.8L6.5 12.5v1.5h11v-1.5l-2.9-3.2L14 3.5M12 14v6.5" />
   </Icon>
 );
+
+export const IconRepeat = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+  </Icon>
+);

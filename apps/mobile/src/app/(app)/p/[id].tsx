@@ -10,7 +10,7 @@ import {
 } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, ArrowRight, Heart, MapPin, Gift, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Heart, MapPin, Gift, MessageCircle, Mic, MoreHorizontal, PackageX, Pin, Repeat, Send, Share2, ShieldCheck, Star, Truck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +21,7 @@ import { PriceLabel } from '@/components/PriceLabel';
 import { ShareBoutiqueMoment, StatusCardButton } from '@/components/ShareBoutique';
 import { ShareToStatusSheet } from '@/components/ShareToStatus';
 import { ProfileName } from '@/components/ProfileName';
-import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, EmptyState, ErrorState, Header, IconButton, radius, RoundAction, Screen, shadow, Skeleton, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct } from '@/lib/api/messages';
 import { setPinned } from '@/lib/api/posts';
 import { deleteListing, fetchCategories, fetchProduct, isProductSaved, setListingStatus, setProductSaved } from '@/lib/api/products';
@@ -242,28 +242,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
           </View>
 
           <View style={styles.shareRow}>
-            <Pressable
-              onPress={() => whatsappLinks.product(product)}
-              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceSubtle }]}
-              accessibilityRole="button"
-              accessibilityLabel="Partager sur WhatsApp"
-            >
-              <MessageCircle size={16} color={colors.ink} />
-              <Text variant="callout" weight="700">
-                WhatsApp
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => shareLinks.product(product)}
-              style={({ pressed }) => [styles.sharePill, pressed && { backgroundColor: colors.surfaceSubtle }]}
-              accessibilityRole="button"
-              accessibilityLabel="Partager ailleurs (Facebook, Instagram, TikTok…)"
-            >
-              <Share2 size={16} color={colors.ink} />
-              <Text variant="callout" weight="700">
-                Partager
-              </Text>
-            </Pressable>
+            <RoundAction icon={Send} label="Partager sur WhatsApp" onPress={() => whatsappLinks.product(product)} testID="act-whatsapp" />
             <Text variant="caption" tone="secondary" style={{ marginLeft: 'auto' }}>
               Publié {timeAgo(product.created_at)}
             </Text>
@@ -301,22 +280,21 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
               )}
             </View>
             </View>
-          ) : product.status === 'active' ? (
-            <View style={{ gap: 8 }}>
-              <View style={styles.ctaRow}>
-                <Button label="Envoyer un message" variant="primary" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} style={styles.ctaPrimary} />
-                {canOffer && !canTrade ? <Button label="Faire une offre" variant="outline" size="lg" style={styles.ctaSecondary} onPress={offer} /> : null}
-                {canTrade && !canOffer ? <Button label="Proposer un troc" variant="outline" size="lg" accessibilityLabel="Proposer un échange (troc)" style={styles.ctaSecondary} onPress={barter} /> : null}
-              </View>
-              {canOffer && canTrade ? (
-                <View style={styles.ctaRow}>
-                  <Button label="Faire une offre" variant="outline" style={styles.ctaHalf} onPress={offer} />
-                  <Button label="Proposer un troc" variant="outline" accessibilityLabel="Proposer un échange (troc)" style={styles.ctaHalf} onPress={barter} />
-                </View>
-              ) : null}
-            </View>
           ) : (
-            <Button label="Envoyer un message au vendeur" variant="outline" size="lg" icon={MessageCircle} loading={busy === 'contact'} onPress={contact} style={{ borderRadius: 18 }} />
+            // P2: one gold pill for the main action, round 44-pt icons for the rest (labels on long press).
+            <View style={styles.ctaRow}>
+              {canOffer ? (
+                <Button label="Faire une offre" variant="cta" size="lg" style={styles.ctaPrimary} onPress={offer} />
+              ) : canTrade ? (
+                <Button label="Proposer un troc" variant="cta" size="lg" accessibilityLabel="Proposer un échange (troc)" style={styles.ctaPrimary} onPress={barter} />
+              ) : (
+                <Button label={gift ? 'Écrire au donneur' : 'Envoyer un message'} variant="cta" size="lg" loading={busy === 'contact'} onPress={contact} style={styles.ctaPrimary} />
+              )}
+              {canOffer || canTrade ? <RoundAction icon={MessageCircle} label="Envoyer un message au vendeur" disabled={busy === 'contact'} onPress={contact} testID="act-message" /> : null}
+              {canOffer && canTrade ? <RoundAction icon={Repeat} label="Proposer un échange (troc)" onPress={barter} testID="act-troc" /> : null}
+              <RoundAction icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} testID="act-share" />
+              <RoundAction icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} active={!!saved.data} filled onPress={toggleSave} testID="act-save" />
+            </View>
           )}
     </>
   );
@@ -363,10 +341,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
       <View style={styles.dToolbar}>
         <Button label="Retour" variant="ghost" size="sm" icon={ArrowLeft} onPress={() => goBack()} />
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <IconButton icon={Share2} label="Partager l’article" size={19} color={colors.ink} onPress={() => shareLinks.product(product)} />
-          {!isOwner ? (
-            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : colors.ink} onPress={toggleSave} />
-          ) : null}
+          {isOwner ? <IconButton icon={Share2} label="Partager l’article" size={19} color={colors.ink} onPress={() => shareLinks.product(product)} /> : null}
           <IconButton icon={MoreHorizontal} label="Plus d’options" size={19} color={colors.ink} onPress={() => setMenu(true)} />
         </View>
       </View>
@@ -416,10 +391,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 10) }]} pointerEvents="box-none">
         <IconButton icon={ArrowLeft} label="Retour" variant="glass" size={20} color={dark.text} onPress={() => goBack()} />
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} />
-          {!isOwner ? (
-            <IconButton icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} variant="glass" size={19} filled={!!saved.data} fillColor={colors.danger} color={saved.data ? colors.danger : dark.text} onPress={toggleSave} />
-          ) : null}
+          {isOwner ? <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} /> : null}
           <IconButton icon={MoreHorizontal} label="Plus d’options" variant="glass" size={19} color={dark.text} onPress={() => setMenu(true)} />
         </View>
       </View>

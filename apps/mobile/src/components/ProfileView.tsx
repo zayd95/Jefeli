@@ -40,7 +40,7 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, IconButton, Motif, radius, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
+import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, IconButton, Motif, radius, RoundAction, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
 import { fill } from '@/design/fill';
 import { openConversationWith } from '@/lib/api/messages';
 import { fetchReviews } from '@/lib/api/offers';
@@ -184,14 +184,13 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
 
   const friendButton = () => {
     if (isSelf || r.blocked) return null;
-    const style = styles.roundAction;
     if (r.is_friend)
       return (
-        <IconButton
+        <RoundAction
           icon={Users}
           label="Ami(e) — retirer des amis"
-          color={dark.gold}
-          style={style}
+          active
+          testID="act-friend"
           onPress={async () => {
             if (await confirmAsync('Retirer des amis ?', `${profile.display_name} ne verra plus vos contenus réservés aux amis.`, 'Retirer'))
               act('friend', () => removeFriend(profile.id), 'Retiré(e) de vos amis');
@@ -199,12 +198,10 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         />
       );
     if (r.friend_request_direction === 'incoming' && r.friend_request_id)
-      return (
-        <IconButton icon={Check} label="Accepter l’ami" color={dark.gold} style={style} onPress={() => act('friend', () => respondFriendRequest(r.friend_request_id as string, true), 'Vous êtes maintenant amis')} />
-      );
+      return <RoundAction icon={Check} label="Accepter l’ami" active testID="act-friend" onPress={() => act('friend', () => respondFriendRequest(r.friend_request_id as string, true), 'Vous êtes maintenant amis')} />;
     if (r.friend_request_direction === 'outgoing' && r.friend_request_id)
-      return <IconButton icon={Clock} label="Demande d’ami envoyée — annuler" color={dark.textStrong} style={style} onPress={() => act('friend', () => cancelFriendRequest(r.friend_request_id as string), 'Demande annulée')} />;
-    return <IconButton icon={UserPlus} label="Ajouter en ami" color={dark.textStrong} style={style} onPress={() => act('friend', () => sendFriendRequest(profile.id), 'Demande d’ami envoyée')} />;
+      return <RoundAction icon={Clock} label="Demande d’ami envoyée — annuler" testID="act-friend" onPress={() => act('friend', () => cancelFriendRequest(r.friend_request_id as string), 'Demande annulée')} />;
+    return <RoundAction icon={UserPlus} label="Ajouter en ami" testID="act-friend" onPress={() => act('friend', () => sendFriendRequest(profile.id), 'Demande d’ami envoyée')} />;
   };
 
   const counts: { value: number; label: string; kind: 'followers' | 'following' | 'friends' }[] = [
@@ -359,7 +356,8 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
         {isSelf ? (
           <View style={styles.actions}>
             <Button label="Modifier le profil" variant="outlineDark" pill style={{ flex: 1 }} onPress={() => router.push('/edit-profile')} />
-            <Button label="Publier" variant="outline" pill icon={Plus} style={{ flex: 1 }} onPress={() => router.push('/publish/post')} />
+            <RoundAction icon={Plus} label="Publier" testID="act-publish" onPress={() => router.push('/publish/post')} />
+            <RoundAction icon={Share2} label="Partager le profil" testID="act-share-profile" onPress={() => setShareSheet(true)} />
           </View>
         ) : r.blocked ? (
           <Text tone="fogSecondary" style={{ marginTop: spacing.lg }}>
@@ -731,7 +729,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.lg },
   follow: { flex: 1, height: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: radius.pill, borderWidth: 1, borderColor: dark.borderStrong },
   followOn: { borderColor: dark.goldLine, backgroundColor: dark.raised },
-  roundAction: { width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: dark.borderStrong },
   infoToggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
   infoToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 36 },
   info: { gap: spacing.sm, padding: spacing.md, borderRadius: 16, borderWidth: 1, borderColor: dark.border, backgroundColor: dark.surface, marginTop: 4 },
