@@ -28,6 +28,8 @@ import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
 import { STUDIO } from '@/lib/studioLinks';
 import { useDockScroll } from '@/lib/dockVisibility';
+import { fetchReels } from '@/lib/api/reels';
+import { REELS_MODULE_EVERY, REELS_MODULE_MIN, ReelsModule } from '@/components/ReelsModule';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
 import { useLayout } from '@/lib/layout';
@@ -67,6 +69,20 @@ export default function Home() {
   const live = useQuery({ queryKey: ['live-now'], queryFn: fetchLiveNow, enabled: tab === 'live', refetchInterval: 20_000 });
 
   const postItems = useMemo(() => posts.data?.pages.flatMap((p) => p.items) ?? [], [posts.data]);
+
+  // P2: a horizontal « Reels » module every ~8 publications, only with at least 3 real Reels.
+  const reels = useQuery({ queryKey: ['reels-module', userId], queryFn: () => fetchReels(userId, { offset: 0 }), enabled: isPostTab && !!userId, staleTime: 120_000 });
+  const reelItems = useMemo(() => reels.data?.items ?? [], [reels.data]);
+  type FeedRow = PostCardData | { id: string; reelsModule: true };
+  const rows = useMemo<FeedRow[]>(() => {
+    if (reelItems.length < REELS_MODULE_MIN) return postItems;
+    const out: FeedRow[] = [];
+    postItems.forEach((p, i) => {
+      out.push(p);
+      if ((i + 1) % REELS_MODULE_EVERY === 0) out.push({ id: `reels-module-${i}`, reelsModule: true });
+    });
+    return out;
+  }, [postItems, reelItems]);
 
   // Video playback (W1.1): the topmost card at least 60 % on screen is the « active » one; its
   // video may autoplay muted. Leaving Accueil (another tab, a pushed screen) pauses everything.
@@ -274,15 +290,15 @@ export default function Home() {
         />
       ) : (
         <ActivePostContext.Provider value={focused ? activePostId : null}>
-        <FlatList<PostCardData>
+        <FlatList<FeedRow>
           onScroll={onDockScroll}
           scrollEventThrottle={16}
           key="posts"
-          data={tab === 'nearby' && !profile?.city ? [] : postItems}
+          data={tab === 'nearby' && !profile?.city ? [] : rows}
           keyExtractor={(p) => p.id}
           ListHeaderComponent={listHeader}
           ListEmptyComponent={empty}
-          renderItem={({ item }) => <PostCard post={item} showReason={tab === 'for_you'} />}
+          renderItem={({ item }) => ('reelsModule' in item ? <ReelsModule reels={reelItems} /> : <PostCard post={item} showReason={tab === 'for_you'} />)}
           viewabilityConfig={VIEWABILITY}
           onViewableItemsChanged={onViewable}
           onEndReached={() => posts.hasNextPage && !posts.isFetchingNextPage && posts.fetchNextPage()}

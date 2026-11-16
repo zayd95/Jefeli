@@ -99,3 +99,12 @@ Voir `docs/IMPLEMENTATION_LOG.md` (entrée du 16 nov.) pour les nombres exacts e
 ## 9. Estimations
 Validation sur téléphone (EAS APK, caméra/flash/vidéo/Reels, perf du préchargement) : ~1 jour ; staging (sauvegarde + migration +
 sondes + aperçus) : ~½ jour ; voix sur vidéo : ~½ jour ; sélecteur d'audience de statut + écran admin du seuil : ~1 jour.
+
+## 10. Décisions du 16 nov. (appliquées)
+1. Migration staging appliquée (`20261116000100` + `20261116000200`, voir `docs/STAGING_MIGRATION_PLAN.md`).
+2. Pas de voix sur une vidéo pour le pilote : narration sur photos seulement.
+3. Un statut gardé en Reel reste dans les Reels (pas dans le fil). Module horizontal « Reels » dans Accueil : après chaque 8 publications,
+   seulement s'il existe au moins 3 Reels, données réelles uniquement (`ReelsModule`).
+4. Vignette de galerie : `expo-media-library` ; demande d'autorisation une seule fois à la première ouverture du Studio, avec une phrase d'explication ;
+   icône simple si refus (et sur le web).
+5. Sélecteur d'audience du statut : reporté (backlog dans `docs/NEXT_ACTIONS.md`).

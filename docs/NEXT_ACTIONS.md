@@ -252,7 +252,10 @@ feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`
    - edit and reorder listing media (the RPC exists);
    - a report-history link from notifications;
    - `my_conversations` preview text for barter offers;
-   - a server-side guard for `/admin` routes.
+   - a server-side guard for `/admin` routes;
+   - **status audience picker in the Studio** (owner, 16 Nov: not now): today a status uses the account's default audience;
+   - an admin screen for `app_config.reel_keep_min_views` (SQL only today);
+   - voice over a video (decided: not for the pilot; the server rule `audio_with_video` stays).
 6. Performance pass on a mid-range Android: switch feed lists to FlashList (installed) and check
    image sizes.
 

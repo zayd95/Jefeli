@@ -183,4 +183,25 @@ test.describe('P2.4 Reels', () => {
     await shot(page, DIR, 'own-video-status-kept-as-reel');
     await ctx.close();
   });
+
+  test('RM-1 Accueil shows a Reels carousel of real Reels, and a tap opens the Reels feed at that video', async ({ browser }) => {
+    test.setTimeout(120_000);
+    const count = Number(execSync(`docker exec supabase_db_jefeli psql -U postgres -tAc "select count(*) from posts where in_reels and visibility='public' and deleted_at is null and moderation_status='active'"`, { encoding: 'utf8' }).trim());
+    test.skip(count < 3, 'fewer than 3 Reels on this database: the module stays hidden (that is the rule)');
+    const { ctx, page } = await newDevice(browser, DEVICES.iphone15);
+    await signIn(page, ...BUYER);
+    const module = page.getByTestId('reels-module');
+    for (let i = 0; i < 14 && !(await module.first().isVisible().catch(() => false)); i++) {
+      await page.mouse.move(200, 400);
+      await page.mouse.wheel(0, 900);
+      await page.waitForTimeout(500);
+    }
+    await expect(module.first()).toBeVisible();
+    expect(await page.getByTestId('reel-tile').count()).toBeGreaterThanOrEqual(3);
+    await shot(page, DIR, 'accueil-reels-carousel');
+    await page.getByTestId('reel-tile').first().click();
+    await expect(page).toHaveURL(/\/reels\?start=[0-9a-f-]{36}/);
+    await expect(page.getByTestId('reel').first()).toBeVisible({ timeout: 30_000 });
+    await ctx.close();
+  });
 });

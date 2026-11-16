@@ -105,6 +105,14 @@
           "recordAudioAndroid": true
         }
       ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Jëfëli affiche votre dernière photo dans la vignette de la galerie du Studio.",
+          "savePhotosPermission": false,
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "expo-video",
       "expo-secure-store",
       [

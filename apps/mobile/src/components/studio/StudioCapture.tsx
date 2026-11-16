@@ -12,13 +12,15 @@
  */
 import { formatDuration, MAX_PHOTOS, TEXT_STARTERS, type StudioMode, type TextStarter } from '@jefeli/shared';
 import { CameraView, useCameraPermissions, useMicrophonePermissions, type CameraType, type FlashMode } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { Camera as CameraIcon, ImagePlus, Mic, RefreshCw, X, Zap, ZapOff } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, colors, dark, fonts, IconButton, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
+import { Button, colors, dark, fonts, IconButton, Sheet, spacing, Text, useToast, WEB_NO_OUTLINE } from '@/design';
 import { localFromUri } from '@/lib/studio';
 import { startWebRecording, type WebRecording } from '@/lib/webRecorder';
 import { MAX_VIDEO_SECONDS, pickMedia, uploadErrorMessage, type LocalMedia } from '@/lib/upload';
@@ -67,6 +69,43 @@ export function StudioCapture(p: CaptureProps) {
   const total = p.photos.length + (p.video ? 1 : 0);
   const anything = total > 0 || !!p.voiceLabel || p.text.trim().length > 0;
   const last = p.video ?? p.photos[p.photos.length - 1] ?? null;
+  const [libraryThumb, setLibraryThumb] = useState<string | null>(null);
+  const [explain, setExplain] = useState(false);
+
+  // Gallery thumbnail (P2): the newest photo or video of the phone. The permission is asked once, on
+  // the first Studio opening, after a one-line explanation; a refusal (or the web) keeps the plain icon.
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    let alive = true;
+    void (async () => {
+      const current = await MediaLibrary.getPermissionsAsync().catch(() => null);
+      if (!alive || !current) return;
+      if (current.granted) {
+        const page = await MediaLibrary.getAssetsAsync({ first: 1, mediaType: ['photo', 'video'], sortBy: [['creationTime', false]] }).catch(() => null);
+        if (alive && page?.assets[0]) setLibraryThumb(page.assets[0].uri);
+        return;
+      }
+      const asked = await AsyncStorage.getItem('studio:gallery-asked').catch(() => null);
+      if (!asked && current.canAskAgain && alive) setExplain(true);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function allowGallery() {
+    setExplain(false);
+    await AsyncStorage.setItem('studio:gallery-asked', '1').catch(() => {});
+    const res = await MediaLibrary.requestPermissionsAsync().catch(() => null);
+    if (res?.granted) {
+      const page = await MediaLibrary.getAssetsAsync({ first: 1, mediaType: ['photo', 'video'], sortBy: [['creationTime', false]] }).catch(() => null);
+      if (page?.assets[0]) setLibraryThumb(page.assets[0].uri);
+    }
+  }
+  async function declineGallery() {
+    setExplain(false);
+    await AsyncStorage.setItem('studio:gallery-asked', '1').catch(() => {});
+  }
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -306,7 +345,7 @@ export function StudioCapture(p: CaptureProps) {
         {strip}
         <View style={styles.shutterRow}>
           <Pressable onPress={gallery} style={styles.gallery} accessibilityRole="button" accessibilityLabel="Ouvrir la galerie" testID="studio-gallery">
-            {last ? <Image source={{ uri: last.posterUri ?? last.uri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <ImagePlus size={22} color={colors.white} />}
+            {last || libraryThumb ? <Image source={{ uri: last ? (last.posterUri ?? last.uri) : (libraryThumb as string) }} style={StyleSheet.absoluteFill} contentFit="cover" /> : <ImagePlus size={22} color={colors.white} />}
           </Pressable>
 
           {hasCamera ? (
@@ -350,6 +389,15 @@ export function StudioCapture(p: CaptureProps) {
           })}
         </View>
       </View>
+      <Sheet visible={explain} onClose={() => void declineGallery()} title="Votre galerie" tone="dark">
+        <View style={{ gap: spacing.md }}>
+          <Text variant="callout" tone="fogSecondary">
+            Jëfëli affiche votre dernière photo dans la vignette de la galerie. Rien n’est envoyé sans votre accord.
+          </Text>
+          <Button label="Autoriser" variant="cta" pill onPress={() => void allowGallery()} testID="gallery-allow" />
+          <Button label="Plus tard" variant="outlineDark" pill onPress={() => void declineGallery()} />
+        </View>
+      </Sheet>
     </View>
   );
 }
