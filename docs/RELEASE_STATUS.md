@@ -407,3 +407,9 @@ approve anything.
   It is fine for demos but must not be used publicly without confirming rights.
 - The admin console checks roles in the browser. The database enforces every permission, so no
   data is exposed, but there is no server-side route guard.
+
+## 17 Nov 2026 — aperçu famille (staging)
+
+`jefeli.vercel.app` (branche `feature/p2-studio`) est ouvert sans connexion Vercel. Vitrine DÉMO en place sur staging
+(`scripts/demo-showcase.ts`) ; à relancer le jour de la visite pour les statuts (24 h). Inscription e-mail limitée par le
+quota de 2 e-mails/heure : voir `docs/FAMILY_PREVIEW.md`.

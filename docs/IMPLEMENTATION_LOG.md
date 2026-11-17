@@ -718,3 +718,13 @@ Détail fonctionnel et liste des boutons convertis : `docs/P2_STUDIO.md`. Schém
   le serveur refuse une voix sur une vidéo (`audio_with_video`) → pas de narration sur vidéo ; les zones de tape du
   statut n'avaient pas de rôle `button` (corrigé) ; le compte à rebours d'un statut attend désormais le chargement de
   son article ; la fin d'un statut affiche la carte « Voir les Reels » au lieu de fermer.
+
+## 17 nov. 2026 — aperçu famille (`jefeli.vercel.app`, staging)
+
+- Inscription par e-mail : fonctionne de bout en bout, mais **quota intégré de 2 e-mails/heure pour tout le projet**
+  (pas de SMTP) ; liste de redirections complétée avec `https://jefeli.vercel.app/**`. Deux comptes de test confirmés
+  créés (identifiants dans le rapport au propriétaire, jamais dans le dépôt). Détail : `docs/FAMILY_PREVIEW.md`.
+- `scripts/demo-showcase.ts` (+ `--remove`, `--status`) : 8 boutiques DÉMO, 40 articles, 10 statuts, 6 Reels, 5
+  « Je cherche ». Aucune statistique inventée. Retrait vérifié sur staging (comptes, lignes et fichiers identiques à l'état d'avant).
+- Parcours 390 px sur l'aperçu réel : `tests/e2e/specs/family-journey.spec.ts` (vert, nettoyage inclus), captures dans
+  `docs/evidence/e2e/family/`.

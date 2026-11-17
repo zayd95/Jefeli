@@ -1,5 +1,11 @@
 # Next actions
 
+## Owner (17 nov.): aperçu famille
+
+1. Choisir comment lever le quota d'e-mails (SMTP Resend/Brevo recommandé, ou confirmation désactivée le temps de l'aperçu).
+2. Le jour de la visite : relancer `node scripts/demo-showcase.ts` (statuts de 24 h) ; après l'aperçu, `--remove` si besoin.
+3. Remplacer les images « DÉMO · PHOTO À VENIR » par de vraies photos quand vous les avez.
+
 ## Owner (now): revue de P2 — `feature/p2-studio` (PR brouillon, rien n'est fusionné)
 
 Décisions attendues (détail dans `docs/P2_STUDIO.md` § questions ouvertes) : go pour la migration staging
