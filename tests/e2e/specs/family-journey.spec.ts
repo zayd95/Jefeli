@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { btn, DEVICES, field, FIXTURE, newDevice, publishListing, runId, shot } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, openBarter, publishListing, runId, shot } from './helpers';
 
 /**
  * Family preview (17 Nov): the whole journey of a brand-new person on the hosted preview
@@ -58,8 +58,13 @@ test.describe.serial('Family preview journey, 390 px', () => {
       await btn(page, 'Créer mon compte').click();
       const checkEmail = page.getByText('Vérifiez votre e-mail', { exact: true });
       const limited = page.getByText(/Trop de tentatives/);
-      await expect(checkEmail.or(limited)).toBeVisible({ timeout: 30_000 });
-      if (await limited.isVisible()) {
+      const onboarding = page.getByText('Bienvenue chez vous.');
+      await expect(checkEmail.or(limited).or(onboarding)).toBeVisible({ timeout: 30_000 });
+      if (await onboarding.isVisible()) {
+        // E-mail confirmation is off on staging (17 Nov, family preview): the member is signed in at once.
+        test.info().annotations.push({ type: 'info', description: 'Sign-up with no confirmation step: straight to onboarding.' });
+        await shot(page, DIR, 'fj1-signed-up-direct');
+      } else if (await limited.isVisible()) {
         // The built-in Supabase mailer allows 2 e-mails per hour for the WHOLE project: a finding, not a bug of the
         // app. The journey goes on with a member created by the admin API (address confirmed), from the sign-in.
         test.info().annotations.push({ type: 'finding', description: 'Sign-up refused with « Trop de tentatives » (hourly e-mail quota of the built-in mailer).' });
@@ -85,7 +90,7 @@ test.describe.serial('Family preview journey, 390 px', () => {
         expect(res.ok).toBe(true);
         await btn(page, 'Se connecter').click();
       }
-      await expect(page.getByText('Bienvenue chez vous.')).toBeVisible({ timeout: 30_000 });
+      await expect(onboarding).toBeVisible({ timeout: 30_000 });
       await field(page, 'Votre nom').fill(NAME);
       await field(page, 'Votre pseudo').fill(HANDLE);
       await expect(page.getByText(/^Disponible/)).toBeVisible();
@@ -93,6 +98,9 @@ test.describe.serial('Family preview journey, 390 px', () => {
       await shot(page, DIR, 'fj1-onboarding');
       await btn(page, 'Entrer dans Jëfëli').click();
       await expect(page.getByRole('button', { name: 'Notifications', exact: true }).or(page.getByRole('link', { name: /^Notifications/ })).first()).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText('Pour toi').first()).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Notifications', exact: true }).or(page.getByRole('link', { name: /^Notifications/ })).first()).toBeVisible();
+      await page.waitForTimeout(4000); // let the feed and the statuses load: the screenshot is evidence, not a skeleton
       await shot(page, DIR, 'fj1-home');
     });
 
@@ -135,6 +143,8 @@ test.describe.serial('Family preview journey, 390 px', () => {
       await page.getByTestId('aisle-telephones').click();
       await page.getByText('Smartphone Android 128 Go — reconditionné').first().click();
       await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}/);
+      await expect(page.getByRole('heading', { name: 'Smartphone Android 128 Go — reconditionné' })).toBeVisible();
+      await page.waitForTimeout(1500);
       await shot(page, DIR, 'fj3-article');
       await btn(page, 'Faire une offre').click();
       await field(page, 'Votre offre').fill('70000');
@@ -155,7 +165,7 @@ test.describe.serial('Family preview journey, 390 px', () => {
       await page.getByTestId('aisle-mode').click();
       await page.getByText('Baskets blanches — pointure 42').first().click();
       await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}/);
-      await btn(page, 'Proposer un échange (troc)').click();
+      await openBarter(page);
       await page.getByRole('radio', { name: MY_ITEM }).click();
       await shot(page, DIR, 'fj5-swap-composer');
       await btn(page, 'Envoyer la proposition').click();

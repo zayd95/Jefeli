@@ -132,9 +132,11 @@ test.describe.serial('Flexible pricing and multi-article conversations', () => {
     await shot(s, DIR, 'S-chat-receives-articles');
   });
 
-  test('negotiable listing page offers the WhatsApp share and a direct message', async () => {
+  test('negotiable listing page offers the share (on the photo) and a direct message', async () => {
     await b.goto(negotiableUrl);
-    await expect(visible(b.getByRole('button', { name: 'Partager sur WhatsApp' }))).toBeVisible();
+    // P3: share moved to the photo; the WhatsApp card share is for the seller only.
+    await expect(visible(b.getByRole('button', { name: 'Partager l’article' }))).toBeVisible();
+    await expect(b.getByRole('button', { name: 'Partager sur WhatsApp' })).toHaveCount(0);
     await expect(visible(b.getByRole('button', { name: 'Envoyer un message au vendeur' }))).toBeVisible();
   });
 });

@@ -11,12 +11,16 @@ import {
   AUDIENCE_LABELS,
   canSell as canSellRule,
   defaultSelection,
+  formatAmountInput,
   formatDuration,
   itemTitleFromCaption,
+  looksLikeWhatsappPaste,
   normalizeSelection,
+  parseWhatsappListing,
   parseXOF,
   sellDefault,
   studioBlocker,
+  whatsappCaption,
   toFrenchError,
   type Audience,
   type Destination,
@@ -90,6 +94,8 @@ export default function Studio() {
   const abort = useRef<AbortController | null>(null);
   const restoring = useRef(false);
   const applied = useRef(false);
+  // P3: a pasted WhatsApp announcement fills the article; one line says so, with « Annuler ».
+  const [pasted, setPasted] = useState<null | { text: string; before: { caption: string; item: ItemDraft; sell: boolean | null } }>(null);
 
   const categories = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: Infinity });
   const settings = useQuery({ queryKey: ['settings', userId], queryFn: () => getSettings(userId ?? ''), enabled: !!userId });
@@ -124,6 +130,27 @@ export default function Studio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function onCaption(caption: string) {
+    if (canSellFromMedia && looksLikeWhatsappPaste(v.caption, caption)) {
+      const p = parseWhatsappListing(caption);
+      const mode = p.mode ?? v.item.mode;
+      const price = mode === 'give' || mode === 'trade' ? '' : p.priceXof ? formatAmountInput(String(p.priceXof)) : v.item.price;
+      setPasted({
+        text: `${p.summary}${p.extraBlocks ? ` ${p.extraBlocks} autre${p.extraBlocks > 1 ? 's' : ''} article${p.extraBlocks > 1 ? 's' : ''} dans votre texte : collez-les un par un.` : ''}${p.title ? '' : ' Ajoutez le nom de l’article.'}`.trim(),
+        before: { caption: v.caption, item: v.item, sell: v.sell },
+      });
+      set({ caption: whatsappCaption(p) || caption, sell: true, item: { ...v.item, mode, price, priceMode: mode === 'sale' || mode === 'sale_or_trade' ? 'fixed' : v.item.priceMode } });
+      return;
+    }
+    if (pasted) setPasted(null);
+    set({ caption });
+  }
+  function undoPaste() {
+    if (!pasted) return;
+    set({ caption: pasted.before.caption, item: pasted.before.item, sell: pasted.before.sell });
+    setPasted(null);
+  }
+
   const media: LocalMedia[] = v.video ? [v.video] : v.photos;
   const baseInput = {
     photos: v.video ? 0 : v.photos.length,
@@ -134,6 +161,7 @@ export default function Studio() {
     feedAudience: v.feedAudience,
   };
   const canSell = canSellRule(baseInput) && !v.linkProductId;
+  const canSellFromMedia = canSell;
   const sell = canSell && (v.sell ?? sellDefault({ ...baseInput, sell: false }));
   const input = { ...baseInput, sell };
   const selected = useMemo(
@@ -273,7 +301,8 @@ export default function Studio() {
           media={media}
           voice={v.voice}
           caption={v.caption}
-          onCaption={(caption) => set({ caption })}
+          onCaption={onCaption}
+          pasteNote={pasted ? { text: pasted.text, onUndo: undoPaste } : null}
           sell={sell}
           canSell={canSell}
           onSell={(on) => set({ sell: on })}

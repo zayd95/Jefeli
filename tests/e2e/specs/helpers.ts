@@ -216,3 +216,20 @@ export async function goldFills(page: Page): Promise<GoldHit[]> {
   });
 }
 
+
+/**
+ * P3: from an article page, reach the swap proposal. A « Vente ou troc » article has ONE gold pill
+ * (« Faire une offre ») and the swap is the « Échange » tab of the offer screen; a swap-only article
+ * keeps its « Proposer un troc » pill.
+ */
+export async function openBarter(page: Page) {
+  const pill = page.getByRole('button', { name: 'Proposer un échange (troc)', exact: true });
+  const offer = page.getByRole('button', { name: 'Faire une offre', exact: true });
+  await expect(pill.or(offer).first()).toBeVisible({ timeout: 30_000 });
+  if (await pill.isVisible()) {
+    await pill.click();
+    return;
+  }
+  await offer.click();
+  await page.getByRole('tab', { name: 'Proposer un échange (troc)', exact: true }).click();
+}
