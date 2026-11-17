@@ -148,7 +148,10 @@
     },
     "extra": {
       "router": {},
-      "eas": {}
-    }
+      "eas": {
+        "projectId": "454e05cc-08f2-4e28-b82c-ee3afe221b4e"
+      }
+    },
+    "owner": "zayd_odo"
   }
 }
