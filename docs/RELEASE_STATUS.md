@@ -1,5 +1,11 @@
 # Jëfëli — release status
 
+## 16 Nov 2026 — P2 (Studio, Reels, icônes) prêt pour revue, **non fusionné**
+
+Branche `feature/p2-studio` (PR brouillon). Dépend d'une migration locale non appliquée à staging : les aperçus Vercel
+de la branche resteront rouges sur le contrôle de schéma jusqu'à votre « go » (`docs/STAGING_MIGRATION_PLAN.md`).
+Caméra native (`expo-camera`) non vérifiée sur téléphone : à valider avec le build EAS. Voir `docs/P2_STUDIO.md`.
+
 ## 15 Nov 2026 — pilot cut verified, merged to `main`, tag `v0.9.1-pilot`
 
 - Four pilot-cut migrations (`20261115000100`–`400`) applied to **jefeli-staging** after a verified
@@ -401,3 +407,9 @@ approve anything.
   It is fine for demos but must not be used publicly without confirming rights.
 - The admin console checks roles in the browser. The database enforces every permission, so no
   data is exposed, but there is no server-side route guard.
+
+## 17 Nov 2026 — aperçu famille (staging)
+
+`jefeli.vercel.app` (branche `feature/p2-studio`) est ouvert sans connexion Vercel. Vitrine DÉMO en place sur staging
+(`scripts/demo-showcase.ts`) ; à relancer le jour de la visite pour les statuts (24 h). Inscription e-mail limitée par le
+quota de 2 e-mails/heure : voir `docs/FAMILY_PREVIEW.md`.

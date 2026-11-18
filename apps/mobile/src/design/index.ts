@@ -12,3 +12,4 @@ export * from './Checkbox';
 export * from './fill';
 export * from './Motif';
 export * from './BrandLogo';
+export * from './RoundAction';

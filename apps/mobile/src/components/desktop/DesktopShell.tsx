@@ -9,21 +9,21 @@ import { Bell, Bookmark, Compass, House, MessageCircle, Plus, Search, SlidersHor
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { CreateMenu } from '@/components/CreateMenu';
 import { Avatar, BrandLogo, BrandMark, colors, dark, DemoBadge, spacing, Text } from '@/design';
 import { fetchUnreadCount } from '@/lib/api/messages';
 import { fetchUnreadNotificationCount } from '@/lib/api/notifications';
 import { useAuth } from '@/lib/auth';
 import { SIDEBAR_COMPACT, SIDEBAR_WIDE, useLayout } from '@/lib/layout';
+import { STUDIO } from '@/lib/studioLinks';
 
 /**
  * Screens with their own desktop layout (feed + rail, grids, two columns, workspace, editor + preview,
  * phone-proportion stages). Every other screen — forms, settings, lists, details — reads in a
  * centred 720 px column instead of stretching across the window.
  */
-const OWN_LAYOUT = ['/explore', '/p/', '/u/', '/profile', '/messages', '/chat', '/publish/post', '/statut', '/highlight'];
+const OWN_LAYOUT = ['/explore', '/p/', '/u/', '/profile', '/messages', '/chat', '/studio', '/statut', '/highlight'];
 /** Dark screens read in the column on the night background rather than in a light frame. */
-const DARK_FRAME = ['/publish/status', '/post/'];
+const DARK_FRAME = ['/studio', '/post/'];
 function ownLayout(pathname: string): boolean {
   return pathname === '/' || OWN_LAYOUT.some((p) => pathname.startsWith(p));
 }
@@ -34,7 +34,6 @@ export function DesktopShell({ children }: { children: ReactNode }) {
   const { wide } = useLayout();
   const pathname = usePathname();
   const { userId, profile } = useAuth();
-  const [creating, setCreating] = useState(false);
   const unreadMessages = useQuery({ queryKey: ['unread-messages'], queryFn: fetchUnreadCount, enabled: !!userId, refetchInterval: 60_000 });
   const unreadNotifs = useQuery({
     queryKey: ['unread-notifications'],
@@ -69,7 +68,7 @@ export function DesktopShell({ children }: { children: ReactNode }) {
           ))}
         </View>
         <Pressable
-          onPress={() => setCreating(true)}
+          onPress={() => router.push(STUDIO.open)}
           accessibilityRole="button"
           accessibilityLabel="Créer"
           accessibilityHint="Ouvre le menu : statut, publication ou article"
@@ -109,7 +108,6 @@ export function DesktopShell({ children }: { children: ReactNode }) {
       <View style={[styles.content, darkFrame && { backgroundColor: colors.night }]}>
         {ownLayout(pathname) ? children : <View style={[styles.column, darkFrame && { borderColor: dark.border }]}>{children}</View>}
       </View>
-      <CreateMenu visible={creating} onClose={() => setCreating(false)} />
     </View>
   );
 }

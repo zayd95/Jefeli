@@ -26,6 +26,10 @@ import { fetchFeed } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { useDiagnosed } from '@/lib/diagnostics';
 import { useDockSpace } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
+import { useDockScroll } from '@/lib/dockVisibility';
+import { fetchReels } from '@/lib/api/reels';
+import { REELS_MODULE_EVERY, REELS_MODULE_MIN, ReelsModule } from '@/components/ReelsModule';
 import { isProduction } from '@/lib/env';
 import { useFlag } from '@/lib/flags';
 import { useLayout } from '@/lib/layout';
@@ -41,6 +45,7 @@ export default function Home() {
   useDarkStatusBar();
   const { userId, profile, signOut } = useAuth();
   const dockSpace = useDockSpace();
+  const onDockScroll = useDockScroll();
   const liveEnabled = useFlag('live_streaming');
   const { desktop, wide } = useLayout();
   const [tab, setTab] = useState<HomeTab>('for_you');
@@ -64,6 +69,20 @@ export default function Home() {
   const live = useQuery({ queryKey: ['live-now'], queryFn: fetchLiveNow, enabled: tab === 'live', refetchInterval: 20_000 });
 
   const postItems = useMemo(() => posts.data?.pages.flatMap((p) => p.items) ?? [], [posts.data]);
+
+  // P2: a horizontal « Reels » module every ~8 publications, only with at least 3 real Reels.
+  const reels = useQuery({ queryKey: ['reels-module', userId], queryFn: () => fetchReels(userId, { offset: 0 }), enabled: isPostTab && !!userId, staleTime: 120_000 });
+  const reelItems = useMemo(() => reels.data?.items ?? [], [reels.data]);
+  type FeedRow = PostCardData | { id: string; reelsModule: true };
+  const rows = useMemo<FeedRow[]>(() => {
+    if (reelItems.length < REELS_MODULE_MIN) return postItems;
+    const out: FeedRow[] = [];
+    postItems.forEach((p, i) => {
+      out.push(p);
+      if ((i + 1) % REELS_MODULE_EVERY === 0) out.push({ id: `reels-module-${i}`, reelsModule: true });
+    });
+    return out;
+  }, [postItems, reelItems]);
 
   // Video playback (W1.1): the topmost card at least 60 % on screen is the « active » one; its
   // video may autoplay muted. Leaving Accueil (another tab, a pushed screen) pauses everything.
@@ -111,7 +130,16 @@ export default function Home() {
     <View style={styles.header}>
       {desktop ? null : (
       <View style={styles.headerRow}>
-        <Wordmark size={30} color={dark.text} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <Wordmark size={30} color={dark.text} />
+          {!isProduction ? (
+            <View style={styles.envTag} accessibilityLabel="Version pilote">
+            <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 10, letterSpacing: 1.2 }}>
+              PILOTE
+            </Text>
+          </View>
+          ) : null}
+        </View>
         <View style={styles.headerActions}>
           <IconButton icon={Search} label="Rechercher" variant="glass" size={20} color={dark.text} onPress={() => router.push('/search')} />
           <IconButton icon={Bell} label="Notifications" variant="glass" size={20} color={dark.text} badge={unreadNotifs.data ?? 0} onPress={() => router.push('/notifications')} />
@@ -135,13 +163,26 @@ export default function Home() {
             </Pressable>
           );
         })}
-        {!isProduction ? (
+        {desktop && !isProduction ? (
           <View style={styles.envTag} accessibilityLabel="Version pilote">
             <Text variant="micro" weight="800" tone="fogSecondary" style={{ fontSize: 10, letterSpacing: 1.2 }}>
               PILOTE
             </Text>
           </View>
         ) : null}
+        {/* P2: « Fil · Reels » — Reels is a full-screen feed of permanent videos. */}
+        <View style={styles.filReels} accessibilityRole="tablist" accessibilityLabel="Fil ou Reels">
+          <View style={[styles.filReelsItem, styles.filReelsOn]} accessibilityRole="tab" accessibilityState={{ selected: true }}>
+            <Text variant="caption" weight="800" color={dark.text}>
+              Fil
+            </Text>
+          </View>
+          <Pressable onPress={() => router.push('/reels')} style={styles.filReelsItem} accessibilityRole="tab" accessibilityState={{ selected: false }} accessibilityLabel="Reels" testID="home-reels">
+            <Text variant="caption" weight="700" color={dark.textSecondary}>
+              Reels
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -205,9 +246,9 @@ export default function Home() {
       );
     }
     const map: Record<HomeTab, { icon: LucideIcon; title: string; body: string; action?: [string, () => void] }> = {
-      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push('/publish/post')] },
+      for_you: { icon: Sparkles, title: 'Le fil commence ici', body: 'Partagez la première publication ou suivez des membres.', action: ['Publier', () => router.push(STUDIO.open)] },
       following: { icon: Users, title: 'Découvrez votre communauté', body: 'Suivez des membres pour voir leurs publications ici.', action: ['Explorer', () => router.push('/explore')] },
-      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push('/publish/post')] },
+      nearby: { icon: MapPin, title: `Rien de nouveau à ${profile?.city ?? 'proximité'}`, body: 'Soyez le premier à publier dans votre ville.', action: ['Publier', () => router.push(STUDIO.open)] },
       live: { icon: Radio, title: 'Aucun live en ce moment', body: 'Les directs des vendeurs suivis apparaîtront ici.' },
     };
     const e = map[tab];
@@ -237,6 +278,8 @@ export default function Home() {
       {top}
       {tab === 'live' ? (
         <FlatList
+          onScroll={onDockScroll}
+          scrollEventThrottle={16}
           data={live.data ?? []}
           keyExtractor={(l) => l.id}
           ListHeaderComponent={listHeader}
@@ -247,13 +290,15 @@ export default function Home() {
         />
       ) : (
         <ActivePostContext.Provider value={focused ? activePostId : null}>
-        <FlatList<PostCardData>
+        <FlatList<FeedRow>
+          onScroll={onDockScroll}
+          scrollEventThrottle={16}
           key="posts"
-          data={tab === 'nearby' && !profile?.city ? [] : postItems}
+          data={tab === 'nearby' && !profile?.city ? [] : rows}
           keyExtractor={(p) => p.id}
           ListHeaderComponent={listHeader}
           ListEmptyComponent={empty}
-          renderItem={({ item }) => <PostCard post={item} showReason={tab === 'for_you'} />}
+          renderItem={({ item }) => ('reelsModule' in item ? <ReelsModule reels={reelItems} /> : <PostCard post={item} showReason={tab === 'for_you'} />)}
           viewabilityConfig={VIEWABILITY}
           onViewableItemsChanged={onViewable}
           onEndReached={() => posts.hasNextPage && !posts.isFetchingNextPage && posts.fetchNextPage()}
@@ -329,7 +374,10 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', alignItems: 'center', gap: spacing.xl, paddingHorizontal: spacing.lg },
   tab: { height: 40, justifyContent: 'center' },
   tabLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3, borderRadius: 2, backgroundColor: colors.gold },
-  envTag: { marginLeft: 'auto', backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  envTag: { backgroundColor: dark.subtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  filReels: { marginLeft: 'auto', flexDirection: 'row', padding: 3, borderRadius: 20, backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.border },
+  filReelsItem: { minWidth: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  filReelsOn: { backgroundColor: dark.raised, borderWidth: 1, borderColor: dark.gold },
   chips: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingTop: spacing.sm, paddingBottom: spacing.xs },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: dark.borderStrong },
   chipOn: { borderColor: dark.goldLine, backgroundColor: dark.raised },

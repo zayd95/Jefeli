@@ -41,16 +41,13 @@ test.describe.serial('Community: intents, votes, comments', () => {
   });
 
   test('B asks the community with an optional intent in the one publication composer (« Je cherche »)', async () => {
-    // The dock's Plus (and /publish) opens the Publication composer directly, no hub.
-    await b.goto('/publish');
-    await expect(b).toHaveURL(/\/publish\/post$/);
-    // W1.3: no type selector; the type is a small pill on the writing canvas.
-    await b.getByRole('button', { name: 'Type de publication : Je partage. Changer' }).click();
-    await b.getByRole('radio', { name: 'Je cherche' }).click();
-    await expect(b.getByRole('button', { name: 'Type de publication : Je cherche. Changer' })).toBeVisible();
-    await shot(b, DIR, 'B-composer-je-cherche');
-    await b.getByRole('textbox', { name: 'Texte de la publication' }).fill(REQUEST);
-    await btn(b, 'Publier').click();
+    // P2: the Studio's « Texte » card with the « Je cherche… » starter (a request, never an article).
+    await b.goto('/studio?intent=seek');
+    await expect(b.getByRole('button', { name: 'Je cherche…', exact: true })).toBeVisible();
+    await b.getByTestId('studio-text').fill(REQUEST);
+    await shot(b, DIR, 'B-studio-je-cherche');
+    await b.getByTestId('studio-next').click();
+    await b.getByTestId('studio-publish').click();
     await expect(b).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 30_000 });
     postUrl = new URL(b.url()).pathname;
     await expect(visible(b.getByLabel('Type de publication : Je cherche'))).toBeVisible();

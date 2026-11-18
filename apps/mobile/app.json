@@ -97,6 +97,23 @@
           "microphonePermission": "Jëfëli utilise le micro pour les messages vocaux."
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Jëfëli utilise la caméra pour photographier et filmer vos articles, statuts et Reels.",
+          "microphonePermission": "Jëfëli utilise le micro pour enregistrer le son de vos vidéos.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Jëfëli affiche votre dernière photo dans la vignette de la galerie du Studio.",
+          "savePhotosPermission": false,
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": ["photo", "video"]
+        }
+      ],
       "expo-video",
       "expo-secure-store",
       [
@@ -131,7 +148,10 @@
     },
     "extra": {
       "router": {},
-      "eas": {}
-    }
+      "eas": {
+        "projectId": "454e05cc-08f2-4e28-b82c-ee3afe221b4e"
+      }
+    },
+    "owner": "zayd_odo"
   }
 }

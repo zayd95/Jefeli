@@ -2,7 +2,7 @@ import { expect, test, type Browser, type BrowserContext, type Page } from '@pla
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 
-import { btn, field, FIXTURE, pickFile, publishListing, shot } from './helpers';
+import { btn, field, FIXTURE, pickFile, publishListing, shot, studioWithFile } from './helpers';
 
 /**
  * Hosted acceptance (W1.3, owner's list of 11 Nov): the Vercel preview of the branch against
@@ -109,18 +109,14 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
     await publishListing(s, { file: FIXTURE('dress.jpg'), title: ARTICLE, price: '25000', category: 'Chaussures', condition: 'Très bon état' });
     productPath = new URL(s.url()).pathname;
 
-    await s.goto('/publish/post');
-    const choice = s.getByTestId('draft-choice');
-    await expect(s.getByRole('textbox', { name: 'Texte de la publication' }).or(choice)).toBeVisible();
-    if (await choice.isVisible()) {
-      await btn(s, 'Nouvelle publication').click();
-      await btn(s, 'Supprimer et commencer').click();
-    }
+    // P2: the Studio with the article attached, three photos and a narration walking through them.
+    const articleId = productPath.split('/').pop()!;
+    await s.goto(`/studio?product=${articleId}`);
     const chooser = s.waitForEvent('filechooser');
-    await btn(s, 'Média').click();
+    await s.getByTestId('studio-gallery').click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg'), FIXTURE('shoe.jpg')]);
-    await expect(last(s.getByTestId('post-media'))).toBeVisible();
-    await btn(s, 'Voix').click();
+    await s.getByRole('tab', { name: 'Voix', exact: true }).click();
+    await s.getByRole('button', { name: 'Enregistrer ma voix' }).click();
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 15_000 });
     await s.waitForTimeout(2000);
     await s.getByRole('button', { name: 'Montrer la photo 2' }).click();
@@ -128,13 +124,11 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
     await s.getByRole('button', { name: 'Montrer la photo 3' }).click();
     await s.waitForTimeout(2000);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Votre explication · (.+ · )?0:0[5-7] · visite guidée$/)).toBeVisible();
-    await btn(s, 'Article').click();
-    await s.getByRole('checkbox', { name: ARTICLE }).click();
-    await btn(s, 'Terminé').click();
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Nouveau boubou, écoutez ${RUN}`);
-    await shot(s, DIR, 'S-editor-before-publish');
-    await btn(s, 'Publier').click();
+    await expect(s.getByText(/^Voix · 0:0[5-7]$/)).toBeVisible();
+    await s.getByTestId('studio-next').click();
+    await s.getByTestId('studio-caption').fill(`Nouveau boubou, écoutez ${RUN}`);
+    await shot(s, DIR, 'S-studio-before-publish');
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
     postPath = new URL(s.url()).pathname;
     await expect(last(s.getByRole('button', { name: /^Écouter l’explication/ }))).toBeVisible();
@@ -169,7 +163,7 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
     await shot(b, DIR, 'B-accueil-narration-photo-2');
     await b.getByRole('button', { name: new RegExp(`^Voir l’article ${ARTICLE}`) }).first().click();
     await expect(b).toHaveURL(new RegExp(`${productPath}$`));
-    await btn(b, 'Envoyer un message').click();
+    await b.getByRole('button', { name: 'Envoyer un message au vendeur' }).click();
     await expect(b).toHaveURL(/\/chat\/[0-9a-f-]{36}\?about=/, { timeout: 60_000 });
     const message = `Bonjour, toujours disponible ? ${RUN}`;
     await b.getByRole('textbox', { name: 'Message', exact: true }).last().fill(message);
@@ -216,13 +210,11 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
   });
 
   test('H-05 · private media: a friends-only publication is not visible to a non-friend, and its file is not public', async () => {
-    await s.goto('/publish/post');
-    await expect(s.getByRole('textbox', { name: 'Texte de la publication' })).toBeVisible();
-    await pickFile(s, () => btn(s, 'Média').click(), FIXTURE('bag.jpg'));
-    await s.getByRole('button', { name: /^Audience/ }).click();
-    await s.getByRole('radio', { name: 'Mes amis' }).click();
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Pour mes amis ${RUN}`);
-    await btn(s, 'Publier').click();
+    await studioWithFile(s, FIXTURE('bag.jpg'));
+    await s.getByTestId('studio-feed-audience').click();
+    await s.getByRole('button', { name: 'Mes amis', exact: true }).click();
+    await s.getByTestId('studio-caption').fill(`Pour mes amis ${RUN}`);
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
     const privatePath = new URL(s.url()).pathname;
     const id = privatePath.split('/').pop();
@@ -237,8 +229,6 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
   });
 
   test('H-06 · uploads: cut twice and retried automatically; a failed publication keeps its draft and « Réessayer » sends it', async () => {
-    await s.goto('/publish/post');
-    await expect(s.getByRole('textbox', { name: 'Texte de la publication' })).toBeVisible();
     let cut = 0;
     await s.route('**/storage/v1/object/public-media/**', async (route) => {
       if (route.request().method() !== 'GET' && cut < 2) {
@@ -247,35 +237,32 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
       }
       return route.continue();
     });
-    await pickFile(s, () => btn(s, 'Média').click(), FIXTURE('shoe.jpg'));
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Coupé deux fois ${RUN}`);
-    await btn(s, 'Publier').click();
+    await studioWithFile(s, FIXTURE('shoe.jpg'));
+    await s.getByTestId('studio-caption').fill(`Coupé deux fois ${RUN}`);
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
     expect(cut).toBe(2);
     await s.unroute('**/storage/v1/object/public-media/**');
 
     // Always failing now: the draft stays and says so; then the network comes back.
-    await s.goto('/publish/post');
-    await expect(s.getByRole('textbox', { name: 'Texte de la publication' })).toBeVisible();
     await s.route('**/storage/v1/object/public-media/**', (route) => (route.request().method() !== 'GET' ? route.abort('internetdisconnected') : route.continue()));
-    await pickFile(s, () => btn(s, 'Média').click(), FIXTURE('dress.jpg'));
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Envoi repris ${RUN}`);
-    await btn(s, 'Publier').click();
-    await expect(s.getByText(/^Publication non envoyée/)).toBeVisible({ timeout: 120_000 });
-    await expect(s.getByText(/brouillon/i)).toHaveCount(1); // said once, not twice
-    await expect(s.getByRole('textbox', { name: 'Légende' })).toHaveValue(`Envoi repris ${RUN}`);
+    await studioWithFile(s, FIXTURE('dress.jpg'));
+    await s.getByTestId('studio-caption').fill(`Envoi repris ${RUN}`);
+    await s.getByTestId('studio-publish').click();
+    // The Studio says so in the composer and keeps the draft; « Publier » again sends it.
+    await expect(s.getByRole('alert')).toBeVisible({ timeout: 120_000 });
+    await expect(s.getByTestId('studio-caption')).toHaveValue(`Envoi repris ${RUN}`);
     await shot(s, DIR, 'S-publish-failed-draft-kept');
     await s.unroute('**/storage/v1/object/public-media/**');
-    await s.getByTestId('inline-retry').getByRole('button', { name: 'Réessayer' }).click();
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
   });
 
   test('H-07 · a refused microphone is explained, nothing is attached', async ({ browser }) => {
     const { ctx, page } = await device(browser, { width: 360, height: 780 }, false);
     await signIn(page, B);
-    await page.goto('/publish/post?start=voice');
-    const choice = page.getByTestId('draft-choice');
-    if (await choice.isVisible().catch(() => false)) await btn(page, 'Continuer le brouillon').click();
+    await page.goto('/studio?mode=voice');
+    await page.getByRole('button', { name: 'Enregistrer ma voix' }).click();
     await expect(page.getByText('Micro non autorisé')).toBeVisible({ timeout: 20_000 });
     await shot(page, DIR, 'B-mic-refused-360');
     await ctx.close();

@@ -37,6 +37,8 @@ import {
 import { follow } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
+import { STUDIO } from '@/lib/studioLinks';
+import { useDockScroll } from '@/lib/dockVisibility';
 import { useLayout } from '@/lib/layout';
 import { aisleCounts, LAUNCH_AISLES, otherAisles, type Aisle } from '@/lib/market';
 import { useDarkStatusBar } from '@/lib/statusBar';
@@ -93,6 +95,7 @@ export default function Explore() {
   const { profile } = useAuth();
   const { width } = useWindowDimensions();
   const dockSpace = useDockSpace();
+  const onDockScroll = useDockScroll();
   const { desktop } = useLayout();
   const [contentWidth, setContentWidth] = useState(width);
   const params = useLocalSearchParams<{ kind?: string }>();
@@ -339,6 +342,8 @@ export default function Explore() {
   return (
     <Screen background={dark.background}>
       <FlatList<Row>
+        onScroll={onDockScroll}
+        scrollEventThrottle={16}
         onLayout={(e) => setContentWidth(e.nativeEvent.layout.width)}
         style={{ backgroundColor: dark.background }}
         data={rows}
@@ -375,7 +380,7 @@ export default function Explore() {
           ) : (
             <SeekInvite
               title={aisle ? `L’allée ${aisle.label} attend ses premiers articles` : near ? `Rien pour l’instant à ${near}` : filtered ? 'Rien pour ces filtres' : 'Le marché ouvre bientôt'}
-              onSeek={() => router.push({ pathname: '/publish/post', params: { intent: 'seek' } })}
+              onSeek={() => router.push(STUDIO.seek)}
               onClear={filtered ? clear : undefined}
             />
           )

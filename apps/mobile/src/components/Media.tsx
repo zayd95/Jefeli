@@ -37,7 +37,7 @@ function webAutoplayAllowed(): boolean {
 }
 
 /** May a feed video start by itself (muted)? No on data saving, 2G or reduced motion. */
-function useAutoplayAllowed(): boolean {
+export function useAutoplayAllowed(): boolean {
   const [allowed, setAllowed] = useState(() => (Platform.OS === 'web' ? webAutoplayAllowed() : true));
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -73,11 +73,14 @@ export function VideoPlayerInline({
   uri,
   posterUri,
   active,
+  preload,
   loop = true,
 }: {
   uri: string;
   posterUri?: string | null;
   active?: boolean;
+  /** Reels: the next video loads (paused) so it starts at once. Not on data saving. */
+  preload?: boolean;
   loop?: boolean;
 }) {
   const key = useId();
@@ -86,7 +89,7 @@ export function VideoPlayerInline({
   const [tapped, setTapped] = useState(false);
   // Loaded when the member tapped play, or while this is the feed's active card and autoplay is
   // allowed. An autoplayed video that leaves the screen releases its source (memory, data).
-  const started = tapped || (active === true && autoplayAllowed);
+  const started = tapped || ((active === true || preload === true) && autoplayAllowed);
   const [muted, setMuted] = useState(true);
   const [status, setStatus] = useState<VideoPlayerStatus>('idle');
   const player = useVideoPlayer(started ? uri : null, (p) => {

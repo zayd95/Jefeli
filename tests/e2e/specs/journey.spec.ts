@@ -5,7 +5,7 @@
  */
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-import { FIXTURE, btn, field, newDevice, pickFile, publishListing, runId, shot, signUp, WEB_URL } from './helpers';
+import { FIXTURE, btn, field, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile, WEB_URL } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -82,7 +82,7 @@ test.describe.serial('Two-account social commerce journey', () => {
   });
 
   test('MSG-01 · product-linked chat between A and B, realtime both ways', async () => {
-    await btn(a, 'Envoyer un message').click();
+    await a.getByRole('button', { name: 'Envoyer un message au vendeur' }).click();
     await expect(a.getByText('ARTICLE', { exact: true }).last()).toBeVisible();
     await a.getByRole('textbox', { name: 'Message' }).fill('Salam ! Elles sont toujours disponibles ?');
     await btn(a, 'Envoyer').click();
@@ -186,13 +186,9 @@ test.describe.serial('Two-account social commerce journey', () => {
   });
 
   test('STA-01 · B posts a 24h status; A views it and replies privately', async () => {
-    await b.goto('/publish/status');
-    await pickFile(b, () => btn(b, 'Photo ou vidéo de la galerie').click(), FIXTURE('dress.jpg'));
-    await btn(b, 'Écrire sur le statut').click();
-    await b.getByRole('textbox', { name: 'Texte du statut' }).fill('Nouvel arrivage ce matin');
-    await b.getByRole('button', { name: /^Visible par/ }).click();
-    await b.getByRole('radio', { name: 'Mes abonnés' }).click();
-    await btn(b, 'Publier le statut').click();
+    await studioWithFile(b, FIXTURE('dress.jpg'), '/studio?dest=status');
+    await b.getByTestId('studio-caption').fill('Nouvel arrivage ce matin');
+    await b.getByTestId('studio-publish').click();
     await expect(b.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });
 
     await a.goto('/');

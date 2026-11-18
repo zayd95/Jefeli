@@ -231,8 +231,6 @@ test('PC-F1 · « Donner »: 0 F gift, no offer, the taker writes; « Troquer »
   const TITLE = `Poussette à donner ${RUN}`;
   const { ctx: cg, page: g } = await newDevice(browser, DEVICES.iphone15ProMax);
   await signUp(g, G);
-  await g.goto('/publish/listing');
-  await expect(g.getByRole('radio', { name: 'Troquer', exact: true })).toBeVisible();
   await publishListing(g, { file: FIXTURE('bag.jpg'), title: TITLE, mode: 'Donner', category: 'Sacs & accessoires', condition: 'Bon état' });
   await expect(g.getByText('À donner').first()).toBeVisible();
   const url = g.url().replace(/\?first=1$/, '');
@@ -247,7 +245,7 @@ test('PC-F1 · « Donner »: 0 F gift, no offer, the taker writes; « Troquer »
   await expect(btn(t, 'Faire une offre')).toHaveCount(0);
   await expect(t.getByRole('button', { name: /Proposer un échange/ })).toHaveCount(0);
   await shot(t, DIR, 'f2-taker-sees-gift-no-offer');
-  await btn(t, 'Envoyer un message').click();
+  await btn(t, 'Écrire au donneur').click();
   await t.getByRole('textbox', { name: 'Message' }).fill('Bonjour, je peux passer la récupérer ?');
   await btn(t, 'Envoyer').click();
   await expect(t.getByText('Bonjour, je peux passer la récupérer ?', { exact: true }).last()).toBeVisible();

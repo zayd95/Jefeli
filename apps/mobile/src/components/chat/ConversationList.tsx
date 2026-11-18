@@ -15,6 +15,7 @@ import { Avatar, colors, dark, EmptyState, ErrorState, fieldFontSize, fonts, Scr
 import { fetchConversations } from '@/lib/api/messages';
 import { useAuth } from '@/lib/auth';
 import { useDockSpace } from '@/lib/dock';
+import { useDockScroll } from '@/lib/dockVisibility';
 import { isHovered } from '@/lib/layout';
 import type { ConversationSummary } from '@/lib/types';
 
@@ -25,6 +26,7 @@ import type { ConversationSummary } from '@/lib/types';
 export function ConversationList({ activeId = null, pane = false }: { activeId?: string | null; pane?: boolean }) {
   const { userId } = useAuth();
   const dockSpace = useDockSpace();
+  const onDockScroll = useDockScroll();
   const [search, setSearch] = useState('');
   const q = useQuery({ queryKey: ['conversations'], queryFn: fetchConversations, refetchInterval: 60_000 });
   const all = useMemo(() => q.data ?? [], [q.data]);
@@ -43,6 +45,8 @@ export function ConversationList({ activeId = null, pane = false }: { activeId?:
         </Text>
       </View>
       <FlatList
+        onScroll={onDockScroll}
+        scrollEventThrottle={16}
         data={rows}
         keyExtractor={(c) => c.conversation_id}
         renderItem={({ item }) => <Row c={item} me={userId ?? ''} active={item.conversation_id === activeId} />}

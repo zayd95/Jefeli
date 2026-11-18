@@ -12,7 +12,8 @@ import {
   timeAgo,
 } from '@jefeli/shared';
 import { Gallery, type GalleryItem } from '@/components/Gallery';
-import { OPEN_IN_APP_NOTE, OpenInApp } from '@/components/OpenInApp';
+import { IconAction } from '@/components/IconAction';
+import { OPEN_IN_APP_NOTE } from '@/components/OpenInApp';
 import { appLinks, opensInBrowser } from '@/lib/app-links';
 import { ShareActions } from '@/components/ShareActions';
 import {
@@ -20,8 +21,12 @@ import {
   IconChevronRight,
   IconClock,
   IconHand,
+  IconHeart,
+  IconMessage,
   IconPin,
   IconShield,
+  IconRepeat,
+  IconShare,
   IconSwap,
   IconTag,
   IconTruck,
@@ -164,43 +169,42 @@ export default async function ProductPage({ params }: Props) {
           </div>
 
           <div className="cta-block cta-sticky">
-            {isAvailable ? (
-              // Pilot cut (d): straight to the offer form. The app opens it when installed (Android
-              // App Links on the app host); otherwise the web app asks to sign up, then comes back
-              // to this offer (apps/mobile/src/lib/returnTo.ts).
-              <div className="offer-row">
-                {product.listing_mode === 'sale' || product.listing_mode === 'sale_or_trade' ? (
-                  <a className="btn btn-outline" href={appLinks.offer(product.id)} data-testid="web-make-offer">
-                    Faire une offre
-                  </a>
-                ) : null}
-                {product.listing_mode === 'trade' || product.listing_mode === 'sale_or_trade' ? (
-                  <a className="btn btn-outline" href={appLinks.offer(product.id, 'barter')} data-testid="web-propose-trade">
-                    Proposer un troc
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
-            <OpenInApp
-              href={appLinks.product(product.id)}
-              label={
-                isAvailable
-                  ? opensInBrowser ? 'Écrire au vendeur' : 'Écrire au vendeur dans l’app'
-                  : opensInBrowser ? 'Voir sur Jëfëli' : 'Ouvrir dans l’app'
-              }
-              note={
-                // Kept to one short line: on a phone this bar is sticky and must not hide the price.
-                isAvailable
-                  ? askPrice
-                    ? product.price_mode === 'on_request'
-                      ? 'Le prix est donné par le vendeur en message.'
-                      : 'Le prix se discute avec le vendeur en message.'
-                    : OPEN_IN_APP_NOTE
-                  : product.status === 'sold'
-                    ? `Cet article est vendu. Découvrez les autres articles du vendeur ${opensInBrowser ? 'sur Jëfëli' : 'dans l’application'}.`
-                    : 'Cet article est réservé pour le moment. Il peut redevenir disponible.'
-              }
-            />
+            {/* P2: one gold pill, then round 44-px icons (message, troc, share, save). */}
+            <div className="action-row">
+              {isAvailable && (product.listing_mode === 'sale' || product.listing_mode === 'sale_or_trade') ? (
+                // Pilot cut (d): straight to the offer form. The app opens it when installed (Android
+                // App Links on the app host); otherwise the web app asks to sign up, then comes back
+                // to this offer (apps/mobile/src/lib/returnTo.ts).
+                <a className="btn btn-primary btn-pill action-main" href={appLinks.offer(product.id)} data-testid="web-make-offer">
+                  Faire une offre
+                </a>
+              ) : isAvailable && product.listing_mode === 'trade' ? (
+                <a className="btn btn-primary btn-pill action-main" href={appLinks.offer(product.id, 'barter')} data-testid="web-propose-trade">
+                  Proposer un troc
+                </a>
+              ) : (
+                <a className="btn btn-primary btn-pill action-main" href={appLinks.product(product.id)}>
+                  {isAvailable ? (opensInBrowser ? 'Écrire au vendeur' : 'Écrire au vendeur dans l’app') : opensInBrowser ? 'Voir sur Jëfëli' : 'Ouvrir dans l’app'}
+                </a>
+              )}
+              {isAvailable ? <IconAction href={appLinks.product(product.id)} label="Écrire au vendeur" icon={<IconMessage />} testId="web-message" /> : null}
+              {isAvailable && product.listing_mode === 'sale_or_trade' ? (
+                <IconAction href={appLinks.offer(product.id, 'barter')} label="Proposer un troc" icon={<IconRepeat />} testId="web-propose-trade" />
+              ) : null}
+              <IconAction share={{ url: shareUrl, title: product.title, message: shareMessage }} label="Partager l’article" icon={<IconShare />} testId="web-share" />
+              <IconAction href={appLinks.product(product.id)} label="Enregistrer dans Jëfëli" icon={<IconHeart />} testId="web-save" />
+            </div>
+            <p className="cta-note">
+              {isAvailable
+                ? askPrice
+                  ? product.price_mode === 'on_request'
+                    ? 'Le prix est donné par le vendeur en message.'
+                    : 'Le prix se discute avec le vendeur en message.'
+                  : OPEN_IN_APP_NOTE
+                : product.status === 'sold'
+                  ? `Cet article est vendu. Découvrez les autres articles du vendeur ${opensInBrowser ? 'sur Jëfëli' : 'dans l’application'}.`
+                  : 'Cet article est réservé pour le moment. Il peut redevenir disponible.'}
+            </p>
           </div>
           {opensInBrowser ? null : <p className="cta-note">{OPEN_IN_APP_NOTE}</p>}
 

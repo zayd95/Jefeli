@@ -166,3 +166,46 @@ public.suggested_sellers(integer);` — nothing else depends on them except the 
 - Hosted security probes (public key, `scripts/staging-security-probe.py`): **49/49** (40 existing + 9 for the pilot cut: handover only through the
   RPC, `new_seller_until` / `first_listing_at` / `handover_*` not writable, `member_level` public and read-only with no balance, private helper not exposed).
 - Rollback: not needed. The four files only add (constraints widened, columns, functions); to undo, restore the replaced function bodies from the backup's `schema.functions`.
+
+## 16 Nov 2026 — P2 Studio / Reels (`20261116000100_studio_reels.sql`) — local only, awaiting the owner's go
+
+Nothing here has been applied to `jefeli-staging`. The `feature/p2-studio` previews build against staging, so they stay on the
+schema check's red until this migration is applied (same as the pilot cut before 15 Nov). The migration only adds:
+
+| Object | Why | Risk |
+|---|---|---|
+| `posts.in_feed boolean default true`, `posts.in_reels boolean default false`, `check (in_feed or in_reels)` | where a publication shows | additive; every existing row satisfies the check |
+| backfill `in_reels = true` for public video posts | existing public videos become Reels | one `UPDATE` on `posts` (visible in the counts: updated rows = public posts with a video) |
+| `public.set_post_surfaces(uuid, bool, bool)` | the author's Studio choice | security definer; author only; a Reel must be public and carry a video; refused for 0 destinations |
+| `public.get_reels(int, int, uuid)` | ranked Reels page | security invoker (RLS applies); authenticated only |
+| `public.app_config` (+ row `reel_keep_min_views = 100`) | tunable threshold | RLS on, **no policy**, no grant: readable only by definer functions |
+| `notifications_type_check` + `reel_candidate` | « Le garder en Reel ? » | constraint re-created with the full previous list plus one value |
+| `purge_expired_stories()` replaced | notify + hold the file 48 h | still service-role/cron only (`jefeli-purge-statuses` hourly); highlights and expiry unchanged |
+| `get_story_rail()` replaced | order: yours, unseen, followed, same city | invoker; same columns and grants |
+
+Apply procedure (same as 15 Nov): identity check → verified logical backup (rows per table, schema JSON, SHA-256, reload test) →
+pre-check (the new objects absent; the `check` and the notification list hold) → apply → counts (only `posts` changes: the backfill) →
+schema fingerprint vs local → `schema:check` → hosted probes (add: `in_feed` / `in_reels` not writable by a member; `app_config` unreadable;
+`set_post_surfaces` refused to anon and to non-authors; `get_reels` refused to anon) → rebuild the previews.
+Rollback: drop the two functions and the config table, drop `in_feed` / `in_reels`, restore the previous bodies of `purge_expired_stories`
+and `get_story_rail` from the backup's `schema.functions`, re-create the previous `notifications_type_check`.
+The feed filter for Reel-only publications (`in_feed = false`) is client-side in this version (`fetchFeed`); `get_feed` is not changed.
+
+**16 Nov 2026 (P2 go): the two P2 migrations were applied to `jefeli-staging`.**
+- Identity: `jefeli-staging`, ref `gbsoifwllbacwsknydkq`, eu-west-1, Postgres 17.11; history 29 (up to `20261115000400_jef_lite_levels`).
+- Backup before anything: logical, 83 tables / 530 rows (`public`, `auth`, `storage`, migration history) + schema JSON (columns, constraints, enums,
+  functions, grants, indexes, policies, triggers, buckets, cron). SHA-256 per file verified; the 45 `public` tables reloaded into a scratch local schema and
+  matched row by row (0 mismatches). Kept outside the repository (it holds members' data).
+- Pre-check (read-only): new objects absent; 0 public video publications, so the `in_reels` backfill touches 0 rows.
+- Apply: `20261116000100_studio_reels` (history 29 → 30), counts identical (3 users, 3 profiles, 15 posts, 25 post_media, 5 products, 8 product_media, 2 stories,
+  38 objects); `app_config.reel_keep_min_views = 100`; 15/15 posts `in_feed`, 0 `in_reels`.
+- The first hosted probes found that `get_reels` was callable by `anon` (Supabase's default privileges grant it; the migration only revoked `public`). It returns only
+  what RLS lets a visitor read, but the design says signed-in members only, so `20261116000200_reels_anon_revoke` (one `REVOKE … FROM anon`) was applied
+  (history 30 → 31), with a local integration test.
+- Schema: 1 201 objects identical to a local database built from the same migrations (only the three trigram-index prints differ, as before).
+- Deploy check: `✓ Schema compatible: 46 tables, 66 functions`.
+- Hosted security probes (public key, `scripts/staging-security-probe.py`): **54/54** (49 existing + 5 for P2: anon `set_post_surfaces`, `get_reels`,
+  `purge_expired_stories` refused; anon cannot write `posts.in_reels`; `app_config` unreadable). With member accounts the script also checks `get_reels`
+  shape, `app_config` hidden, `set_post_surfaces` on a post that is not theirs refused, `in_reels` not writable (not run: no test accounts on staging).
+- Rollback: not needed. To undo, drop `get_reels`, `set_post_surfaces`, `app_config`, the two columns, restore the previous bodies of `purge_expired_stories` and
+  `get_story_rail` and the previous `notifications_type_check` from the backup's `schema.functions` / `schema.constraints`.

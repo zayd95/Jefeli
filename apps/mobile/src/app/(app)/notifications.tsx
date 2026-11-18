@@ -1,11 +1,14 @@
 import { NOTIFICATION_COPY, timeAgo, toFrenchError } from '@jefeli/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bell, ShieldAlert, UserPlus } from 'lucide-react-native';
-import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Bell, Clapperboard, ShieldAlert, UserPlus } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
-import { Avatar, Button, colors, EmptyState, ErrorState, Header, Screen, Skeleton, spacing, Text } from '@/design';
+import { Avatar, Button, colors, EmptyState, ErrorState, Header, Screen, Skeleton, spacing, Text, useToast } from '@/design';
+import { fetchStoriesByIds } from '@/lib/api/stories';
+import { keepStoryAsReel } from '@/lib/reels';
 import { fetchNotifications, markAllNotificationsRead, type NotificationItem } from '@/lib/api/notifications';
 import { incomingFriendRequests } from '@/lib/api/profiles';
 import { useAuth } from '@/lib/auth';
@@ -42,6 +45,42 @@ function targetFor(n: NotificationItem): string | null {
     default:
       return null;
   }
+}
+
+/** « Le garder en Reel ? »: one tap turns the expired video status into a permanent Reel. */
+function KeepAsReel({ storyId }: { storyId: string }) {
+  const toast = useToast();
+  const [state, setState] = useState<'idle' | 'busy' | 'done'>('idle');
+  useEffect(() => {
+    void AsyncStorage.getItem(`reel-kept:${storyId}`).then((v) => v && setState('done'));
+  }, [storyId]);
+  async function keep() {
+    setState('busy');
+    try {
+      const [story] = await fetchStoriesByIds([storyId]);
+      if (!story) throw new Error('story_gone');
+      await keepStoryAsReel(story);
+      await AsyncStorage.setItem(`reel-kept:${storyId}`, '1').catch(() => {});
+      setState('done');
+      toast('Gardé en Reel', 'success');
+    } catch (e) {
+      setState('idle');
+      toast(e instanceof Error && e.message === 'story_gone' ? 'Cette vidéo n’est plus disponible.' : toFrenchError(e), 'error');
+    }
+  }
+  return (
+    <Button
+      label={state === 'done' ? 'Gardé en Reel' : 'Garder en Reel'}
+      variant="outline"
+      size="sm"
+      icon={Clapperboard}
+      loading={state === 'busy'}
+      disabled={state === 'done'}
+      onPress={() => void keep()}
+      style={{ alignSelf: 'flex-start', marginTop: spacing.sm }}
+      testID="keep-as-reel"
+    />
+  );
 }
 
 export default function Notifications() {
@@ -106,6 +145,7 @@ export default function Notifications() {
                 <Text variant="caption" tone="secondary">
                   {timeAgo(item.created_at)}
                 </Text>
+                {item.type === 'reel_candidate' && item.entity_id ? <KeepAsReel storyId={item.entity_id} /> : null}
               </View>
               {!item.read_at ? <View style={styles.dot} /> : null}
             </Pressable>

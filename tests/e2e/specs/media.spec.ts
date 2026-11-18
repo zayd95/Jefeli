@@ -67,30 +67,28 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
   });
 
   test('MED-01 · a video over 3 minutes is refused as soon as it is chosen', async () => {
-    await s.goto('/publish/post');
-    await pickFile(s, () => btn(s, 'Média').click(), clip(181));
+    await s.goto('/studio');
+    await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(181));
     await expect(s.getByText('Vidéo trop longue : 3 minutes maximum.').last()).toBeVisible();
-    await expect(s.getByTestId('reorder-strip')).toHaveCount(0);
+    await expect(s.getByTestId('studio-next')).toHaveCount(0); // nothing was accepted
     await shot(s, DIR, 'S-181s-refused');
   });
 
   test('MED-02 · the seller publishes an exactly 3-minute video tied to their article', async () => {
     await publishListing(s, { file: FIXTURE('shoe.jpg'), title: ARTICLE, price: '12000', category: 'Chaussures', condition: 'Très bon état' });
 
-    await s.goto('/publish/post');
-    await pickFile(s, () => btn(s, 'Média').click(), clip(180));
+    const articleId = new URL(s.url()).pathname.split('/').pop()!;
+    // P2: the Studio with the article attached (« Présenter cet article »), a gallery video of 3 minutes.
+    await s.goto(`/studio?product=${articleId}`);
+    await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(180));
+    await s.getByTestId('studio-next').click();
     // The browser read the real duration and captured a cover frame before anything was sent: the
-    // editor's preview is the feed's player, poster first.
-    await expect(s.getByRole('button', { name: 'Couverture (vidéo)' })).toBeVisible({ timeout: 30_000 });
-    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible();
-    // A video keeps its own sound: no voice over it.
-    await expect(s.getByRole('button', { name: 'Voix', exact: true })).toBeDisabled();
-    await btn(s, 'Article').click();
-    await s.getByRole('checkbox', { name: ARTICLE }).click();
-    await btn(s, 'Terminé').click();
-    await s.getByRole('textbox', { name: 'Légende' }).fill(`Nouvelle collection en vidéo ${RUN}`);
+    // composer's preview is the feed's player, poster first.
+    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByRole('button', { name: new RegExp(`^Article lié : ${ARTICLE}`) })).toBeVisible();
+    await s.getByTestId('studio-caption').fill(`Nouvelle collection en vidéo ${RUN}`);
     await shot(s, DIR, 'S-composer-180s-video');
-    await btn(s, 'Publier').click();
+    await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
     postPath = new URL(s.url()).pathname;
     await expect(s.getByText(`Nouvelle collection en vidéo ${RUN}`).last()).toBeVisible();
@@ -141,11 +139,11 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
   });
 
   test('MED-05 · a 12-second video status plays to its end, not cut at the image timer', async () => {
-    await s.goto('/publish/status');
-    await pickFile(s, () => btn(s, 'Photo ou vidéo de la galerie').click(), clip(12));
-    await btn(s, 'Écrire sur le statut').click();
-    await s.getByRole('textbox', { name: 'Texte du statut' }).fill(`Arrivage en vidéo ${RUN}`);
-    await btn(s, 'Publier le statut').click();
+    await s.goto('/studio?dest=status');
+    await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(12));
+    await s.getByTestId('studio-next').click();
+    await s.getByTestId('studio-caption').fill(`Arrivage en vidéo ${RUN}`);
+    await s.getByTestId('studio-publish').click();
     await expect(s.getByRole('button', { name: 'Notifications' })).toBeVisible({ timeout: 60_000 });
 
     await b.goto('/');
@@ -159,7 +157,7 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
     await b.waitForTimeout(8_000);
     await expect(caption).toBeVisible();
     expect((await playing(b))[0]?.t ?? 0).toBeGreaterThan(6);
-    // At the end of the video it moves on (only status: the viewer closes).
-    await expect(caption).toBeHidden({ timeout: 15_000 });
+    // At the end of the video it moves on (only status: P2 shows the end card « Voir les Reels »).
+    await expect(b.getByTestId('status-end-card')).toBeVisible({ timeout: 20_000 });
   });
 });

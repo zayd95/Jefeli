@@ -9,9 +9,10 @@ export default function AppLayout() {
   const stack = (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="publish" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="studio" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="offer/[productId]" options={{ presentation: 'modal' }} />
       <Stack.Screen name="report" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="reels" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="statut/[userId]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       <Stack.Screen name="highlight/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       <Stack.Screen name="live/[id]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />

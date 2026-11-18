@@ -17,6 +17,7 @@ import type { ProductCard } from '@/lib/types';
 import { useFlag } from '@/lib/flags';
 import { goBack } from '@/lib/nav';
 import { newObjectPath, uploadWithRetry } from '@/lib/upload';
+import { STUDIO } from '@/lib/studioLinks';
 
 /**
  * Make a price offer or a barter proposal on a listing — or counter an existing offer
@@ -170,7 +171,7 @@ export default function OfferComposer() {
                     title="Aucun article à proposer"
                     body="Publiez d’abord l’article que vous souhaitez échanger. Il doit vous appartenir et être disponible."
                     actionLabel="Publier un article"
-                    onAction={() => router.push('/publish/listing')}
+                    onAction={() => router.push(STUDIO.article)}
                   />
                 ) : (
                   <View style={styles.grid}>

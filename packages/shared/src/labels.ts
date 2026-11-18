@@ -149,6 +149,7 @@ export const NOTIFICATION_COPY: Record<string, (actor: string, data: Record<stri
   message: (a) => `Nouveau message de ${a}`,
   story_reply: (a) => `${a} a répondu à votre statut`,
   story_like: (a) => `${a} a aimé votre statut`,
+  reel_candidate: (_a, d) => `Votre statut vidéo a été vu ${Number(d.views ?? 0)} fois. Le garder en Reel ?`,
   offer_received: (a, d) => `${a} vous fait une proposition pour « ${String(d.product_title ?? 'votre article')} »`,
   offer_countered: (a) => `${a} a fait une contre-proposition`,
   offer_accepted: (a) => `${a} a accepté votre proposition`,

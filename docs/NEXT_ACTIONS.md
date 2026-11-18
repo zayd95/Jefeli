@@ -1,5 +1,18 @@
 # Next actions
 
+## Owner (17 nov.): aperçu famille
+
+1. Choisir comment lever le quota d'e-mails (SMTP Resend/Brevo recommandé, ou confirmation désactivée le temps de l'aperçu).
+2. Le jour de la visite : relancer `node scripts/demo-showcase.ts` (statuts de 24 h) ; après l'aperçu, `--remove` si besoin.
+3. Remplacer les images « DÉMO · PHOTO À VENIR » par de vraies photos quand vous les avez.
+
+## Owner (now): revue de P2 — `feature/p2-studio` (PR brouillon, rien n'est fusionné)
+
+Décisions attendues (détail dans `docs/P2_STUDIO.md` § questions ouvertes) : go pour la migration staging
+`20261116000100`, voix sur vidéo (nécessite d'assouplir la règle serveur `audio_with_video`), case Boutique
+verrouillée quand l'interrupteur est actif, miniature galerie réelle (`expo-media-library`), essai du build EAS
+(caméra native).
+
 ## Owner (now): pilot cut — `feature/pilot-cut` (draft PR, base `feature/p1-identity`)
 
 Decisions of 15 Nov are recorded in `docs/IDENTITY.md` (top section). Done on 15 Nov:
@@ -245,7 +258,10 @@ feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`
    - edit and reorder listing media (the RPC exists);
    - a report-history link from notifications;
    - `my_conversations` preview text for barter offers;
-   - a server-side guard for `/admin` routes.
+   - a server-side guard for `/admin` routes;
+   - **status audience picker in the Studio** (owner, 16 Nov: not now): today a status uses the account's default audience;
+   - an admin screen for `app_config.reel_keep_min_views` (SQL only today);
+   - voice over a video (decided: not for the pilot; the server rule `audio_with_video` stays).
 6. Performance pass on a mid-range Android: switch feed lists to FlashList (installed) and check
    image sizes.
 
