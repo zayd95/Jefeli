@@ -21,3 +21,4 @@ export type NotificationRow = Tables<'notifications'>;
 export type Category = Tables<'categories'>;
 export * from './dock';
 export * from './studio';
+export * from './whatsapp';

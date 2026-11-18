@@ -5,7 +5,7 @@
  */
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 
-import { FIXTURE, btn, field, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile, WEB_URL } from './helpers';
+import { FIXTURE, btn, field, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile, WEB_URL, openBarter } from './helpers';
 
 const RUN = runId();
 const PASSWORD = 'Test-jefeli-2026!';
@@ -149,7 +149,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     await expect(a.getByText('18 000 F CFA').first()).toBeVisible({ timeout: 60_000 });
 
     await a.goto(productUrl);
-    await btn(a, 'Proposer un échange (troc)').click();
+    await openBarter(a);
     await a.getByRole('radio', { name: A_ITEM }).click();
     await field(a, 'Différence en argent (facultatif)').fill('15000');
     await a.getByRole('radio', { name: /Moi/ }).click();

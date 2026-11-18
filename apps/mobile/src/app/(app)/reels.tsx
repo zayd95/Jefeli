@@ -14,14 +14,14 @@ import { formatListingPrice, toFrenchError } from '@jefeli/shared';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Bookmark, Clapperboard, Heart, MessageCircle, Share2, X } from 'lucide-react-native';
+import { Bookmark, Clapperboard, Heart, MessageCircle, MoreHorizontal, Share2, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View, type ListViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { VideoPlayerInline } from '@/components/Media';
 import { ProductSticker } from '@/components/ProductSticker';
-import { Avatar, Button, colors, dark, IconButton, RoundAction, spacing, Text, useToast } from '@/design';
+import { Avatar, Button, colors, dark, IconButton, RoundAction, Sheet, spacing, Text, useToast } from '@/design';
 import { fetchReels } from '@/lib/api/reels';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { setSave, votePost } from '@/lib/api/posts';
@@ -129,6 +129,7 @@ function ReelItem({ post, height, active, preload }: { post: PostCardData; heigh
   const own = post.author_id === userId;
   const [liked, setLiked] = useState(post.my_vote === 1);
   const [saved, setSaved] = useState(!!post.saved);
+  const [more, setMore] = useState(false);
   const canOffer = !!product && !own && product.status === 'active' && product.listing_mode !== 'trade' && product.listing_mode !== 'give';
   const canTrade = !!product && !own && product.status === 'active' && product.listing_mode !== 'sale' && product.listing_mode !== 'give';
   const author = post.author;
@@ -173,9 +174,23 @@ function ReelItem({ post, height, active, preload }: { post: PostCardData; heigh
       <View style={[styles.rail, { bottom: Math.max(insets.bottom, spacing.md) + 96 }]} pointerEvents="box-none">
         <RoundAction variant="overlay" icon={Heart} label={liked ? 'Retirer mon J’aime' : 'J’aime'} active={liked} filled onPress={like} testID="reel-like" />
         <RoundAction variant="overlay" icon={MessageCircle} label={own ? 'Messages' : 'Écrire à l’auteur'} onPress={message} testID="reel-message" />
-        <RoundAction variant="overlay" icon={Share2} label="Partager le Reel" onPress={() => void shareLinks.post(post.id, author?.display_name ?? 'un membre')} testID="reel-share" />
-        <RoundAction variant="overlay" icon={Bookmark} label={saved ? 'Retirer des enregistrés' : 'Enregistrer'} active={saved} filled onPress={save} testID="reel-save" />
+        {/* P3: share and save live behind one « more » icon: the rail goes from four icons to three. */}
+        <RoundAction variant="overlay" icon={MoreHorizontal} label="Plus d’actions" onPress={() => setMore(true)} testID="reel-more" />
       </View>
+      <Sheet visible={more} onClose={() => setMore(false)} title="Ce Reel" tone="dark">
+        <Pressable onPress={() => { setMore(false); void shareLinks.post(post.id, author?.display_name ?? 'un membre'); }} style={styles.moreRow} accessibilityRole="button" accessibilityLabel="Partager le Reel" testID="reel-share">
+          <Share2 size={20} color={colors.ink} strokeWidth={2} />
+          <Text variant="body" weight="600" color={colors.ink}>
+            Partager le Reel
+          </Text>
+        </Pressable>
+        <Pressable onPress={() => { setMore(false); void save(); }} style={styles.moreRow} accessibilityRole="button" accessibilityLabel={saved ? 'Retirer des enregistrés' : 'Enregistrer'} testID="reel-save">
+          <Bookmark size={20} color={saved ? colors.gold : colors.ink} fill={saved ? colors.gold : 'transparent'} strokeWidth={2} />
+          <Text variant="body" weight="600" color={colors.ink}>
+            {saved ? 'Retirer des enregistrés' : 'Enregistrer'}
+          </Text>
+        </Pressable>
+      </Sheet>
 
       {/* Bottom: author, caption, article sticker, the gold pill */}
       <View style={[styles.bottom, { paddingBottom: Math.max(insets.bottom, spacing.md) }]} pointerEvents="box-none">
@@ -211,6 +226,7 @@ function ReelItem({ post, height, active, preload }: { post: PostCardData; heigh
 }
 
 const styles = StyleSheet.create({
+  moreRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   root: { flex: 1, backgroundColor: colors.mediaBackdrop },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, padding: spacing.xl },
   top: { position: 'absolute', top: 0, left: spacing.md, right: spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

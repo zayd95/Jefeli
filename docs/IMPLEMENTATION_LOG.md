@@ -728,3 +728,13 @@ Détail fonctionnel et liste des boutons convertis : `docs/P2_STUDIO.md`. Schém
   « Je cherche ». Aucune statistique inventée. Retrait vérifié sur staging (comptes, lignes et fichiers identiques à l'état d'avant).
 - Parcours 390 px sur l'aperçu réel : `tests/e2e/specs/family-journey.spec.ts` (vert, nettoyage inclus), captures dans
   `docs/evidence/e2e/family/`.
+
+## 17 nov. 2026 (suite) — P3 : actions minimalistes et « coller depuis WhatsApp »
+
+Branche `feature/p3-minimal-actions` (depuis `feature/p2-studio`). Voir `docs/P3_MINIMAL_ACTIONS.md`.
+- Fiche article : pastille + message en bas, cœur/partage/« … » sur la photo ; échange = onglet « Échange » de l'écran d'offre.
+  Reels : 3 icônes, partager/enregistrer derrière « plus ». Carte du fil : partage retiré de la rangée (reste dans « … »), texte d'aide retiré.
+- « Coller depuis WhatsApp » : `packages/shared/src/whatsapp.ts` (16 tests) + ligne « Reconnu … Annuler » dans le Studio, sans nouveau bouton.
+- Staging : confirmation d'e-mail désactivée (décision du propriétaire) ; ancien contenu de test masqué (sauvegarde hors dépôt).
+- Tests : `pnpm check` vert (shared 87) ; E2E `p3-minimal` (3), `p2-actions`, `p2-status-reels`, `pricing`, `journey` (MKT-03), `zz-gold-budget` verts en local ;
+  parcours famille 390 px vert sur l'aperçu réel. Les captures du parcours précédent montraient des squelettes de chargement : refaites avec attente du contenu.

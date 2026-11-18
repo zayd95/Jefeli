@@ -262,11 +262,6 @@ function PostCardInner({
           {ctaButton ? (
             <View style={styles.quoteActions}>
               {ctaButton}
-              {intent === 'seek' ? (
-                <Text variant="caption" tone="fogSecondary" style={{ flex: 1 }}>
-                  ou recommandez quelqu’un en commentaire
-                </Text>
-              ) : null}
             </View>
           ) : null}
         </View>
@@ -334,11 +329,6 @@ function PostCardInner({
             {formatCount(post.comment_count)}
           </Text>
         </Pressable>
-        {post.visibility === 'public' ? (
-          <Pressable onPress={() => shareLinks.post(post.id, author.display_name)} style={styles.iconAction} accessibilityRole="button" accessibilityLabel="Partager" hitSlop={4}>
-            <Share2 size={20} color={dark.textStrong} strokeWidth={1.7} />
-          </Pressable>
-        ) : null}
         <Pressable onPress={toggleSave} style={styles.iconAction} accessibilityRole="button" accessibilityLabel={post.saved ? 'Retirer des enregistrements' : 'Enregistrer'} hitSlop={4}>
           <Bookmark size={20} color={post.saved ? dark.gold : dark.textStrong} fill={post.saved ? dark.gold : 'transparent'} strokeWidth={1.7} />
         </Pressable>

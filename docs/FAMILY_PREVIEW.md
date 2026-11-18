@@ -1,5 +1,12 @@
 # Aperçu famille (17 nov. 2026) — `https://jefeli.vercel.app`
 
+> **Mise à jour (17 nov., décision du propriétaire) :** la **confirmation d'e-mail est désactivée sur staging** (`mailer_autoconfirm = true`) :
+> l'inscription ouvre la session tout de suite, sans mail ni quota (vérifié : le parcours à 390 px passe, inscription directe jusqu'à
+> l'onboarding). Pour la rétablir avant tout usage réel : `PATCH /config/auth {"mailer_autoconfirm": false}` (configuration d'avant sauvegardée
+> hors dépôt) **et** brancher un service d'e-mail (SMTP). L'ancien contenu de test (articles, publications et statuts de `zayd.jr` et
+> `test_vendeuse_w13`) est **masqué** (articles archivés, publications et statuts retirés), sauvegarde des lignes hors dépôt ; les comptes sont conservés.
+> Les imitations de marques : décision du propriétaire, pas de filtre par marque ; le signalement et le retrait sur demande restent.
+
 Branche `feature/p2-studio`, base **jefeli-staging**. Deux proches ouvrent l'application dans leur navigateur.
 `jefeli.vercel.app` est le domaine de branche du projet Vercel `jefeli-app` ; la protection par connexion Vercel y est
 désactivée (une personne sans compte Vercel peut l'ouvrir).
@@ -20,7 +27,7 @@ Vérifié sur l'aperçu réel, téléphone 390 px (`tests/e2e/specs/family-journ
 1. **Quota d'envoi : 2 e-mails par heure pour tout le projet.** Staging n'a pas de serveur d'e-mail à lui
    (`smtp_host` vide) : Supabase utilise son service intégré, plafonné à 2 e-mails/heure (`rate_limit_email_sent = 2`).
    Deux proches qui s'inscrivent dans la même heure, ou une troisième tentative, reçoivent « Trop de tentatives.
-   Réessayez dans quelques minutes. » Observé pendant les tests (capture `03-fj1-email-quota.png`).
+   Réessayez dans quelques minutes. » Observé pendant les tests (la capture de ce message a été remplacée par celles du parcours sans confirmation).
 2. **Délivrabilité** : l'expéditeur par défaut de Supabase finit souvent en courrier indésirable. Je n'ai pas pu lire
    une boîte réelle pour le confirmer.
 3. **Lien de confirmation** : l'adresse `https://jefeli.vercel.app/**` n'était pas dans la liste des redirections
@@ -80,7 +87,7 @@ troc sont supprimés ; fichiers orphelins : 0).
 
 | Étape | Résultat |
 |---|---|
-| FJ-1 Inscription + confirmation | écran « Vérifiez votre e-mail », message avant confirmation, confirmation, onboarding et Accueil validés lors d'un premier passage (captures de ce passage écrasées par le suivant) ; au passage final le quota horaire était déjà atteint (message « Trop de tentatives »), le test crée alors la personne par l'API admin et continue |
+| FJ-1 Inscription | avec la confirmation active : écran « Vérifiez votre e-mail », message avant confirmation, confirmation, onboarding et Accueil validés (premier passage) ; puis quota horaire atteint (« Trop de tentatives ») ; **depuis la désactivation de la confirmation : inscription directe jusqu'à l'onboarding et l'Accueil** (passage final, captures `03`–`05`) |
 | FJ-2 Allées Téléphones, Mode, Maison, Beauté | chaque allée liste ses articles DÉMO |
 | FJ-3 Ouvrir un Reel | la vidéo se lit, étiquette article et « Faire une offre » visibles |
 | FJ-3 Faire une offre | offre envoyée sur un smartphone DÉMO |

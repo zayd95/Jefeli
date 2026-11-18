@@ -31,7 +31,9 @@ export default function OfferComposer() {
 
   const product = useQuery({ queryKey: ['product', productId], queryFn: () => fetchProduct(productId ?? '') });
   const original = useQuery({ queryKey: ['offer', counter], queryFn: () => fetchOffer(counter ?? ''), enabled: !!counter });
-  const kind = (original.data?.kind ?? kindParam ?? 'price') as 'price' | 'barter';
+  // P3: an article that accepts both an offer and a swap is one screen with an « Offre | Échange » switch.
+  const [kindChoice, setKindChoice] = useState<'price' | 'barter' | null>(null);
+  const kind = (original.data?.kind ?? kindChoice ?? kindParam ?? 'price') as 'price' | 'barter';
   const iAmBuyer = original.data ? original.data.buyer_id === userId : true;
   const buyerId = original.data?.buyer_id ?? userId ?? '';
   const myProducts = useQuery({
@@ -130,6 +132,17 @@ export default function OfferComposer() {
     <Screen edges={['top', 'bottom']} keyboard>
       <Header title={title} />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+        {!counter && p.listing_mode === 'sale_or_trade' ? (
+          <View style={styles.kindSwitch} accessibilityRole="tablist" accessibilityLabel="Offre ou échange">
+            {([['price', 'Offre'], ['barter', 'Échange']] as const).map(([k, label]) => (
+              <Pressable key={k} onPress={() => setKindChoice(k)} style={[styles.kindItem, kind === k && styles.kindOn]} accessibilityRole="tab" accessibilityState={{ selected: kind === k }} aria-selected={kind === k} accessibilityLabel={label === 'Offre' ? 'Faire une offre en argent' : 'Proposer un échange (troc)'} testID={`offer-kind-${k}`}>
+                <Text variant="callout" weight="700" color={colors.ink}>
+                  {label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         <View style={styles.target}>
           <Thumb media={p.media[0]} style={styles.thumb} />
           <View style={{ flex: 1 }}>
@@ -278,6 +291,9 @@ function TradeOption({ product, selected, onPress }: { product: ProductCard; sel
 
 const styles = StyleSheet.create({
   body: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl },
+  kindSwitch: { flexDirection: 'row', alignSelf: 'stretch', padding: 4, gap: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  kindItem: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
+  kindOn: { backgroundColor: colors.raised, borderColor: colors.gold },
   target: { flexDirection: 'row', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
   thumb: { width: 72, height: 72, borderRadius: radius.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },

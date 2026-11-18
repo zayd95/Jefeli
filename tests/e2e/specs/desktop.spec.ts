@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { btn, DEVICES, field, FIXTURE, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile } from './helpers';
+import { btn, DEVICES, field, FIXTURE, newDevice, pickFile, publishListing, runId, shot, signUp, studioWithFile, openBarter } from './helpers';
 
 /**
  * W1.4 desktop web: the same app, backend and media in a desktop layout, in a real browser.
@@ -245,7 +245,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await expect(s.getByText('Proposition refusée').first()).toBeVisible();
 
     await b.goto(productUrl);
-    await btn(b, 'Proposer un échange (troc)').click();
+    await openBarter(b);
     await b.getByRole('radio', { name: B_ITEM }).click();
     await field(b, 'Différence en argent (facultatif)').fill('5000');
     await b.getByRole('radio', { name: /Moi/ }).click();

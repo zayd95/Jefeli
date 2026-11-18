@@ -61,6 +61,8 @@ export interface ComposerProps {
   voice: VoiceAttachment | null;
   caption: string;
   onCaption: (c: string) => void;
+  /** P3: a pasted WhatsApp announcement was read; one transient line with « Annuler ». */
+  pasteNote?: { text: string; onUndo: () => void } | null;
   sell: boolean;
   canSell: boolean;
   onSell: (on: boolean) => void;
@@ -163,6 +165,19 @@ export function StudioComposer(p: ComposerProps) {
             testID="studio-caption"
           />
         </View>
+
+        {p.pasteNote ? (
+          <View style={styles.pasteNote} testID="studio-paste-note" accessibilityLiveRegion="polite">
+            <Text variant="caption" weight="600" color={colors.ink} style={{ flex: 1 }}>
+              {p.pasteNote.text}
+            </Text>
+            <Pressable onPress={p.pasteNote.onUndo} hitSlop={12} style={styles.pasteUndo} accessibilityRole="button" accessibilityLabel="Annuler la lecture du texte collé" testID="studio-paste-undo">
+              <Text variant="callout" weight="800" color={colors.gold}>
+                Annuler
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {p.linkedTitle ? (
           <Pressable onPress={p.onUnlink} style={styles.voiceChip} accessibilityRole="button" accessibilityLabel={`Article lié : ${p.linkedTitle}. Retirer`}>
@@ -380,6 +395,8 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.lg, gap: spacing.lg, alignItems: 'center' },
   preview: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.mediaBackdrop },
   voiceChip: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', paddingHorizontal: 14, height: 40, borderRadius: 20, backgroundColor: colors.raised, borderWidth: 1, borderColor: dark.border },
+  pasteNote: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44, borderRadius: 16, backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.border, paddingHorizontal: spacing.md },
+  pasteUndo: { minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
   captionBox: { alignSelf: 'stretch', minHeight: 110, borderRadius: 20, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, padding: spacing.md },
   caption: { minHeight: 84, fontFamily: fonts.regular, fontSize: 17, lineHeight: 24, color: colors.ink, textAlignVertical: 'top' },
   sellBox: { alignSelf: 'stretch', borderRadius: 20, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, padding: spacing.md, gap: spacing.md },

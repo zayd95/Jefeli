@@ -243,7 +243,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
           </View>
 
           <View style={styles.shareRow}>
-            <RoundAction icon={Send} label="Partager sur WhatsApp" onPress={() => whatsappLinks.product(product)} testID="act-whatsapp" />
+            {isOwner ? <RoundAction icon={Send} label="Partager sur WhatsApp" onPress={() => whatsappLinks.product(product)} testID="act-whatsapp" /> : null}
             <Text variant="caption" tone="secondary" style={{ marginLeft: 'auto' }}>
               Publié {timeAgo(product.created_at)}
             </Text>
@@ -282,7 +282,7 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
             </View>
             </View>
           ) : (
-            // P2: one gold pill for the main action, round 44-pt icons for the rest (labels on long press).
+            // P3: one gold pill and one message icon. Heart and share live on the photo, the swap inside the offer.
             <View style={styles.ctaRow}>
               {canOffer ? (
                 <Button label="Faire une offre" variant="cta" size="lg" style={styles.ctaPrimary} onPress={offer} />
@@ -292,9 +292,6 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
                 <Button label={gift ? 'Écrire au donneur' : 'Envoyer un message'} variant="cta" size="lg" loading={busy === 'contact'} onPress={contact} style={styles.ctaPrimary} />
               )}
               {canOffer || canTrade ? <RoundAction icon={MessageCircle} label="Envoyer un message au vendeur" disabled={busy === 'contact'} onPress={contact} testID="act-message" /> : null}
-              {canOffer && canTrade ? <RoundAction icon={Repeat} label="Proposer un échange (troc)" onPress={barter} testID="act-troc" /> : null}
-              <RoundAction icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} testID="act-share" />
-              <RoundAction icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} active={!!saved.data} filled onPress={toggleSave} testID="act-save" />
             </View>
           )}
     </>
@@ -342,7 +339,8 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
       <View style={styles.dToolbar}>
         <Button label="Retour" variant="ghost" size="sm" icon={ArrowLeft} onPress={() => goBack()} />
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {isOwner ? <IconButton icon={Share2} label="Partager l’article" size={19} color={colors.ink} onPress={() => shareLinks.product(product)} /> : null}
+          {!isOwner ? <RoundAction icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} active={!!saved.data} filled onPress={toggleSave} testID="act-save" /> : null}
+          <RoundAction icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} testID="act-share" />
           <IconButton icon={MoreHorizontal} label="Plus d’options" size={19} color={colors.ink} onPress={() => setMenu(true)} />
         </View>
       </View>
@@ -392,7 +390,8 @@ function ProductDetail({ product, isOwner, firstListing }: { product: ProductCar
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 10) }]} pointerEvents="box-none">
         <IconButton icon={ArrowLeft} label="Retour" variant="glass" size={20} color={dark.text} onPress={() => goBack()} />
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {isOwner ? <IconButton icon={Share2} label="Partager l’article" variant="glass" size={19} color={dark.text} onPress={() => shareLinks.product(product)} /> : null}
+          {!isOwner ? <RoundAction variant="overlay" icon={Heart} label={saved.data ? 'Retirer des favoris' : 'Ajouter aux favoris'} active={!!saved.data} filled onPress={toggleSave} testID="act-save" /> : null}
+          <RoundAction variant="overlay" icon={Share2} label="Partager l’article" onPress={() => shareLinks.product(product)} testID="act-share" />
           <IconButton icon={MoreHorizontal} label="Plus d’options" variant="glass" size={19} color={dark.text} onPress={() => setMenu(true)} />
         </View>
       </View>
