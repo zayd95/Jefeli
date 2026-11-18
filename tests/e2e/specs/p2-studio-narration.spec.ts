@@ -42,6 +42,8 @@ test.describe.serial('P2 Studio: creation to feed', () => {
 
   test('NA-01 · three photos + a narration that walks through them + an article, to Fil, Statut and Boutique', async () => {
     await s.getByRole('tab', { name: 'Publier' }).click();
+    await expect(s.getByTestId('studio-composer')).toBeVisible();
+    await s.getByTestId('studio-tool-camera').click();
     await expect(s.getByTestId('studio-capture')).toBeVisible();
     const chooser = s.waitForEvent('filechooser');
     await s.getByTestId('studio-gallery').click();
@@ -67,9 +69,7 @@ test.describe.serial('P2 Studio: creation to feed', () => {
     await expect(s.getByText(/^Votre voix accompagne ce contenu/)).toBeVisible();
     await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click();
     await s.getByTestId('studio-caption').fill(`${ARTICLE}\nNouveau boubou, je vous explique tout.`);
-    await s.getByRole('button', { name: /^Prix : / }).click();
     await s.getByRole('textbox', { name: 'Prix', exact: true }).fill('25000');
-    await btn(s, 'Terminé').click();
     await s.getByRole('button', { name: /^Catégorie : / }).click();
     await btn(s, 'Mode femme').click();
     await expect(s.getByTestId('studio-dest-feed')).toHaveAttribute('aria-checked', 'true');
@@ -135,13 +135,12 @@ test.describe.serial('P2 Studio: creation to feed', () => {
   test('NA-05 · a voice status: voice alone, Statut only, published', async () => {
     await s.goto('/');
     await s.getByRole('tab', { name: 'Publier' }).click();
-    await s.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await s.getByRole('button', { name: 'Enregistrer ma voix' }).click();
+    // P4: the toolbar's microphone opens the recorder straight away.
+    await s.getByTestId('studio-tool-voice').click(); // the recorder starts recording at once
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
     await s.waitForTimeout(2500);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Voix · 0:0[2-3]$/)).toBeVisible();
-    await s.getByTestId('studio-next').click();
+    await expect(s.getByText(/^Message vocal · \d+ s$/)).toBeVisible();
     await s.getByTestId('studio-dest-feed').click(); // untick Fil
     await s.getByTestId('studio-dest-status').click(); // tick Statut
     await shot(s, DIR, 'S-composer-voice-status');
@@ -153,6 +152,8 @@ test.describe.serial('P2 Studio: creation to feed', () => {
     await s.goto(productPath);
     await s.getByRole('button', { name: /^Présenter cet article/ }).click();
     await expect(s).toHaveURL(/\/studio\?product=/);
+    await expect(s.getByTestId('studio-composer')).toBeVisible();
+    await s.getByTestId('studio-tool-camera').click();
     await expect(s.getByTestId('studio-capture')).toBeVisible();
     await pickFile(s, () => s.getByTestId('studio-gallery').click(), FIXTURE('bag.jpg'));
     await s.getByTestId('studio-next').click();

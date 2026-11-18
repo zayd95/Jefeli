@@ -111,7 +111,7 @@ test.describe.serial('Hosted acceptance: preview + jefeli-staging', () => {
 
     // P2: the Studio with the article attached, three photos and a narration walking through them.
     const articleId = productPath.split('/').pop()!;
-    await s.goto(`/studio?product=${articleId}`);
+    await s.goto(`/studio?mode=photo&product=${articleId}`);
     const chooser = s.waitForEvent('filechooser');
     await s.getByTestId('studio-gallery').click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg'), FIXTURE('shoe.jpg')]);

@@ -13,7 +13,7 @@
 import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
+import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send } from 'lucide-react-native';
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 

@@ -29,7 +29,6 @@ const MODES: { key: StudioMode; label: string }[] = [
   { key: 'photo', label: 'Photo' },
   { key: 'video', label: 'Vidéo' },
   { key: 'voice', label: 'Voix' },
-  { key: 'text', label: 'Texte' },
 ];
 
 export interface CaptureProps {
@@ -43,6 +42,8 @@ export interface CaptureProps {
   onText: (text: string, starter: TextStarter | null) => void;
   onPhotos: (next: LocalMedia[]) => void;
   onVideo: (m: LocalMedia | null) => void;
+  /** Photos and the video set in one go (the gallery can bring both). */
+  onMedia: (photos: LocalMedia[], video: LocalMedia | null) => void;
   onOpenVoice: () => void;
   onNext: () => void;
   onClose: () => void;
@@ -212,14 +213,12 @@ export function StudioCapture(p: CaptureProps) {
     try {
       const picked = await pickMedia({ allowVideo: true, multiple: true, limit: MAX_PHOTOS });
       if (!picked?.length) return;
+      // P4: photos and one video are kept together.
       const video = picked.find((m) => m.kind === 'video');
-      if (video) {
-        p.onVideo(video);
-        p.onMode('video');
-      } else {
-        p.onPhotos([...p.photos, ...picked].slice(0, MAX_PHOTOS));
-        p.onMode('photo');
-      }
+      const images = picked.filter((m) => m.kind === 'image');
+      p.onMedia(images.length ? [...p.photos, ...images].slice(0, MAX_PHOTOS) : p.photos, video ?? p.video);
+      if (picked.filter((m) => m.kind === 'video').length > 1) toast('Une seule vidéo par publication : la première est gardée.', 'info');
+      p.onMode(video && !images.length ? 'video' : 'photo');
     } catch (e) {
       toast(uploadErrorMessage(e), 'error');
     }

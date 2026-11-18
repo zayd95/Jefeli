@@ -62,6 +62,8 @@ for (const [device, size] of Object.entries(SIZES)) {
 
     // W1.1: Live is no longer offered (not even as a disabled tile), and /live/host leads home.
     await page.goto('/studio');
+    await expect(page.getByTestId('studio-composer')).toBeVisible();
+    await page.getByTestId('studio-tool-camera').click();
     await expect(page.getByTestId('studio-capture')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Live\b/ })).toHaveCount(0);
     await capture(page, device, '10-studio');

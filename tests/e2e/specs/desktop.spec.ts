@@ -126,6 +126,8 @@ test.describe.serial('W1.4 desktop web', () => {
     // « Créer » in the sidebar opens the Studio, the same one as the phone's + (in a phone-width column).
     await s.goto('/');
     await sidebar(s).getByRole('button', { name: 'Créer' }).click();
+    await expect(s.getByTestId('studio-composer')).toBeVisible();
+    await s.getByTestId('studio-tool-camera').click();
     await expect(s.getByTestId('studio-capture')).toBeVisible();
     const chooser = s.waitForEvent('filechooser');
     await s.getByTestId('studio-gallery').click();
@@ -144,9 +146,7 @@ test.describe.serial('W1.4 desktop web', () => {
 
     await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click();
     await s.getByTestId('studio-caption').fill(`Ma robe expliquée depuis l’ordinateur ${RUN}`);
-    await s.getByRole('button', { name: /^Prix : / }).click();
     await s.getByRole('textbox', { name: 'Prix', exact: true }).fill('25000');
-    await btn(s, 'Terminé').click();
     await s.getByRole('button', { name: /^Catégorie : / }).click();
     await btn(s, 'Chaussures').click();
     expect(await overflowX(s)).toBeLessThanOrEqual(0);
@@ -160,7 +160,7 @@ test.describe.serial('W1.4 desktop web', () => {
 
   test('DT-04 · seller on desktop: a 40-second video publication and a 12-second video status', async () => {
     await studioWithFile(s, clip(40), '/studio');
-    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByTestId('studio-thumb-video')).toBeVisible({ timeout: 30_000 });
     await s.getByTestId('studio-caption').fill(`Défilé en vidéo ${RUN}`);
     await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
@@ -247,6 +247,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await b.goto(productUrl);
     await openBarter(b);
     await b.getByRole('radio', { name: B_ITEM }).click();
+    await b.getByTestId('offer-add-cash').click();
     await field(b, 'Différence en argent (facultatif)').fill('5000');
     await b.getByRole('radio', { name: /Moi/ }).click();
     await btn(b, 'Envoyer la proposition').click();

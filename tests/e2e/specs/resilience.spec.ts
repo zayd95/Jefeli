@@ -105,7 +105,8 @@ test.describe.serial('P1 resilience: network, double taps, restarts, expired ses
     // It is only deleted on request.
     await s.getByRole('button', { name: /Brouillon repris/ }).click();
     await s.reload();
-    await expect(s.getByTestId('studio-capture')).toBeVisible({ timeout: 20_000 });
+    await expect(s.getByTestId('studio-composer')).toBeVisible({ timeout: 20_000 });
+    await expect(s.getByTestId('studio-caption')).toHaveValue('');
     await shot(s, DIR, 'S-draft-continued-then-deleted-on-request');
   });
 

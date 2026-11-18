@@ -151,6 +151,7 @@ test.describe.serial('Two-account social commerce journey', () => {
     await a.goto(productUrl);
     await openBarter(a);
     await a.getByRole('radio', { name: A_ITEM }).click();
+    await a.getByTestId('offer-add-cash').click();
     await field(a, 'Différence en argent (facultatif)').fill('15000');
     await a.getByRole('radio', { name: /Moi/ }).click();
     await shot(a, DIR, 'A-barter-composer');
