@@ -67,7 +67,7 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
   });
 
   test('MED-01 · a video over 3 minutes is refused as soon as it is chosen', async () => {
-    await s.goto('/studio');
+    await s.goto('/studio?mode=photo');
     await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(181));
     await expect(s.getByText('Vidéo trop longue : 3 minutes maximum.').last()).toBeVisible();
     await expect(s.getByTestId('studio-next')).toHaveCount(0); // nothing was accepted
@@ -79,12 +79,13 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
 
     const articleId = new URL(s.url()).pathname.split('/').pop()!;
     // P2: the Studio with the article attached (« Présenter cet article »), a gallery video of 3 minutes.
-    await s.goto(`/studio?product=${articleId}`);
+    await s.goto(`/studio?mode=photo&product=${articleId}`);
     await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(180));
     await s.getByTestId('studio-next').click();
     // The browser read the real duration and captured a cover frame before anything was sent: the
-    // composer's preview is the feed's player, poster first.
-    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
+    // composer shows the video with its length (3:00).
+    await expect(s.getByTestId('studio-thumb-video')).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByTestId('studio-thumb-video').getByText('3:00')).toBeVisible();
     await expect(s.getByRole('button', { name: new RegExp(`^Article lié : ${ARTICLE}`) })).toBeVisible();
     await s.getByTestId('studio-caption').fill(`Nouvelle collection en vidéo ${RUN}`);
     await shot(s, DIR, 'S-composer-180s-video');
@@ -139,7 +140,7 @@ test.describe.serial('Media-first commerce: 3-minute videos', () => {
   });
 
   test('MED-05 · a 12-second video status plays to its end, not cut at the image timer', async () => {
-    await s.goto('/studio?dest=status');
+    await s.goto('/studio?mode=photo&dest=status');
     await pickFile(s, () => s.getByTestId('studio-gallery').click(), clip(12));
     await s.getByTestId('studio-next').click();
     await s.getByTestId('studio-caption').fill(`Arrivage en vidéo ${RUN}`);

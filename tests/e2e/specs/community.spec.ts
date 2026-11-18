@@ -43,10 +43,10 @@ test.describe.serial('Community: intents, votes, comments', () => {
   test('B asks the community with an optional intent in the one publication composer (« Je cherche »)', async () => {
     // P2: the Studio's « Texte » card with the « Je cherche… » starter (a request, never an article).
     await b.goto('/studio?intent=seek');
-    await expect(b.getByRole('button', { name: 'Je cherche…', exact: true })).toBeVisible();
-    await b.getByTestId('studio-text').fill(REQUEST);
+    await expect(b.getByTestId('studio-composer')).toBeVisible();
+    await expect(b.getByTestId('studio-caption')).toHaveValue('Je cherche ');
+    await b.getByTestId('studio-caption').fill(REQUEST);
     await shot(b, DIR, 'B-studio-je-cherche');
-    await b.getByTestId('studio-next').click();
     await b.getByTestId('studio-publish').click();
     await expect(b).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 30_000 });
     postUrl = new URL(b.url()).pathname;

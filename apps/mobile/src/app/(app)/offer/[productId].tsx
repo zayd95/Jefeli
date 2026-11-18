@@ -23,6 +23,12 @@ import { STUDIO } from '@/lib/studioLinks';
  * Make a price offer or a barter proposal on a listing — or counter an existing offer
  * (?counter=<offerId>). All amounts and ownership are validated again by the server.
  */
+/** A round, friendly amount: 50 F under 2 000 F, 100 F under 10 000 F, 500 F above. */
+function niceRound(n: number): number {
+  const step = n >= 10_000 ? 500 : n >= 2_000 ? 100 : 50;
+  return Math.max(step, Math.round(n / step) * step);
+}
+
 export default function OfferComposer() {
   const { productId, kind: kindParam, counter } = useLocalSearchParams<{ productId: string; kind?: string; counter?: string }>();
   const { userId } = useAuth();
@@ -46,6 +52,7 @@ export default function OfferComposer() {
   const [offeredChoice, setOffered] = useState<string | null>(null);
   const [payerChoice, setPayer] = useState<'buyer' | 'seller' | null>(null);
   const [message, setMessage] = useState('');
+  const [showCash, setShowCash] = useState(false);
   const [busy, setBusy] = useState(false);
   // Waxaale (P1): the offer can be said out loud; the note is attached once the offer exists.
   const voiceEnabled = useFlag('voice_messages');
@@ -62,6 +69,7 @@ export default function OfferComposer() {
   const value = parseXOF(amount);
   const tradeables = (myProducts.data ?? []).filter((x) => x.id !== productId);
   const valid = kind === 'price' ? value !== null && value > 0 : !!offered;
+  const asking = p && hasDisplayedPrice(p) && p.price_xof ? p.price_xof : null;
 
   async function submit() {
     if (!p || inFlight.current) return;
@@ -159,15 +167,41 @@ export default function OfferComposer() {
         </View>
 
         {kind === 'price' ? (
-          <Field
-            label={counter ? 'Votre nouveau prix' : 'Votre offre'}
-            value={amount}
-            onChangeText={(t) => setAmount(formatAmountInput(t))}
-            keyboardType="number-pad"
-            placeholder={hasDisplayedPrice(p) && p.price_xof ? formatAmountInput(String(Math.round(p.price_xof * 0.85))) : '20 000'}
-            suffix="F CFA"
-            hint={original.data?.amount_xof ? `Proposition précédente : ${formatXOF(original.data.amount_xof)}` : 'Le vendeur peut accepter, refuser ou faire une contre-proposition.'}
-          />
+          <View style={{ gap: spacing.sm }}>
+            <Field
+              label={counter ? 'Votre nouveau prix' : 'Votre offre'}
+              value={amount}
+              onChangeText={(t) => setAmount(formatAmountInput(t))}
+              keyboardType="number-pad"
+              placeholder={hasDisplayedPrice(p) && p.price_xof ? formatAmountInput(String(niceRound(p.price_xof * 0.85))) : '20 000'}
+              suffix="F CFA"
+              hint={
+                original.data?.amount_xof
+                  ? `Proposition précédente : ${formatXOF(original.data.amount_xof)}`
+                  : asking && value
+                    ? value === asking
+                      ? 'Au prix affiché : le vendeur n’a qu’à accepter.'
+                      : value < asking
+                        ? `${Math.round((1 - value / asking) * 100)} % sous le prix affiché.`
+                        : 'Plus que le prix affiché.'
+                    : 'Le vendeur peut accepter, refuser ou faire une contre-proposition.'
+              }
+            />
+            {asking ? (
+              <View style={styles.quick} accessibilityLabel="Montants rapides">
+                {[{ key: 'ask', label: 'Prix demandé', amt: asking }, ...[10, 15, 20].map((pct) => ({ key: `m${pct}`, label: `−${pct} %`, amt: niceRound(asking * (1 - pct / 100)) }))].map((q) => (
+                  <Pressable key={q.key} onPress={() => setAmount(formatAmountInput(String(q.amt)))} style={[styles.quickChip, value === q.amt && styles.quickOn]} accessibilityRole="button" accessibilityLabel={`Offrir ${formatXOF(q.amt)} (${q.label})`} testID={`offer-quick-${q.key}`}>
+                    <Text variant="callout" weight={value === q.amt ? '800' : '600'} color={colors.ink}>
+                      {q.label}
+                    </Text>
+                    <Text variant="caption" weight="600" tone="secondary">
+                      {formatAmountInput(String(q.amt))}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
         ) : (
           <>
             {iAmBuyer ? (
@@ -184,6 +218,7 @@ export default function OfferComposer() {
                     title="Aucun article à proposer"
                     body="Publiez d’abord l’article que vous souhaitez échanger. Il doit vous appartenir et être disponible."
                     actionLabel="Publier un article"
+                    actionVariant="outline"
                     onAction={() => router.push(STUDIO.article)}
                   />
                 ) : (
@@ -200,6 +235,7 @@ export default function OfferComposer() {
               </Text>
             )}
 
+            {showCash || (value ?? 0) > 0 || counter ? (
             <Field
               label="Différence en argent (facultatif)"
               value={amount}
@@ -209,6 +245,13 @@ export default function OfferComposer() {
               suffix="F CFA"
               hint="Pour équilibrer l’échange si les articles n’ont pas la même valeur."
             />
+            ) : (
+              <Pressable onPress={() => setShowCash(true)} style={styles.addCash} accessibilityRole="button" accessibilityLabel="Ajouter une différence d’argent" testID="offer-add-cash">
+                <Text variant="callout" weight="700" color={colors.ink}>
+                  + Ajouter une différence d’argent
+                </Text>
+              </Pressable>
+            )}
             {(value ?? 0) > 0 ? (
               <View style={{ gap: spacing.sm }}>
                 <Text variant="callout" weight="600">
@@ -232,10 +275,7 @@ export default function OfferComposer() {
         {voiceEnabled ? (
           <View style={styles.voice} testID="offer-voice">
             <Text variant="callout" weight="700">
-              Dites votre offre à voix haute
-            </Text>
-            <Text variant="caption" tone="secondary">
-              Facultatif · en français ou en wolof, 3 minutes au plus. Le vendeur l’écoute dans la proposition.
+              Message vocal (facultatif)
             </Text>
             {voice ? (
               <View style={{ gap: spacing.sm }}>
@@ -294,13 +334,17 @@ const styles = StyleSheet.create({
   kindSwitch: { flexDirection: 'row', alignSelf: 'stretch', padding: 4, gap: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   kindItem: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
   kindOn: { backgroundColor: colors.raised, borderColor: colors.gold },
-  target: { flexDirection: 'row', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  target: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   thumb: { width: 72, height: 72, borderRadius: radius.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  quick: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  quickChip: { minHeight: 52, minWidth: 74, paddingHorizontal: 14, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  quickOn: { backgroundColor: colors.raised, borderColor: colors.gold },
+  addCash: { minHeight: 44, alignSelf: 'flex-start', paddingHorizontal: 16, borderRadius: radius.pill, justifyContent: 'center', borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   option: { width: '48%', padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   optionOn: { borderColor: colors.ink, borderWidth: 2 },
   check: { position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center' },
-  voice: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  notice: { padding: spacing.md, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md },
+  voice: { gap: spacing.sm },
+  notice: { paddingTop: spacing.sm },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderColor: colors.border },
 });

@@ -33,7 +33,7 @@ test('PI-01 · market aisles, and an empty aisle invites « Je cherche »', asyn
   await shot(page, DIR, 'aisle-empty-seek');
   await btn(page, 'Publier « Je cherche »').click();
   await expect(page).toHaveURL(/\/studio/);
-  await expect(page.getByTestId('studio-text')).toBeVisible();
+  await expect(page.getByTestId('studio-caption')).toBeVisible();
   await ctx.close();
 });
 

@@ -67,8 +67,7 @@ export async function publishStudio(a: StudioPublishArgs): Promise<StudioResult>
   const sel = new Set(a.destinations);
   const result: StudioResult = { listingId: null, postId: null, storyIds: [], failed: [] };
   const visualCount = a.media.length;
-  const photos = a.media.filter((m) => m.kind === 'image').length;
-  const narratedOrMulti = (visualCount > 0 && !!a.voice) || photos > 1;
+  const narratedOrMulti = (visualCount > 0 && !!a.voice) || visualCount > 1;
   const statusViaFeed = sel.has('status') && narratedOrMulti;
   const directStatus = sel.has('status') && !statusViaFeed;
   const feedAudience: Audience = a.feedAudience ?? 'public';

@@ -194,6 +194,7 @@ export function EmptyState({
   body,
   actionLabel,
   onAction,
+  actionVariant = 'cta',
   compact,
   tone = 'light',
 }: {
@@ -202,6 +203,8 @@ export function EmptyState({
   body?: string;
   actionLabel?: string;
   onAction?: () => void;
+  /** `outline` when another gold button is on the screen (one filled gold element per screen). */
+  actionVariant?: 'cta' | 'outline';
   compact?: boolean;
   /** Dark = editorial empty state (heading weight, fog body). */
   tone?: 'light' | 'dark';
@@ -221,7 +224,7 @@ export function EmptyState({
         </Text>
       ) : null}
       {actionLabel && onAction ? (
-        <Button label={actionLabel} variant="cta" onPress={onAction} style={{ marginTop: spacing.lg }} />
+        <Button label={actionLabel} variant={actionVariant} onPress={onAction} style={{ marginTop: spacing.lg }} />
       ) : null}
     </View>
   );

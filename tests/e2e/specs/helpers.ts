@@ -101,17 +101,25 @@ export async function pickFile(page: Page, trigger: () => Promise<void>, file: s
 const PRICE_MODE_LABELS = { 'Prix affiché': 'Prix affiché', 'Prix sur demande': 'Sur demande', 'À discuter': 'À discuter' } as const;
 
 /** Opens the Studio and brings one gallery file to the composer. */
+/** P4: the composer, then the camera over it (the toolbar's camera). */
+export async function openCamera(page: Page, path = '/studio') {
+  await page.goto(path);
+  await expect(page.getByTestId('studio-composer')).toBeVisible();
+  const restart = page.getByRole('button', { name: /Brouillon repris/ });
+  if (await restart.isVisible()) await restart.click();
+  await page.getByTestId('studio-tool-camera').click();
+  await expect(page.getByTestId('studio-capture')).toBeVisible();
+}
+
 export async function studioWithFile(page: Page, file: string, path = '/studio') {
   await page.goto(path);
-  const gallery = page.getByTestId('studio-gallery');
-  const restart = page.getByRole('button', { name: /Brouillon repris/ });
-  await expect(gallery.or(restart)).toBeVisible();
-  // A draft left by an earlier step of the same test comes back: start over, as a member would.
-  if (await restart.isVisible()) await restart.click();
-  await expect(gallery).toBeVisible();
-  await pickFile(page, () => gallery.click(), file);
-  await page.getByTestId('studio-next').click();
+  // P4: the composer is the first screen. A draft left by an earlier step of the same test comes back:
+  // start over, as a member would, then bring the file through the toolbar's gallery.
   await expect(page.getByTestId('studio-composer')).toBeVisible();
+  const restart = page.getByRole('button', { name: /Brouillon repris/ });
+  if (await restart.isVisible()) await restart.click();
+  await pickFile(page, () => page.getByTestId('studio-tool-gallery').click(), file);
+  await expect(page.getByTestId('studio-media')).toBeVisible();
 }
 
 export async function publishListing(
@@ -133,19 +141,17 @@ export async function publishListing(
   const sell = page.getByRole('switch', { name: 'Vendre ou troquer cet article' });
   if ((await sell.getAttribute('aria-checked')) !== 'true') await sell.click();
   await page.getByTestId('studio-caption').fill(opts.description ? `${opts.title}\n${opts.description}` : opts.title);
-  const chip = (name: string) => page.getByTestId('studio-item-chips').getByRole('button', { name, exact: true });
-  if (opts.mode === 'Vente ou troc') await chip('Troquer').click();
-  if (opts.mode === 'Troc') {
-    await chip('Troquer').click();
-    await chip('Vendre').click();
-  }
-  if (opts.mode === 'Donner') await chip('Donner').click();
-  if (opts.priceMode || opts.price) {
-    await page.getByRole('button', { name: /^Prix : / }).click();
-    if (opts.priceMode) await page.getByRole('radio', { name: PRICE_MODE_LABELS[opts.priceMode], exact: true }).click();
-    if (opts.price) await field(page, /^(Prix|Valeur estimée)/).fill(opts.price);
+  // P4: the four Wecci modes are one single-select row; the price is typed inline.
+  const mode = (name: string) => page.getByTestId('studio-item-chips').locator('xpath=..').getByRole('radio', { name, exact: true });
+  if (opts.mode === 'Vente ou troc') await mode('Vendre ou troquer').click();
+  if (opts.mode === 'Troc') await mode('Troquer').click();
+  if (opts.mode === 'Donner') await mode('Donner').click();
+  if (opts.priceMode) {
+    await page.getByRole('button', { name: /^Mode de prix : / }).click();
+    await page.getByRole('radio', { name: PRICE_MODE_LABELS[opts.priceMode], exact: true }).click();
     await btn(page, 'Terminé').click();
   }
+  if (opts.price) await field(page, /^(Prix|Valeur estimée)/).fill(opts.price);
   await page.getByRole('button', { name: /^Catégorie : / }).click();
   await btn(page, opts.category).click();
   await page.getByRole('button', { name: /^État : / }).click();

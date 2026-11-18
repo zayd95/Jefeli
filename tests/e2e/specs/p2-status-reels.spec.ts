@@ -30,10 +30,8 @@ function hideOldTestStatuses() {
 async function publishStatusItem(page: Page, title: string, opts: { trade?: boolean } = {}) {
   await studioWithFile(page, PHOTO);
   await page.getByTestId('studio-caption').fill(`${title}\nÉtat impeccable.`);
-  if (opts.trade) await page.getByTestId('studio-item-chips').getByRole('button', { name: 'Troquer', exact: true }).click();
-  await page.getByRole('button', { name: /^Prix : / }).click();
+  if (opts.trade) await page.getByRole('radio', { name: 'Vendre ou troquer', exact: true }).click();
   await page.getByRole('textbox', { name: 'Prix', exact: true }).fill('18000');
-  await btn(page, 'Terminé').click();
   await page.getByRole('button', { name: /^Catégorie : / }).click();
   await btn(page, 'Chaussures').click();
   await page.getByTestId('studio-dest-feed').click(); // untick Fil
@@ -118,15 +116,14 @@ test.describe('P2.4 Reels', () => {
     const seller = await newDevice(browser, DEVICES.iphone15, { camera: true, mic: true });
     await signIn(seller.page, ...SELLER);
     await seller.page.getByRole('tab', { name: 'Publier' }).click();
+    await seller.page.getByTestId('studio-tool-camera').click();
     await seller.page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
     await seller.page.getByTestId('studio-shutter').click();
     await seller.page.waitForTimeout(2500);
     await seller.page.getByTestId('studio-shutter').click();
     await seller.page.getByTestId('studio-next').click();
     await seller.page.getByTestId('studio-caption').fill(`${title}\nTrès beau modèle.`);
-    await seller.page.getByRole('button', { name: /^Prix : / }).click();
     await seller.page.getByRole('textbox', { name: 'Prix', exact: true }).fill('9500');
-    await btn(seller.page, 'Terminé').click();
     await seller.page.getByRole('button', { name: /^Catégorie : / }).click();
     await btn(seller.page, 'Chaussures').click();
     await expect(seller.page.getByTestId('studio-dest-reel')).toHaveAttribute('aria-checked', 'true');
@@ -155,6 +152,7 @@ test.describe('P2.4 Reels', () => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { camera: true, mic: true });
     await signIn(page, ...SELLER);
     await page.getByRole('tab', { name: 'Publier' }).click();
+    await page.getByTestId('studio-tool-camera').click();
     await page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
     await page.getByTestId('studio-shutter').click();
     await page.waitForTimeout(9000); // long enough to walk to it before it ends

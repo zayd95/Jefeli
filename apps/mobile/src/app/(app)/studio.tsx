@@ -15,6 +15,8 @@ import {
   formatDuration,
   itemTitleFromCaption,
   looksLikeWhatsappPaste,
+  MAX_PHOTOS,
+  TEXT_STARTERS,
   normalizeSelection,
   parseWhatsappListing,
   parseXOF,
@@ -32,9 +34,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { VoiceStudio } from '@/components/audio/VoiceStudio';
 import { UploadOverlay } from '@/components/Composer';
 import { StudioCapture } from '@/components/studio/StudioCapture';
 import { StudioComposer, type ItemDraft } from '@/components/studio/StudioComposer';
@@ -47,7 +48,7 @@ import { discardDraft, useDraft } from '@/lib/drafts';
 import { useLayout } from '@/lib/layout';
 import { goBack } from '@/lib/nav';
 import { publishStudio } from '@/lib/studio';
-import { uploadErrorMessage, UploadError, type LocalMedia } from '@/lib/upload';
+import { pickMedia, uploadErrorMessage, UploadError, type LocalMedia } from '@/lib/upload';
 import { keepForDraft, restoreVoice, type RecordedClip, type VoiceAttachment } from '@/lib/voice';
 
 const KEY = 'studio';
@@ -71,7 +72,8 @@ export default function Studio() {
   const qc = useQueryClient();
   const toast = useToast();
   const draft = useDraft(KEY, {
-    step: 'capture' as 'capture' | 'compose',
+    // P4: the composer is the first screen; « capture » is the camera, opened over it from the toolbar.
+    step: 'compose' as 'capture' | 'compose',
     mode: 'photo' as StudioMode,
     photos: [] as LocalMedia[],
     video: null as LocalMedia | null,
@@ -86,7 +88,7 @@ export default function Studio() {
   });
   const v = draft.value;
   const set = (patch: Partial<typeof v>) => draft.setValue((cur) => ({ ...cur, ...patch }));
-  const [studio, setStudio] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(params.mode === 'voice'); // ?mode=voice: the recorder starts at once
   const [language, setLanguage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -121,8 +123,12 @@ export default function Studio() {
     if (applied.current) return;
     applied.current = true;
     const m = params.mode as StudioMode | undefined;
-    if (m && ['photo', 'video', 'voice', 'text'].includes(m)) draft.setValue((d) => ({ ...d, mode: m }));
-    else if (params.intent === 'seek' || params.intent === 'opinion') draft.setValue((d) => ({ ...d, mode: 'text', starter: params.intent === 'seek' ? 'seek' : 'recommend' }));
+    // P4: photo / vidéo / voix open the camera (or the voice recorder) over the composer; the text is the composer itself.
+    if (m && ['photo', 'video'].includes(m)) draft.setValue((d) => ({ ...d, mode: m, step: 'capture' }));
+    else if (params.intent === 'seek' || params.intent === 'opinion') {
+      const st = TEXT_STARTERS.find((x) => x.key === (params.intent === 'seek' ? 'seek' : 'recommend'));
+      draft.setValue((d) => ({ ...d, mode: 'text', starter: st?.key ?? null, caption: d.caption || (st?.text ?? ''), step: 'compose' }));
+    }
     if (params.sell === '1') draft.setValue((d) => ({ ...d, sell: true }));
     if (params.dest === 'status') draft.setValue((d) => ({ ...d, destinations: ['status'] }));
     if (params.product) draft.setValue((d) => ({ ...d, linkProductId: params.product ?? null, sell: false }));
@@ -151,9 +157,10 @@ export default function Studio() {
     setPasted(null);
   }
 
-  const media: LocalMedia[] = v.video ? [v.video] : v.photos;
+  // P4: photos and one video go together (photos first, the video as the last slide).
+  const media: LocalMedia[] = v.video ? [...v.photos, v.video] : v.photos;
   const baseInput = {
-    photos: v.video ? 0 : v.photos.length,
+    photos: v.photos.length,
     hasVideo: !!v.video,
     hasVoice: !!v.voice,
     hasText: v.caption.trim().length > 0,
@@ -174,7 +181,7 @@ export default function Studio() {
 
   function setMedia(photos: LocalMedia[], video: LocalMedia | null) {
     set({ photos, video });
-    void keepMediaForDraft(KEY, video ? [video] : photos).then((kept) =>
+    void keepMediaForDraft(KEY, video ? [...photos, video] : photos).then((kept) =>
       draft.setValue((d) => ({
         ...d,
         photos: d.photos.map((m) => kept.find((k) => k.uri === m.uri) ?? m),
@@ -183,10 +190,10 @@ export default function Studio() {
     );
   }
 
-  async function useVoice(clip: RecordedClip) {
+  async function attachVoice(clip: RecordedClip) {
     const kept = await keepForDraft(KEY, clip);
     set({ voice: { ...kept, language } });
-    setStudio(false);
+    setVoiceOn(false);
   }
 
   function toggle(d: Destination) {
@@ -267,77 +274,124 @@ export default function Studio() {
     }
   }
 
+  async function addFromGallery() {
+    try {
+      const picked = await pickMedia({ allowVideo: true, multiple: true, limit: MAX_PHOTOS });
+      if (!picked?.length) return;
+      const video = picked.find((m) => m.kind === 'video');
+      const images = picked.filter((m) => m.kind === 'image');
+      setMedia(images.length ? [...v.photos, ...images].slice(0, MAX_PHOTOS) : v.photos, video ?? v.video);
+      if (video && v.voice) {
+        set({ voice: null });
+        toast('Votre voix a été retirée : une vidéo garde son propre son.', 'info');
+      }
+      if (picked.filter((m) => m.kind === 'video').length > 1) toast('Une seule vidéo par publication : la première est gardée.', 'info');
+    } catch (e) {
+      toast(uploadErrorMessage(e), 'error');
+    }
+  }
+  function openVoice() {
+    if (v.video) toast('Une vidéo garde son propre son : retirez la vidéo pour ajouter votre voix.', 'info');
+    else setVoiceOn(true);
+  }
+  function toggleSell(on: boolean) {
+    if (on && !canSell) {
+      // An article needs a picture: open the gallery, the switch turns on as soon as one is added.
+      toast('Ajoutez d’abord une photo ou une vidéo de l’article.', 'info');
+      set({ sell: true });
+      void addFromGallery();
+      return;
+    }
+    set({ sell: on });
+  }
+  function removeMedia(i: number) {
+    if (v.video && i === v.photos.length) setMedia(v.photos, null);
+    else setMedia(v.photos.filter((_, j) => j !== i), v.video);
+  }
+
   const column = desktop ? ({ width: '100%', maxWidth: 520, alignSelf: 'center' } as const) : null;
   const voiceLabel = v.voice ? `Voix · ${formatDuration(v.voice.durationMs)}` : null;
 
   return (
     <View style={[{ flex: 1, backgroundColor: colors.mediaBackdrop }, column]}>
-      {v.step === 'capture' ? (
-        <StudioCapture
-          mode={v.mode}
-          onMode={(mode) => set({ mode })}
-          photos={v.photos}
-          video={v.video}
-          voiceLabel={voiceLabel}
-          text={v.caption}
-          starter={v.starter}
-          onText={(caption, starter) => set({ caption, starter })}
-          onPhotos={(photos) => setMedia(photos, null)}
-          onVideo={(video) => {
-            setMedia([], video);
-            // A video keeps its own sound (the database refuses a voice over a video): the voice is dropped.
-            if (video && v.voice) {
-              set({ voice: null });
-              toast('Votre voix a été retirée : une vidéo garde son propre son.', 'info');
-            }
-          }}
-          onOpenVoice={() => setStudio(true)}
-          onNext={() => set({ step: 'compose' })}
-          onClose={() => goBack()}
-        />
-      ) : (
-        <StudioComposer
-          input={input}
-          media={media}
-          voice={v.voice}
-          caption={v.caption}
-          onCaption={onCaption}
-          pasteNote={pasted ? { text: pasted.text, onUndo: undoPaste } : null}
-          sell={sell}
-          canSell={canSell}
-          onSell={(on) => set({ sell: on })}
-          item={v.item}
-          onItem={(patch) => set({ item: { ...v.item, ...patch } })}
-          categories={categories.data ?? []}
-          selected={selected}
-          onToggle={toggle}
-          feedAudience={v.feedAudience}
-          onFeedAudience={(feedAudience) => set({ feedAudience })}
-          statusAudienceLabel={`Visible par : ${AUDIENCE_LABELS[statusAudience].toLowerCase()}`}
-          error={error}
-          restored={draft.restored && hasContent}
-          onRestart={restart}
-          onBack={() => set({ step: 'capture' })}
-          onPublish={publish}
-          publishing={uploading}
-          linkedTitle={linked.data?.title ?? null}
-          onUnlink={() => set({ linkProductId: null })}
-        />
-      )}
-
-      <VoiceStudio
-        visible={studio}
-        title={media.length > 1 ? 'Expliquez vos photos' : 'Votre message vocal'}
-        photos={!v.video && v.photos.length > 1 ? v.photos.map((m) => m.uri) : undefined}
-        language={v.voice?.language ?? language}
-        onLanguage={(l) => {
-          setLanguage(l);
-          if (l) void AsyncStorage.setItem(LAST_LANGUAGE, l).catch(() => {});
+      <StudioComposer
+        input={input}
+        media={media}
+        voice={v.voice}
+        caption={v.caption}
+        onCaption={onCaption}
+        pasteNote={pasted ? { text: pasted.text, onUndo: undoPaste } : null}
+        sell={sell}
+        canSell={canSell}
+        onSell={toggleSell}
+        item={v.item}
+        onItem={(patch) => set({ item: { ...v.item, ...patch } })}
+        categories={categories.data ?? []}
+        selected={selected}
+        onToggle={toggle}
+        feedAudience={v.feedAudience}
+        onFeedAudience={(feedAudience) => set({ feedAudience })}
+        statusAudienceLabel={`Visible par : ${AUDIENCE_LABELS[statusAudience].toLowerCase()}`}
+        error={error}
+        restored={draft.restored && hasContent}
+        onRestart={restart}
+        onPublish={publish}
+        publishing={uploading}
+        linkedTitle={linked.data?.title ?? null}
+        onUnlink={() => set({ linkProductId: null })}
+        displayName={profile?.display_name ?? 'Moi'}
+        avatarPath={profile?.avatar_path}
+        starter={v.starter}
+        onStarter={(key) => {
+          const st = TEXT_STARTERS.find((x) => x.key === key);
+          set({ starter: key, caption: v.caption || (st?.text ?? '') });
         }}
-        onDone={useVoice}
-        onClose={() => setStudio(false)}
-        avatar={{ path: profile?.avatar_path, name: profile?.display_name ?? 'Moi' }}
+        onClose={() => goBack()}
+        onGallery={() => void addFromGallery()}
+        onCamera={() => set({ step: 'capture', mode: v.mode === 'voice' || v.mode === 'text' ? 'photo' : v.mode })}
+        onVoice={openVoice}
+        onRemoveMedia={removeMedia}
+        onRemoveVoice={() => set({ voice: null })}
+        autoFocus={v.step === 'compose' && !params.mode}
+        voiceOn={voiceOn}
+        onVoiceDone={(clip) => void attachVoice(clip)}
+        onVoiceCancel={() => setVoiceOn(false)}
       />
+
+      {v.step === 'capture' ? (
+        <View style={StyleSheet.absoluteFill}>
+          <StudioCapture
+            mode={v.mode}
+            onMode={(mode) => set({ mode })}
+            photos={v.photos}
+            video={v.video}
+            voiceLabel={voiceLabel}
+            text={v.caption}
+            starter={v.starter}
+            onText={(caption, starter) => set({ caption, starter })}
+            onPhotos={(photos) => setMedia(photos, v.video)}
+            onMedia={(photos, video) => {
+              setMedia(photos, video);
+              if (video && v.voice) {
+                set({ voice: null });
+                toast('Votre voix a été retirée : une vidéo garde son propre son.', 'info');
+              }
+            }}
+            onVideo={(video) => {
+              setMedia(v.photos, video);
+              // A video keeps its own sound (the database refuses a voice over a video): the voice is dropped.
+              if (video && v.voice) {
+                set({ voice: null });
+                toast('Votre voix a été retirée : une vidéo garde son propre son.', 'info');
+              }
+            }}
+            onOpenVoice={openVoice}
+            onNext={() => set({ step: 'compose' })}
+            onClose={() => set({ step: 'compose' })}
+          />
+        </View>
+      ) : null}
+
       <UploadOverlay visible={uploading} progress={progress} label="Envoi en cours…" onCancel={() => abort.current?.abort()} />
     </View>
   );

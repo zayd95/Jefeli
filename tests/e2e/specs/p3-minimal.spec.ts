@@ -72,7 +72,7 @@ test.describe('P3 minimalist actions', () => {
     await expect(note).toContainText('pointures 40 à 45');
     await expect(caption).toHaveValue('Dior b30 full White\nPointures : 40 à 45.');
     await expect(page.getByRole('switch', { name: 'Vendre ou troquer cet article' })).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByRole('button', { name: /^Prix : .*35.?000/ })).toBeVisible();
+    await expect(page.getByTestId('studio-price')).toHaveValue(/35.?000/);
     await shot(page, DIR, 'paste-filled');
 
     await page.getByTestId('studio-paste-undo').click();

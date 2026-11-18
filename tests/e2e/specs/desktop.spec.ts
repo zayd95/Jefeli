@@ -126,27 +126,23 @@ test.describe.serial('W1.4 desktop web', () => {
     // « Créer » in the sidebar opens the Studio, the same one as the phone's + (in a phone-width column).
     await s.goto('/');
     await sidebar(s).getByRole('button', { name: 'Créer' }).click();
-    await expect(s.getByTestId('studio-capture')).toBeVisible();
+    await expect(s.getByTestId('studio-composer')).toBeVisible();
     const chooser = s.waitForEvent('filechooser');
-    await s.getByTestId('studio-gallery').click();
+    await s.getByTestId('studio-tool-gallery').click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg')]);
-    await expect(s.getByText('2/8')).toBeVisible();
+    await expect(s.getByTestId('studio-thumb-image')).toHaveCount(2);
 
-    await s.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await s.getByRole('button', { name: 'Enregistrer ma voix' }).click();
+    await s.getByTestId('studio-tool-voice').click(); // inline recording
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
     await s.waitForTimeout(2500);
     await s.getByRole('button', { name: 'Montrer la photo 2' }).click();
     await s.waitForTimeout(2500);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Voix · 0:0[4-6]$/)).toBeVisible();
-    await s.getByTestId('studio-next').click();
+    await expect(s.getByText(/^Votre voix accompagne ce contenu · \d+ s$/)).toBeVisible();
 
     await s.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click();
     await s.getByTestId('studio-caption').fill(`Ma robe expliquée depuis l’ordinateur ${RUN}`);
-    await s.getByRole('button', { name: /^Prix : / }).click();
     await s.getByRole('textbox', { name: 'Prix', exact: true }).fill('25000');
-    await btn(s, 'Terminé').click();
     await s.getByRole('button', { name: /^Catégorie : / }).click();
     await btn(s, 'Chaussures').click();
     expect(await overflowX(s)).toBeLessThanOrEqual(0);
@@ -160,7 +156,7 @@ test.describe.serial('W1.4 desktop web', () => {
 
   test('DT-04 · seller on desktop: a 40-second video publication and a 12-second video status', async () => {
     await studioWithFile(s, clip(40), '/studio');
-    await expect(s.getByRole('button', { name: 'Lire la vidéo' }).last()).toBeVisible({ timeout: 30_000 });
+    await expect(s.getByTestId('studio-thumb-video')).toBeVisible({ timeout: 30_000 });
     await s.getByTestId('studio-caption').fill(`Défilé en vidéo ${RUN}`);
     await s.getByTestId('studio-publish').click();
     await expect(s).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 120_000 });
@@ -247,6 +243,7 @@ test.describe.serial('W1.4 desktop web', () => {
     await b.goto(productUrl);
     await openBarter(b);
     await b.getByRole('radio', { name: B_ITEM }).click();
+    await b.getByTestId('offer-add-cash').click();
     await field(b, 'Différence en argent (facultatif)').fill('5000');
     await b.getByRole('radio', { name: /Moi/ }).click();
     await btn(b, 'Envoyer la proposition').click();

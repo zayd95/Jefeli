@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canSell, defaultSelection, destinationStates, itemTitleFromCaption, normalizeSelection, sellDefault, statusNeedsFeed, studioBlocker, textIntent, type StudioInput } from '../src/studio';
+import { canSell, defaultSelection, destinationStates, hasVisual, itemTitleFromCaption, normalizeSelection, sellDefault, statusNeedsFeed, studioBlocker, textIntent, visualCount, type StudioInput } from '../src/studio';
 
 const base: StudioInput = { photos: 0, hasVideo: false, hasVoice: false, hasText: false, sell: false };
 const item = { title: 'Boubou brodé', mode: 'sale' as const, price: 25000, category: 'mode-femme' };
@@ -42,6 +42,17 @@ describe('Studio destinations', () => {
     expect(sellDefault({ ...base, photos: 1, hasBoutique: false })).toBe(false);
     expect(sellDefault({ ...base, hasText: true, hasBoutique: true })).toBe(false);
     expect(sellDefault({ ...base, hasVoice: true, hasBoutique: true })).toBe(false);
+  });
+
+  it('photos and a video can go together; a status of two visuals needs Fil', () => {
+    const mixed = { ...base, photos: 2, hasVideo: true };
+    expect(hasVisual(mixed)).toBe(true);
+    expect(visualCount(mixed)).toBe(3);
+    expect(destinationStates(mixed).find((s) => s.key === 'reel')?.available).toBe(true);
+    expect(statusNeedsFeed({ photos: 1, hasVideo: true, hasVoice: false })).toBe(true);
+    expect(statusNeedsFeed({ photos: 0, hasVideo: true, hasVoice: false })).toBe(false);
+    expect(normalizeSelection(mixed, ['status'])).toEqual([]);
+    expect(normalizeSelection(mixed, ['feed', 'reel', 'status'])).toEqual(['feed', 'status', 'reel']);
   });
 
   it('a status with a narration or several photos needs Fil (it is shared from the publication)', () => {

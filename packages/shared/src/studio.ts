@@ -2,7 +2,7 @@
  * Studio rules (P2): what a creation can be published to, in one pure place so the screen, the
  * tests and the report say the same thing.
  *
- *   media      : up to 8 photos, or one video (≤ 3 min), optionally a voice (alone or narrating)
+ *   media      : up to 8 photos and/or one video (≤ 3 min), optionally a voice (alone or narrating photos; never over a video)
  *   « sell »   : the switch « Vendre ou troquer cet article » — needs a photo or a video
  *   Fil        : a publication (text, photos, video, voice)
  *   Statut 24h : one photo, one video or one voice; a status with a narration or several photos is
@@ -50,6 +50,8 @@ export interface DestinationState {
 }
 
 export const hasVisual = (i: Pick<StudioInput, 'photos' | 'hasVideo'>) => i.photos > 0 || i.hasVideo;
+/** Photos and one video can go in the same publication (P4): up to 8 photos + 1 video. */
+export const visualCount = (i: Pick<StudioInput, 'photos' | 'hasVideo'>) => i.photos + (i.hasVideo ? 1 : 0);
 
 /** The switch is offered only for a creation that shows an article: a photo or a video. */
 export function canSell(i: Pick<StudioInput, 'photos' | 'hasVideo'>): boolean {
@@ -89,7 +91,7 @@ export function destinationStates(i: StudioInput): DestinationState[] {
 
 /** A status needs Fil when it carries a narration or several photos: it points to the publication. */
 export function statusNeedsFeed(i: Pick<StudioInput, 'photos' | 'hasVideo' | 'hasVoice'>): boolean {
-  return (hasVisual(i) && i.hasVoice) || i.photos > 1;
+  return (hasVisual(i) && i.hasVoice) || visualCount(i) > 1;
 }
 
 /** Drops what the content cannot do and adds what the rules force (Boutique with the switch). */

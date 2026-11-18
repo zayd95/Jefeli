@@ -62,6 +62,8 @@ test.describe('P2 evidence', () => {
       const { ctx, page } = await newDevice(browser, { width, height: 780 }, { camera: true, mic: true });
       await signIn(page, 'awa@demo.jefeli.test', 'Demo-jefeli-2026!');
       await page.getByRole('tab', { name: 'Publier' }).click();
+      await expect(page.getByTestId('studio-composer')).toBeVisible();
+      await page.getByTestId('studio-tool-camera').click();
       await expect(page.getByTestId('studio-capture')).toBeVisible();
       await snap(page, '40-studio-photo', width);
       for (let i = 0; i < 3; i++) {
@@ -69,7 +71,7 @@ test.describe('P2 evidence', () => {
         await page.waitForTimeout(500);
       }
       await snap(page, '41-studio-strip', width);
-      for (const [mode, name] of [['Vidéo', '42-studio-video'], ['Voix', '43-studio-voice'], ['Texte', '44-studio-text']] as const) {
+      for (const [mode, name] of [['Vidéo', '42-studio-video']] as const) {
         await page.getByRole('tab', { name: mode, exact: true }).click();
         await snap(page, name, width);
       }
@@ -80,7 +82,6 @@ test.describe('P2 evidence', () => {
       await snap(page, '46-composer-switch-off', width);
       await page.getByRole('switch', { name: 'Vendre ou troquer cet article' }).click();
       await page.getByTestId('studio-caption').fill('Ensemble wax brodé\nTaille M, très bon état.');
-      await page.getByRole('button', { name: /^Prix : / }).click();
       await page.getByRole('textbox', { name: 'Prix', exact: true }).fill('32000');
       await page.getByRole('button', { name: 'Terminé', exact: true }).click();
       await page.getByRole('button', { name: /^Catégorie : / }).click();

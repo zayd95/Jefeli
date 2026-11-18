@@ -19,17 +19,23 @@ const SELLER = ['awa@demo.jefeli.test', 'Demo-jefeli-2026!'] as const; // has a 
 const MEMBER = ['fatou@demo.jefeli.test', 'Demo-jefeli-2026!'] as const; // no Boutique
 const PHOTO = FIXTURE('bag.jpg');
 
-async function openStudio(page: Page) {
+// P4: « + » opens the composer; the toolbar's camera opens the capture over it.
+async function openComposer(page: Page) {
   await page.getByRole('tab', { name: 'Publier' }).click();
+  await expect(page.getByTestId('studio-composer')).toBeVisible();
+}
+async function openStudio(page: Page) {
+  await openComposer(page);
+  await page.getByTestId('studio-tool-camera').click();
   await expect(page.getByTestId('studio-capture')).toBeVisible();
 }
 
 test.describe('P2.2 Studio', () => {
-  test('ST-1 the camera opens directly with the four modes and a numbered strip', async ({ browser }) => {
+  test('ST-1 the camera (from the toolbar) has Photo · Vidéo and a numbered strip', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { camera: true });
     await signIn(page, ...SELLER);
     await openStudio(page);
-    for (const mode of ['Photo', 'Vidéo', 'Voix', 'Texte']) await expect(page.getByRole('tab', { name: mode, exact: true })).toBeVisible();
+    for (const mode of ['Photo', 'Vidéo']) await expect(page.getByRole('tab', { name: mode, exact: true })).toBeVisible();
     await expect(page.getByTestId('studio-gallery')).toBeVisible();
     await shot(page, DIR, 'capture-photo');
     for (let i = 0; i < 3; i++) {
@@ -40,13 +46,6 @@ test.describe('P2.2 Studio', () => {
     await shot(page, DIR, 'capture-photo-strip-3');
     await page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
     await shot(page, DIR, 'capture-video');
-    await page.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await shot(page, DIR, 'capture-voice');
-    await page.getByRole('tab', { name: 'Texte', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Je cherche…', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Qui a… ?', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Recommandez-moi…', exact: true })).toBeVisible();
-    await shot(page, DIR, 'capture-text');
     await ctx.close();
   });
 
@@ -82,9 +81,7 @@ test.describe('P2.2 Studio', () => {
     await studioWithFile(page, PHOTO);
     const title = `Boubou studio ${RUN}`;
     await page.getByTestId('studio-caption').fill(`${title}\nBroderie main, taille L.`);
-    await page.getByRole('button', { name: /^Prix : / }).click();
     await page.getByRole('textbox', { name: 'Prix', exact: true }).fill('27500');
-    await btn(page, 'Terminé').click();
     await page.getByRole('button', { name: /^Catégorie : / }).click();
     await btn(page, 'Mode femme').click();
     await page.getByRole('button', { name: /^État : / }).click();
@@ -121,13 +118,12 @@ test.describe('P2.2 Studio', () => {
   test('ST-5 a voice note is published to Fil', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { mic: true, camera: true });
     await signIn(page, ...MEMBER);
-    await openStudio(page);
-    await page.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await page.getByRole('button', { name: 'Enregistrer ma voix' }).click();
+    await openComposer(page);
+    await page.getByTestId('studio-tool-voice').click(); // P4: records inline, no second screen
+    await expect(page.getByTestId('inline-voice')).toBeVisible();
     await page.waitForTimeout(2500); // the fake microphone tone
     await page.getByRole('button', { name: /Terminer/ }).click();
-    await expect(page.getByText(/^Voix · /)).toBeVisible();
-    await page.getByTestId('studio-next').click();
+    await expect(page.getByText(/^Message vocal · \d+ s$/)).toBeVisible();
     await page.getByTestId('studio-caption').fill(`Note vocale studio ${RUN}`);
     await shot(page, DIR, 'composer-voice-only');
     await page.getByTestId('studio-publish').click();
@@ -138,13 +134,16 @@ test.describe('P2.2 Studio', () => {
   test('ST-6 a text « Je cherche » is a request, never a priced item', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { camera: true });
     await signIn(page, ...SELLER);
-    await openStudio(page);
-    await page.getByRole('tab', { name: 'Texte', exact: true }).click();
+    await openComposer(page);
+    // P4: the text box is the first thing; the starters are chips under it.
+    await expect(page.getByRole('button', { name: 'Qui a… ?', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Recommandez-moi…', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Je cherche…', exact: true }).click();
-    await page.getByTestId('studio-text').fill(`Je cherche ${RUN} machine à coudre`);
-    await page.getByTestId('studio-next').click();
-    await expect(page.getByTestId('studio-composer')).toBeVisible();
-    await expect(page.getByRole('switch', { name: 'Vendre ou troquer cet article' })).toHaveCount(0);
+    await expect(page.getByTestId('studio-caption')).toHaveValue('Je cherche ');
+    await page.getByTestId('studio-caption').fill(`Je cherche ${RUN} machine à coudre`);
+    // P4: the toolbar's article switch exists but a text post is never an item: it stays off, no chips, no Boutique.
+    await expect(page.getByRole('switch', { name: 'Vendre ou troquer cet article' })).toHaveAttribute('aria-checked', 'false');
+    await expect(page.getByTestId('studio-item-chips')).toHaveCount(0);
     await expect(page.getByTestId('studio-dest-boutique')).toHaveCount(0);
     await expect(page.getByTestId('studio-dest-reel')).toHaveAttribute('aria-disabled', 'true');
     await expect(page.getByTestId('studio-dest-status')).toHaveAttribute('aria-disabled', 'true');
@@ -169,7 +168,8 @@ test.describe('P2.2 Studio', () => {
     await expect(page.getByRole('button', { name: /Brouillon repris/ })).toBeVisible();
     await shot(page, DIR, 'draft-restored');
     await page.getByRole('button', { name: /Brouillon repris/ }).click();
-    await expect(page.getByTestId('studio-capture')).toBeVisible();
+    await expect(page.getByTestId('studio-caption')).toHaveValue('');
+    await expect(page.getByTestId('studio-media')).toHaveCount(0);
     await ctx.close();
   });
 
