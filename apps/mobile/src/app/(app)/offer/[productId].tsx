@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   kindSwitch: { flexDirection: 'row', alignSelf: 'stretch', padding: 4, gap: 4, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   kindItem: { flex: 1, minHeight: 44, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'transparent' },
   kindOn: { backgroundColor: colors.raised, borderColor: colors.gold },
-  target: { flexDirection: 'row', gap: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  target: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   thumb: { width: 72, height: 72, borderRadius: radius.sm },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   quick: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   option: { width: '48%', padding: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   optionOn: { borderColor: colors.ink, borderWidth: 2 },
   check: { position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.action, alignItems: 'center', justifyContent: 'center' },
-  voice: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
-  notice: { padding: spacing.md, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md },
+  voice: { gap: spacing.sm },
+  notice: { paddingTop: spacing.sm },
   footer: { padding: spacing.lg, borderTopWidth: 1, borderColor: colors.border },
 });

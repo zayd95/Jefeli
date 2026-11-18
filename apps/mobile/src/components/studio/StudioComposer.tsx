@@ -28,13 +28,15 @@ import {
   type StudioInput,
 } from '@jefeli/shared';
 import { Camera, Check, ChevronDown, Image as ImageIcon, Mic, Play, Tag, X, type LucideIcon } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Image } from 'expo-image';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { InlineVoice } from '@/components/studio/InlineVoice';
 import { Avatar, Button, colors, dark, Field, fonts, radius, Sheet, spacing, Text, WEB_NO_OUTLINE } from '@/design';
 import type { LocalMedia } from '@/lib/upload';
+import type { RecordedClip } from '@/lib/voice';
 import type { VoiceAttachment } from '@/lib/voice';
 
 export interface ItemDraft {
@@ -97,13 +99,19 @@ export interface ComposerProps {
   onRemoveMedia: (index: number) => void;
   onRemoveVoice: () => void;
   autoFocus?: boolean;
+  /** The microphone is recording inline (no second screen). */
+  voiceOn: boolean;
+  onVoiceDone: (clip: RecordedClip) => void;
+  onVoiceCancel: () => void;
 }
 
 export function StudioComposer(p: ComposerProps) {
   const insets = useSafeAreaInsets();
+  const cueRef = useRef<((index: number) => void) | null>(null);
   const [sheet, setSheet] = useState<null | 'price' | 'category' | 'condition' | 'place' | 'audience'>(null);
   const states = destinationStates(p.input);
   const hasMedia = p.media.length > 0;
+  const photoCount = p.media.filter((m) => m.kind === 'image').length;
   const category = p.categories.find((c) => c.slug === p.item.category);
   const sells = p.item.mode === 'sale' || p.item.mode === 'sale_or_trade';
   const empty = !p.caption && !hasMedia && !p.voice;
@@ -205,6 +213,9 @@ export function StudioComposer(p: ComposerProps) {
                       {formatDuration(m.durationMs ?? 0)}
                     </Text>
                   </View>
+                ) : null}
+                {p.voiceOn && photoCount > 1 && m.kind === 'image' ? (
+                  <Pressable onPress={() => cueRef.current?.(i)} style={StyleSheet.absoluteFill} accessibilityRole="button" accessibilityLabel={`Montrer la photo ${i + 1}`} />
                 ) : null}
                 <Pressable onPress={() => p.onRemoveMedia(i)} hitSlop={12} style={styles.thumbRemove} accessibilityRole="button" accessibilityLabel={m.kind === 'video' ? 'Retirer la vidéo' : `Retirer la photo ${i + 1}`}>
                   <X size={12} color={colors.white} strokeWidth={3} />
@@ -351,12 +362,17 @@ export function StudioComposer(p: ComposerProps) {
         ) : null}
       </ScrollView>
 
-      {/* Toolbar, above the keyboard: add things, switch the article on */}
+      {/* Toolbar, above the keyboard: add things, switch the article on. While recording, the bar takes its place. */}
+      {p.voiceOn ? (
+        <View style={{ paddingBottom: Math.max(insets.bottom, spacing.sm), backgroundColor: dark.background }}>
+          <InlineVoice hasPhotos={photoCount > 1} cueRef={cueRef} onDone={p.onVoiceDone} onCancel={p.onVoiceCancel} />
+        </View>
+      ) : (
       <View style={[styles.toolbar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
         <ToolButton icon={ImageIcon} label="Ajouter des photos ou une vidéo" onPress={p.onGallery} testID="studio-tool-gallery" />
         <ToolButton icon={Camera} label="Ouvrir la caméra" onPress={p.onCamera} testID="studio-tool-camera" />
         <ToolButton icon={Mic} label={p.voice ? 'Refaire ma voix' : 'Ajouter ma voix'} onPress={p.onVoice} active={!!p.voice} testID="studio-tool-voice" />
-        <ToolButton icon={Tag} label="Vendre ou troquer cet article" onPress={() => p.onSell(!p.sell)} active={p.sell} wecci testID="studio-tool-sell" />
+        {p.linkedTitle ? null : <ToolButton icon={Tag} label="Vendre ou troquer cet article" onPress={() => p.onSell(!p.sell)} active={p.sell} wecci testID="studio-tool-sell" />}
         <View style={{ flex: 1 }} />
         {len > 1800 ? (
           <Text variant="caption" weight="700" tone={len > 2100 ? 'gold' : 'fogSecondary'}>
@@ -364,6 +380,7 @@ export function StudioComposer(p: ComposerProps) {
           </Text>
         ) : null}
       </View>
+      )}
 
       {/* Sheets */}
       <Sheet visible={sheet === 'price'} onClose={() => setSheet(null)} title="Comment afficher le prix ?" tone="dark">
@@ -473,7 +490,7 @@ const styles = StyleSheet.create({
   voiceChip: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', maxWidth: '100%', paddingHorizontal: 14, minHeight: 44, borderRadius: 22, backgroundColor: colors.raised, borderWidth: 1, borderColor: dark.border },
   pasteNote: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44, borderRadius: 16, backgroundColor: dark.subtle, borderWidth: 1, borderColor: dark.border, paddingHorizontal: spacing.md },
   pasteUndo: { minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' },
-  sellBox: { alignSelf: 'stretch', borderRadius: 20, backgroundColor: dark.surface, borderWidth: 1, borderColor: dark.border, padding: spacing.md, gap: spacing.md },
+  sellBox: { alignSelf: 'stretch', gap: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: dark.border },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   priceLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   priceInput: { flex: 1, minWidth: 0, minHeight: 56, borderRadius: 16, paddingHorizontal: spacing.md, fontFamily: fonts.bold, fontSize: 26, color: colors.ink, backgroundColor: dark.background, borderWidth: 1, borderColor: dark.border },

@@ -36,7 +36,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { VoiceStudio } from '@/components/audio/VoiceStudio';
 import { UploadOverlay } from '@/components/Composer';
 import { StudioCapture } from '@/components/studio/StudioCapture';
 import { StudioComposer, type ItemDraft } from '@/components/studio/StudioComposer';
@@ -89,7 +88,7 @@ export default function Studio() {
   });
   const v = draft.value;
   const set = (patch: Partial<typeof v>) => draft.setValue((cur) => ({ ...cur, ...patch }));
-  const [studio, setStudio] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(params.mode === 'voice'); // ?mode=voice: the recorder starts at once
   const [language, setLanguage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -125,7 +124,7 @@ export default function Studio() {
     applied.current = true;
     const m = params.mode as StudioMode | undefined;
     // P4: photo / vidéo / voix open the camera (or the voice recorder) over the composer; the text is the composer itself.
-    if (m && ['photo', 'video', 'voice'].includes(m)) draft.setValue((d) => ({ ...d, mode: m, step: 'capture' }));
+    if (m && ['photo', 'video'].includes(m)) draft.setValue((d) => ({ ...d, mode: m, step: 'capture' }));
     else if (params.intent === 'seek' || params.intent === 'opinion') {
       const st = TEXT_STARTERS.find((x) => x.key === (params.intent === 'seek' ? 'seek' : 'recommend'));
       draft.setValue((d) => ({ ...d, mode: 'text', starter: st?.key ?? null, caption: d.caption || (st?.text ?? ''), step: 'compose' }));
@@ -191,10 +190,10 @@ export default function Studio() {
     );
   }
 
-  async function useVoice(clip: RecordedClip) {
+  async function attachVoice(clip: RecordedClip) {
     const kept = await keepForDraft(KEY, clip);
     set({ voice: { ...kept, language } });
-    setStudio(false);
+    setVoiceOn(false);
   }
 
   function toggle(d: Destination) {
@@ -293,7 +292,7 @@ export default function Studio() {
   }
   function openVoice() {
     if (v.video) toast('Une vidéo garde son propre son : retirez la vidéo pour ajouter votre voix.', 'info');
-    else setStudio(true);
+    else setVoiceOn(true);
   }
   function toggleSell(on: boolean) {
     if (on && !canSell) {
@@ -354,6 +353,9 @@ export default function Studio() {
         onRemoveMedia={removeMedia}
         onRemoveVoice={() => set({ voice: null })}
         autoFocus={v.step === 'compose' && !params.mode}
+        voiceOn={voiceOn}
+        onVoiceDone={(clip) => void attachVoice(clip)}
+        onVoiceCancel={() => setVoiceOn(false)}
       />
 
       {v.step === 'capture' ? (
@@ -390,19 +392,6 @@ export default function Studio() {
         </View>
       ) : null}
 
-      <VoiceStudio
-        visible={studio}
-        title={media.length > 1 ? 'Expliquez vos photos' : 'Votre message vocal'}
-        photos={!v.video && v.photos.length > 1 ? v.photos.map((m) => m.uri) : undefined}
-        language={v.voice?.language ?? language}
-        onLanguage={(l) => {
-          setLanguage(l);
-          if (l) void AsyncStorage.setItem(LAST_LANGUAGE, l).catch(() => {});
-        }}
-        onDone={useVoice}
-        onClose={() => setStudio(false)}
-        avatar={{ path: profile?.avatar_path, name: profile?.display_name ?? 'Moi' }}
-      />
       <UploadOverlay visible={uploading} progress={progress} label="Envoi en cours…" onCancel={() => abort.current?.abort()} />
     </View>
   );

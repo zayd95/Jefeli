@@ -31,11 +31,11 @@ async function openStudio(page: Page) {
 }
 
 test.describe('P2.2 Studio', () => {
-  test('ST-1 the camera (from the toolbar) has Photo · Vidéo · Voix and a numbered strip', async ({ browser }) => {
+  test('ST-1 the camera (from the toolbar) has Photo · Vidéo and a numbered strip', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { camera: true });
     await signIn(page, ...SELLER);
     await openStudio(page);
-    for (const mode of ['Photo', 'Vidéo', 'Voix']) await expect(page.getByRole('tab', { name: mode, exact: true })).toBeVisible();
+    for (const mode of ['Photo', 'Vidéo']) await expect(page.getByRole('tab', { name: mode, exact: true })).toBeVisible();
     await expect(page.getByTestId('studio-gallery')).toBeVisible();
     await shot(page, DIR, 'capture-photo');
     for (let i = 0; i < 3; i++) {
@@ -46,8 +46,6 @@ test.describe('P2.2 Studio', () => {
     await shot(page, DIR, 'capture-photo-strip-3');
     await page.getByRole('tab', { name: 'Vidéo', exact: true }).click();
     await shot(page, DIR, 'capture-video');
-    await page.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await shot(page, DIR, 'capture-voice');
     await ctx.close();
   });
 
@@ -120,13 +118,12 @@ test.describe('P2.2 Studio', () => {
   test('ST-5 a voice note is published to Fil', async ({ browser }) => {
     const { ctx, page } = await newDevice(browser, DEVICES.iphone15, { mic: true, camera: true });
     await signIn(page, ...MEMBER);
-    await openStudio(page);
-    await page.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await page.getByRole('button', { name: 'Enregistrer ma voix' }).click();
+    await openComposer(page);
+    await page.getByTestId('studio-tool-voice').click(); // P4: records inline, no second screen
+    await expect(page.getByTestId('inline-voice')).toBeVisible();
     await page.waitForTimeout(2500); // the fake microphone tone
     await page.getByRole('button', { name: /Terminer/ }).click();
-    await expect(page.getByText(/^Voix · /)).toBeVisible();
-    await page.getByTestId('studio-next').click();
+    await expect(page.getByText(/^Message vocal · \d+ s$/)).toBeVisible();
     await page.getByTestId('studio-caption').fill(`Note vocale studio ${RUN}`);
     await shot(page, DIR, 'composer-voice-only');
     await page.getByTestId('studio-publish').click();

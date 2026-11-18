@@ -71,7 +71,7 @@ test.describe('P2 evidence', () => {
         await page.waitForTimeout(500);
       }
       await snap(page, '41-studio-strip', width);
-      for (const [mode, name] of [['Vidéo', '42-studio-video'], ['Voix', '43-studio-voice']] as const) {
+      for (const [mode, name] of [['Vidéo', '42-studio-video']] as const) {
         await page.getByRole('tab', { name: mode, exact: true }).click();
         await snap(page, name, width);
       }

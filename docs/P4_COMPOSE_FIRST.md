@@ -39,6 +39,16 @@ Quoi de neuf ? Vendez, troquez, cherchez…
   dit où l'on se situe (« 15 % sous le prix affiché »), le message vocal ramené à une ligne, la **différence d'argent d'un échange derrière
   « + Ajouter une différence d'argent »** ; l'état vide de l'échange n'ajoute plus un second bouton doré (action en contour).
 
+## 4. Retour du propriétaire (18 nov.) : pas d'écran à part pour la voix, moins de cartes
+- **La voix s'enregistre sur place.** Le micro de la barre d'outils fait apparaître une barre à la place de la barre d'outils :
+  🗑 · ● 0:07 · niveaux en direct · ⏸ · ✓. Plus d'écran plein écran ni d'onglet « Voix » dans la caméra. Avec deux photos ou plus,
+  on touche **la vignette de la photo dont on parle** pendant que l'on parle (visite guidée, comme avant) ; le texte reste visible.
+  Même enregistreur qu'avant (3 min max, moins d'une seconde refusé, pause si l'appli passe en arrière-plan, micro refusé expliqué).
+  `?mode=voice` démarre l'enregistrement tout de suite. La langue parlée reste celle mémorisée (le sélecteur de langue n'est plus affiché).
+- **Moins de boîtes.** La carte article du Studio n'est plus un encadré (une ligne de séparation) ; sur l'écran d'offre, l'article, le message
+  vocal et la mention légale ne sont plus des cartes ; sur la fiche article, le vendeur est une ligne entre deux filets, les détails des lignes
+  à filets, la mention de sécurité du simple texte. Restent encadrés uniquement ce qui se touche : champs de saisie, puces, articles à choisir pour un échange.
+
 ## Évidence
 `docs/evidence/p4/` : avant (Studio caméra d'abord, jefeli.vercel.app) et après (texte d'abord, photos + vidéo, carte article).
 

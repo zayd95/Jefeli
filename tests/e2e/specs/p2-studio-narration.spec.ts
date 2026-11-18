@@ -43,16 +43,13 @@ test.describe.serial('P2 Studio: creation to feed', () => {
   test('NA-01 · three photos + a narration that walks through them + an article, to Fil, Statut and Boutique', async () => {
     await s.getByRole('tab', { name: 'Publier' }).click();
     await expect(s.getByTestId('studio-composer')).toBeVisible();
-    await s.getByTestId('studio-tool-camera').click();
-    await expect(s.getByTestId('studio-capture')).toBeVisible();
     const chooser = s.waitForEvent('filechooser');
-    await s.getByTestId('studio-gallery').click();
+    await s.getByTestId('studio-tool-gallery').click();
     await (await chooser).setFiles([FIXTURE('dress.jpg'), FIXTURE('bag.jpg'), FIXTURE('shoe.jpg')]);
-    await expect(s.getByText('3/8')).toBeVisible();
+    await expect(s.getByTestId('studio-thumb-image')).toHaveCount(3);
 
-    // Voix over the photos: the existing recorder; tap the photo being talked about.
-    await s.getByRole('tab', { name: 'Voix', exact: true }).click();
-    await s.getByRole('button', { name: 'Enregistrer ma voix' }).click();
+    // P4: the voice records inline, under the photos; tap the photo being talked about.
+    await s.getByTestId('studio-tool-voice').click();
     await expect(s.getByText('Touchez la photo dont vous parlez')).toBeVisible();
     await expect(s.getByRole('button', { name: 'Mettre en pause' })).toBeVisible({ timeout: 10_000 });
     await s.waitForTimeout(2000);
@@ -62,8 +59,7 @@ test.describe.serial('P2 Studio: creation to feed', () => {
     await s.getByRole('button', { name: 'Montrer la photo 3' }).click();
     await s.waitForTimeout(2000);
     await s.getByRole('button', { name: 'Terminer l’enregistrement' }).click();
-    await expect(s.getByText(/^Voix · 0:0[5-7]$/)).toBeVisible();
-    await s.getByTestId('studio-next').click();
+    await expect(s.getByText(/^Votre voix accompagne ce contenu · \d+ s$/)).toBeVisible();
 
     // The composer: the voice rides with the photos; the switch makes it an article.
     await expect(s.getByText(/^Votre voix accompagne ce contenu/)).toBeVisible();

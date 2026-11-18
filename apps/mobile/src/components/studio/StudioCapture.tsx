@@ -28,7 +28,6 @@ import { MAX_VIDEO_SECONDS, pickMedia, uploadErrorMessage, type LocalMedia } fro
 const MODES: { key: StudioMode; label: string }[] = [
   { key: 'photo', label: 'Photo' },
   { key: 'video', label: 'Vidéo' },
-  { key: 'voice', label: 'Voix' },
 ];
 
 export interface CaptureProps {
