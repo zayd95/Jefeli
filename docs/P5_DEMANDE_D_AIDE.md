@@ -6,11 +6,13 @@ le texte »). Version retenue : le texte d’une demande se pose directement sur
 ```
  ● DEMANDE D’AIDE                         (puce argile #B66B50, libellé sable #F1E3CD)
  Je cherche des pots en verre de 100 à 250 ml…    (texte normal, sur le fond)
- [ Je peux aider ]                        (pilule à contour doré, sans fond)
+ ▲ 0   💬 0   🔖   Écrire                 (ligne habituelle ; « Écrire » seulement si l’auteur le permet)
 ```
 - Aucune carte, aucun fond clair : le thème reste entièrement sombre. La demande se reconnaît à son libellé sable et à sa puce argile.
 - Couleurs en tokens (`colors.requestLabel`, `requestDot`) ; contrastes dans `contrast.test.ts` : sable/fond 12:1, argile/fond ≥ 3:1 (puce, jamais du texte).
-- Le contour doré du bouton est un filet, pas un aplat : le budget d’or reste respecté.
+- **Pas de bouton « Je peux aider »** (retiré à la demande du propriétaire, 21 nov.) : on répond **dans les commentaires**, ou en privé avec l’action discrète « Écrire »
+  de la ligne de votes, **si l’auteur l’autorise** (réglage « Qui peut m’écrire » : le serveur refuse avec « Ce membre n’accepte pas les messages de tout le monde » sinon).
+  Piste : masquer « Écrire » d’avance quand l’auteur n’accepte pas (demande une petite fonction serveur `can_message`).
 
 ## Tirer pour actualiser sur le web (appli ajoutée à l’écran d’accueil)
 `RefreshControl` n’existe pas sur le web et une appli installée n’a pas le geste du navigateur. `components/PullToRefresh.tsx` écoute le toucher

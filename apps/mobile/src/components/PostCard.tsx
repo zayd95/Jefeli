@@ -156,23 +156,22 @@ function PostCardInner({
   const visibilityLabel = post.visibility === 'friends' ? 'Amis' : post.visibility === 'followers' ? 'Abonnés' : null;
   // The first tagged article still available from someone else: « Demander » opens a product conversation.
   const askable = !isOwn && intent === 'share' ? tagged.find((p) => p.seller_id !== userId && p.status !== 'sold') : undefined;
-  // A contextual next step for requests and offers (Lovable « Je peux aider » in gold for requests).
+  // A contextual button only for offers and questions. A request (« Je cherche ») has none: people answer in the
+  // comments, or write privately with the quiet « Écrire » below (the author's message setting is enforced server-side).
   const cta =
-    isOwn || intent === 'share'
+    isOwn || intent === 'share' || intent === 'seek'
       ? null
       : intent === 'opinion'
         ? { label: 'Donner mon avis', hint: undefined, tone: 'outline' as const, onPress: () => (onOpenComments ? onOpenComments() : openPost(true)) }
-        : intent === 'seek'
-          ? { label: 'Je peux aider', hint: `Écrire à ${firstName} en privé`, tone: 'gold' as const, onPress: contactAuthor }
-          : { label: `Écrire à ${firstName}`, hint: undefined, tone: 'mint' as const, onPress: contactAuthor };
-  // One quiet mint text action on the vote row (Lovable « Écrire » / « Demander »), for ordinary shares.
-  const rowAction = isOwn || intent !== 'share' ? null : askable ? { label: 'Demander', onPress: () => contactAboutProduct(askable.id), a11y: `Écrire au vendeur à propos de ${askable.title}` } : { label: 'Écrire', onPress: contactAuthor, a11y: `Écrire à ${firstName} en privé` };
+        : { label: `Écrire à ${firstName}`, hint: undefined, tone: 'mint' as const, onPress: contactAuthor };
+  // One quiet mint text action on the vote row (« Écrire » / « Demander »), for ordinary shares and requests.
+  const rowAction = isOwn || (intent !== 'share' && intent !== 'seek') ? null : askable ? { label: 'Demander', onPress: () => contactAboutProduct(askable.id), a11y: `Écrire au vendeur à propos de ${askable.title}` } : { label: 'Écrire', onPress: contactAuthor, a11y: `Écrire à ${firstName} en privé` };
 
   const ctaButton = cta ? (
     <Pressable
       onPress={cta.onPress}
       disabled={contacting}
-      style={({ pressed }) => [styles.cta, cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
+      style={({ pressed }) => [styles.cta, cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
       accessibilityRole="button"
       accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
     >
@@ -463,7 +462,6 @@ const styles = StyleSheet.create({
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   cta: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
-  ctaGold: { borderWidth: 1, borderColor: dark.gold },
   ctaMint: { borderWidth: 1, borderColor: dark.gold },
   ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
   ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },

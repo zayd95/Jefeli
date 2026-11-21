@@ -95,8 +95,9 @@ test.describe.serial('Community: intents, votes, comments', () => {
     await a.unroute('**/rest/v1/rpc/vote_post');
   });
 
-  test('A offers help in private, then answers publicly', async () => {
-    await visible(a.getByRole('button', { name: /^Je peux aider/ })).click();
+  test('A answers a request in private with « Écrire » (no « Je peux aider » button), then publicly', async () => {
+    await expect(a.getByRole('button', { name: /^Je peux aider/ })).toHaveCount(0);
+    await visible(a.getByRole('button', { name: /^Écrire à .* en privé$/ })).click();
     await expect(a).toHaveURL(/\/chat\/[0-9a-f-]{36}/, { timeout: 20_000 });
     await expect(visible(a.getByRole('textbox', { name: 'Message' }))).toBeVisible();
     await shot(a, DIR, 'A-private-help-chat');

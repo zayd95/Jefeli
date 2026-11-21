@@ -20,7 +20,7 @@ the admin pages and desktop are all dark.
 | **Red — attention** | `colors.red` / `danger` | `#DB4A35` | unread badges, favourites, error borders and icons |
 | Live | `colors.live` | `#D93A44` | only a real « EN DIRECT » |
 | Text | `ink` `#F6F5ED`, `textSecondary` `#9BADA7`, `textTertiary` `#91A59F` | | text, never pure white except over photos and video (`colors.white`, `media*`) |
-| **Demande d’aide** | `colors.requestLabel` / `requestDot` (`palette.sand` `#F1E3CD`, `palette.clay` `#B66B50`) | warm sand label, clay dot | **Requests are plain text on the canvas, like X: no card (owner, 21 Nov 2026; a sand card was tried and rejected).** The « DEMANDE D’AIDE » eyebrow is sand (12:1 on the canvas) with a muted-clay dot (3:1, never text); « Je peux aider » is an outline pill with a gold contour. Reserved for `intent = seek`. Contrast pairs are in `contrast.test.ts` |
+| **Demande d’aide** | `colors.requestLabel` / `requestDot` (`palette.sand` `#F1E3CD`, `palette.clay` `#B66B50`) | warm sand label, clay dot | **Requests are plain text on the canvas, like X: no card (owner, 21 Nov 2026; a sand card was tried and rejected).** The « DEMANDE D’AIDE » eyebrow is sand (12:1 on the canvas) with a muted-clay dot (3:1, never text); There is no « Je peux aider » button: replies go to the comments or to the quiet « Écrire » action. Reserved for `intent = seek`. Contrast pairs are in `contrast.test.ts` |
 | Logo | `palette.logoMint` | `#A3E4D7` | the « Jëfëli. » letters only (brand assets unchanged) |
 
 - The `light` token set and every « paper » variant are gone.
