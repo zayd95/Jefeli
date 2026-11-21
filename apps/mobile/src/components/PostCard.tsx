@@ -94,7 +94,7 @@ function PostCardInner({
   const hasMedia = visual.length > 0;
   const long = post.body.length > (hasMedia ? 180 : 260);
   const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
-  // Demande d’aide: the one light card of the feed (warm sand), so requests are recognised at a glance.
+  // Demande d’aide: plain text on the canvas like any post, recognised by its sand label (no card).
   const request = intent === 'seek' && !!post.body;
   const mediaWidth = width ?? Math.min(screenWidth, 640);
   const openPost = (focusComment = false) =>
@@ -172,11 +172,11 @@ function PostCardInner({
     <Pressable
       onPress={cta.onPress}
       disabled={contacting}
-      style={({ pressed }) => [styles.cta, request ? styles.ctaRequest : cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
+      style={({ pressed }) => [styles.cta, cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
       accessibilityRole="button"
       accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
     >
-      <Text variant="callout" weight="700" color={request ? colors.requestPaper : dark.text}>
+      <Text variant="callout" weight="700" color={dark.text}>
         {cta.label}
       </Text>
     </Pressable>
@@ -186,16 +186,16 @@ function PostCardInner({
     <View style={styles.request} testID="request-card">
       <View style={styles.requestEyebrow} accessible accessibilityLabel={`Type de publication : ${INTENT_LABELS.seek}`}>
         <View style={styles.requestDot} />
-        <Text variant="micro" weight="700" color={colors.requestMuted} style={styles.eyebrowText}>
+        <Text variant="micro" weight="700" color={colors.requestLabel} style={styles.eyebrowText}>
           DEMANDE D’AIDE
         </Text>
       </View>
       <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
-        <Text variant="body" weight="500" color={colors.requestInk} numberOfLines={expanded ? undefined : 8} style={styles.requestText}>
+        <Text variant="body" color={dark.textStrong} numberOfLines={expanded ? undefined : 8} style={styles.requestText}>
           {post.body}
         </Text>
         {long && !expanded ? (
-          <Text variant="callout" weight="700" color={colors.requestMuted} style={{ marginTop: 4 }}>
+          <Text variant="callout" tone="fogSecondary" weight="600" style={{ marginTop: 4 }}>
             … voir plus
           </Text>
         ) : null}
@@ -454,19 +454,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     gap: spacing.lg,
   },
-  request: {
-    marginHorizontal: spacing.lg,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: radius.card,
-    backgroundColor: colors.requestPaper,
-    gap: spacing.md,
-  },
+  request: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   requestEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestClay },
-  requestText: { fontSize: 18, lineHeight: 26 },
-  requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 2 },
-  ctaRequest: { backgroundColor: colors.requestInk, borderWidth: 2, borderColor: dark.gold },
+  requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestDot },
+  requestText: { fontSize: 17, lineHeight: 24 },
+  requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 4 },
   quoteText: { fontSize: 22, lineHeight: 30 },
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },

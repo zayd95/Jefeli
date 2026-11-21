@@ -16,7 +16,7 @@ export function contrast(a: string, b: string): number {
   return (hi! + 0.05) / (lo! + 0.05);
 }
 
-const { canvas, surface, raised, ink, slate, stone, gold, onGold, mint, red, live, white, black, sand, sandInk, sandMuted, clay } = palette;
+const { canvas, surface, raised, ink, slate, stone, gold, onGold, mint, red, live, white, black, sand, clay } = palette;
 
 /** [foreground, background, minimum, where it is used] */
 const PAIRS: [string, string, number, string][] = [
@@ -39,10 +39,8 @@ const PAIRS: [string, string, number, string][] = [
   [red, canvas, 3, 'red icons: favourites, errors'],
   [white, live, 3, '« EN DIRECT » label (bold)'],
   [white, black, 4.5, 'captions over video'],
-  [sandInk, sand, 4.5, 'Demande d’aide: request text on the sand card'],
-  [sandMuted, sand, 4.5, 'Demande d’aide: author line, eyebrow, hints on the sand card'],
-  [sand, sandInk, 4.5, 'Demande d’aide: « Je peux aider » label on its deep-ink pill'],
-  [clay, sand, 3, 'Demande d’aide: clay dot and hairline (non-text UI threshold)'],
+  [sand, canvas, 4.5, 'Demande d’aide: the « DEMANDE D’AIDE » label on the canvas'],
+  [clay, canvas, 3, 'Demande d’aide: the clay dot (non-text UI threshold)'],
 ];
 
 describe('WCAG AA contrast of the token pairs', () => {
