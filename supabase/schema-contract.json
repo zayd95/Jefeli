@@ -30,7 +30,8 @@
     "20261115000300_wecci_give_mode.sql",
     "20261115000400_jef_lite_levels.sql",
     "20261116000100_studio_reels.sql",
-    "20261116000200_reels_anon_revoke.sql"
+    "20261116000200_reels_anon_revoke.sql",
+    "20261121000100_post_ratings_views.sql"
   ],
   "tables": {
     "account_settings": [
@@ -313,10 +314,22 @@
       "post_id",
       "product_id"
     ],
+    "post_ratings": [
+      "post_id",
+      "user_id",
+      "rating",
+      "created_at",
+      "updated_at"
+    ],
     "post_saves": [
       "user_id",
       "post_id",
       "created_at"
+    ],
+    "post_views": [
+      "post_id",
+      "viewer_id",
+      "first_seen_at"
     ],
     "post_votes": [
       "post_id",
@@ -343,7 +356,9 @@
       "upvote_count",
       "pinned_at",
       "in_feed",
-      "in_reels"
+      "in_reels",
+      "rating_count",
+      "rating_avg"
     ],
     "product_media": [
       "id",
@@ -740,6 +755,11 @@
         "p_neighborhood"
       ]
     ],
+    "member_appreciation": [
+      [
+        "p_user"
+      ]
+    ],
     "member_level": [
       [
         "p_user"
@@ -770,6 +790,11 @@
     "my_conversations": [
       []
     ],
+    "my_post_views": [
+      [
+        "p_post_ids"
+      ]
+    ],
     "my_staff_role": [
       []
     ],
@@ -781,6 +806,17 @@
     ],
     "purge_expired_stories": [
       []
+    ],
+    "rate_post": [
+      [
+        "p_post_id",
+        "p_rating"
+      ]
+    ],
+    "record_post_view": [
+      [
+        "p_post_id"
+      ]
     ],
     "register_push_token": [
       [

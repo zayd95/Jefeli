@@ -813,6 +813,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"post_ratings": {
+                  Row: {
+                    "created_at": string,"post_id": string,"rating": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"post_id": string,"rating": number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"post_id"?: string,"rating"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "post_ratings_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "posts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "post_ratings_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"post_saves": {
                   Row: {
                     "created_at": string,"post_id": string,"user_id": string
@@ -834,6 +860,32 @@ isOneToOne: false
     },{
       foreignKeyName: "post_saves_user_id_fkey"
       columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"post_views": {
+                  Row: {
+                    "first_seen_at": string,"post_id": string,"viewer_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "first_seen_at"?: string,"post_id": string,"viewer_id": string
+                  }
+                  Update: {
+                    "first_seen_at"?: string,"post_id"?: string,"viewer_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "post_views_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "posts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "post_views_viewer_id_fkey"
+      columns: ["viewer_id"]
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
@@ -867,14 +919,14 @@ isOneToOne: false
                   ]
                 },"posts": {
                   Row: {
-                    "author_id": string,"body": string,"city": string | null,"comment_count": number,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"in_feed": boolean,"in_reels": boolean,"intent": string,"kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"pinned_at": string | null,"save_count": number,"updated_at": string,"upvote_count": number,"visibility": string
+                    "author_id": string,"body": string,"city": string | null,"comment_count": number,"created_at": string,"deleted_at": string | null,"edited_at": string | null,"id": string,"in_feed": boolean,"in_reels": boolean,"intent": string,"kind": string,"moderation_status": Database["public"]['Enums']["moderation_state"],"pinned_at": string | null,"rating_avg": number | null,"rating_count": number,"save_count": number,"updated_at": string,"upvote_count": number,"visibility": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_id": string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
+                    "author_id": string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"rating_avg"?: number | null,"rating_count"?: number,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
                   }
                   Update: {
-                    "author_id"?: string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
+                    "author_id"?: string,"body"?: string,"city"?: string | null,"comment_count"?: number,"created_at"?: string,"deleted_at"?: string | null,"edited_at"?: string | null,"id"?: string,"in_feed"?: boolean,"in_reels"?: boolean,"intent"?: string,"kind"?: string,"moderation_status"?: Database["public"]['Enums']["moderation_state"],"pinned_at"?: string | null,"rating_avg"?: number | null,"rating_count"?: number,"save_count"?: number,"updated_at"?: string,"upvote_count"?: number,"visibility"?: string
                   }
                   Relationships: [
                     {
@@ -1438,6 +1490,9 @@ isOneToOne: false
               "articles": number,"category_slug": string,"sellers": number
             }[]
                            },
+"member_appreciation":
+{ Args: { "p_user": string }; Returns: Json
+                           },
 "member_level":
 { Args: { "p_user": string }; Returns: Json
                            },
@@ -1455,6 +1510,11 @@ isOneToOne: false
               "conversation_id": string,"last_message_at": string,"last_message_preview": string,"last_message_sender_id": string,"muted": boolean,"other_last_read_at": string,"other_user_id": string,"unread_count": number
             }[]
                            },
+"my_post_views":
+{ Args: { "p_post_ids": (string)[] }; Returns: {
+              "post_id": string,"views": number
+            }[]
+                           },
 "my_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -1465,6 +1525,12 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "poster_path": string,"storage_path": string
             }[]
+                           },
+"rate_post":
+{ Args: { "p_post_id": string,"p_rating": number }; Returns: Json
+                           },
+"record_post_view":
+{ Args: { "p_post_id": string }; Returns: undefined
                            },
 "register_push_token":
 { Args: { "p_platform": string,"p_token": string }; Returns: undefined

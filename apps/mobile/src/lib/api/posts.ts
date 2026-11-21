@@ -22,11 +22,16 @@ async function decorate(userId: string | null, posts: PostCardData[]): Promise<P
   if (posts.length === 0) return [];
   const ids = posts.map((p) => p.id);
   const withComments = posts.filter((p) => p.comment_count > 0).map((p) => p.id);
-  const [votes, saves, previews] = await Promise.all([
+  const own = userId ? posts.filter((p) => p.author_id === userId).map((p) => p.id) : [];
+  const [votes, saves, previews, ratings, views] = await Promise.all([
     userId ? supabase.from('post_votes').select('post_id, value').eq('user_id', userId).in('post_id', ids) : null,
     userId ? supabase.from('post_saves').select('post_id').eq('user_id', userId).in('post_id', ids) : null,
     withComments.length > 0 ? supabase.rpc('get_comment_previews', { p_post_ids: withComments, p_per_post: 2 }) : null,
+    userId ? supabase.from('post_ratings').select('post_id, rating').eq('user_id', userId).in('post_id', ids) : null,
+    own.length > 0 ? supabase.rpc('my_post_views', { p_post_ids: own }) : null,
   ]);
+  const myRatings = new Map((ratings?.data ?? []).map((r) => [r.post_id, r.rating]));
+  const myViews = new Map(((views?.data ?? []) as { post_id: string; views: number }[]).map((r) => [r.post_id, Number(r.views)]));
   const myVotes = new Map((votes?.data ?? []).map((r) => [r.post_id, r.value as VoteValue]));
   const saved = new Set((saves?.data ?? []).map((r) => r.post_id));
   // Previews are a bonus: if they fail to load, cards still render without them.
@@ -37,6 +42,8 @@ async function decorate(userId: string | null, posts: PostCardData[]): Promise<P
   return posts.map((p) => ({
     ...sortMedia(p),
     my_vote: myVotes.get(p.id) ?? 0,
+    my_rating: myRatings.get(p.id) ?? 0,
+    my_views: userId && p.author_id === userId ? (myViews.get(p.id) ?? 0) : undefined,
     saved: saved.has(p.id),
     comments_preview: byPost.get(p.id) ?? [],
   }));
@@ -156,6 +163,20 @@ export async function votePost(postId: string, value: VoteValue): Promise<{ upvo
     upvote_count: number;
     my_vote: VoteValue;
   };
+}
+
+/** ⭐ Rate a publication 1–5 (0 withdraws). The public average appears from 5 ratings. */
+export async function ratePost(postId: string, rating: number): Promise<{ rating_count: number; rating_avg: number | null; my_rating: number }> {
+  return unwrap(await supabase.rpc('rate_post', { p_post_id: postId, p_rating: rating })) as unknown as {
+    rating_count: number;
+    rating_avg: number | null;
+    my_rating: number;
+  };
+}
+
+/** 👁 One view per member and publication, counted server-side (never the author's own, never a DÉMO account). */
+export async function recordPostView(postId: string): Promise<void> {
+  await supabase.rpc('record_post_view', { p_post_id: postId });
 }
 
 export async function setSave(userId: string, postId: string, save: boolean) {

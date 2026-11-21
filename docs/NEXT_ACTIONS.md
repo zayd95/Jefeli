@@ -265,6 +265,10 @@ feedback with screenshots. The step-by-step guide is in `docs/TEST_IPHONE_FR.md`
 6. Performance pass on a mid-range Android: switch feed lists to FlashList (installed) and check
    image sizes.
 
+## Pending owner decision (21 nov. 2026): staging migration for ⭐ / 👁 / « Apprécié »
+`supabase/migrations/20261121000100_post_ratings_views.sql` is verified locally (11 integration tests, E2E `community.spec.ts`) but **not applied to staging**.
+Apply it (after a verified backup, like the earlier migrations) **before** the branch `feature/p6-ratings` is merged: until then `jefeli.vercel.app` would show the new row, and ⭐ would answer with a French error.
+
 ## Resume instructions
 
 Check out `claude/jefeli-pilot` and run `pnpm install`. Then run `pnpm exec supabase start`,

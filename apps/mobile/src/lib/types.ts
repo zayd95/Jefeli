@@ -57,6 +57,10 @@ export type PostCardData = Tables<'posts'> & {
   reason?: string;
   /** The viewer's own vote; downvotes are only ever visible to the member who cast them. */
   my_vote?: VoteValue;
+  /** The viewer's own ⭐ rating (1–5, 0 = none): private. */
+  my_rating?: number;
+  /** 👁 views, only filled for the author's own publications. */
+  my_views?: number;
   saved?: boolean;
   comments_preview?: CommentPreview[];
 };

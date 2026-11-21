@@ -13,13 +13,13 @@
 import { FEED_REASON_LABELS, formatCount, formatListingPrice, INTENT_LABELS, isPostIntent, timeAgo, toFrenchError, type PostIntent } from '@jefeli/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send } from 'lucide-react-native';
-import { memo, useState } from 'react';
+import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send, Share2 } from 'lucide-react-native';
+import { memo, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Avatar, colors, dark, IconButton, Motif, radius, RoundAction, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
-import { deletePost, setPinned, setSave } from '@/lib/api/posts';
+import { deletePost, recordPostView, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
 import { useMediaUrl } from '@/lib/media';
 import { patchPost } from '@/lib/postCache';
@@ -33,7 +33,10 @@ import { PostMedia } from './PostMedia';
 import { PriceLabel } from './PriceLabel';
 import { ProfileName } from './ProfileName';
 import { ShareToStatusSheet } from './ShareToStatus';
-import { VoteControl } from './VoteControl';
+import { HeartButton, RateButton, ViewsCount } from './PostActions';
+
+/** Publications whose view was already sent this session (the server counts one per member anyway). */
+const viewed = new Set<string>();
 
 type Eyebrow = { label: string; dot: string };
 
@@ -80,6 +83,17 @@ function PostCardInner({
   const remoteVoiceUri = useMediaUrl(post.media[0]?.bucket === 'private-media' ? 'private-media' : 'public-media', voice?.local_uri ? null : voice?.storage_path);
   const voiceUri = voice?.local_uri ?? remoteVoiceUri;
   const author = post.author;
+  // 👁 A view counts once the publication has stayed on screen for a second (in the feed: when it is the most
+  // visible card; on its own screen: right away). Never the author's own: the server ignores those too.
+  const viewable = activeOnScreen === undefined ? true : activeOnScreen;
+  useEffect(() => {
+    if (!userId || !viewable || post.author_id === userId || viewed.has(post.id)) return;
+    const t = setTimeout(() => {
+      viewed.add(post.id);
+      void recordPostView(post.id).catch(() => viewed.delete(post.id));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [userId, viewable, post.id, post.author_id]);
   if (!author) return null;
 
   const inFeed = !onOpenComments; // the post screen lists every comment below the card
@@ -343,7 +357,7 @@ function PostCardInner({
       ))}
 
       <View style={styles.actions}>
-        <VoteControl post={post} />
+        <RateButton post={post} />
         <Pressable
           onPress={onOpenComments ?? (() => openPost(post.comment_count === 0))}
           style={({ pressed }) => [styles.action, pressed && { transform: [{ scale: 0.96 }] }]}
@@ -356,9 +370,16 @@ function PostCardInner({
             {formatCount(post.comment_count)}
           </Text>
         </Pressable>
+        <HeartButton post={post} />
+        <ViewsCount post={post} />
         <Pressable onPress={toggleSave} style={styles.iconAction} accessibilityRole="button" accessibilityLabel={post.saved ? 'Retirer des enregistrements' : 'Enregistrer'} hitSlop={4}>
           <Bookmark size={20} color={post.saved ? dark.gold : dark.textStrong} fill={post.saved ? dark.gold : 'transparent'} strokeWidth={1.7} />
         </Pressable>
+        {post.visibility === 'public' ? (
+          <Pressable onPress={() => shareLinks.post(post.id, author.display_name)} style={styles.iconAction} accessibilityRole="button" accessibilityLabel="Partager la publication" hitSlop={4} testID="act-share">
+            <Share2 size={20} color={dark.textStrong} strokeWidth={1.7} />
+          </Pressable>
+        ) : null}
         {rowAction ? (
           <Pressable
             onPress={rowAction.onPress}
@@ -478,9 +499,9 @@ const styles = StyleSheet.create({
     backgroundColor: dark.surface,
   },
   productRowThumb: { width: 52, height: 52, borderRadius: 13 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.md, paddingTop: 10 },
-  action: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: spacing.md, borderRadius: radius.pill },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 0, paddingHorizontal: spacing.sm, paddingTop: 10 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 44, paddingHorizontal: 8, borderRadius: radius.pill },
   iconAction: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
-  rowAction: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill },
+  rowAction: { marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 10, borderRadius: radius.pill },
   previews: { gap: 6, paddingHorizontal: spacing.lg, paddingTop: 4 },
 });
