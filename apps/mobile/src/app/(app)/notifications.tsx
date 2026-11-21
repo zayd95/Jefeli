@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Bell, Clapperboard, ShieldAlert, UserPlus } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 import { Avatar, Button, colors, EmptyState, ErrorState, Header, Screen, Skeleton, spacing, Text, useToast } from '@/design';
 import { fetchStoriesByIds } from '@/lib/api/stories';
@@ -102,6 +103,7 @@ export default function Notifications() {
   return (
     <Screen>
       <Header title="Notifications" />
+      <PullToRefresh onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
       <FlatList
         data={q.data ?? []}
         keyExtractor={(n) => n.id}
@@ -169,6 +171,7 @@ export default function Notifications() {
           ) : undefined
         }
       />
+      </PullToRefresh>
     </Screen>
   );
 }

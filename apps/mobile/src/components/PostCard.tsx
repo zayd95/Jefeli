@@ -17,7 +17,7 @@ import { Bookmark, Clapperboard, MessageCircle, MoreHorizontal, Pin, Send } from
 import { memo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Avatar, dark, IconButton, Motif, radius, RoundAction, spacing, Text, useToast } from '@/design';
+import { Avatar, colors, dark, IconButton, Motif, radius, RoundAction, spacing, Text, useToast } from '@/design';
 import { messageAboutProduct, openConversationWith } from '@/lib/api/messages';
 import { deletePost, setPinned, setSave } from '@/lib/api/posts';
 import { useAuth } from '@/lib/auth';
@@ -94,6 +94,8 @@ function PostCardInner({
   const hasMedia = visual.length > 0;
   const long = post.body.length > (hasMedia ? 180 : 260);
   const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
+  // Demande d’aide: the one light card of the feed (warm sand), so requests are recognised at a glance.
+  const request = intent === 'seek' && !!post.body;
   const mediaWidth = width ?? Math.min(screenWidth, 640);
   const openPost = (focusComment = false) =>
     router.push({ pathname: '/post/[id]', params: focusComment ? { id: post.id, comment: '1' } : { id: post.id } });
@@ -170,14 +172,36 @@ function PostCardInner({
     <Pressable
       onPress={cta.onPress}
       disabled={contacting}
-      style={({ pressed }) => [styles.cta, cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
+      style={({ pressed }) => [styles.cta, request ? styles.ctaRequest : cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
       accessibilityRole="button"
       accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
     >
-      <Text variant="callout" weight="700" color={dark.text}>
+      <Text variant="callout" weight="700" color={request ? colors.requestPaper : dark.text}>
         {cta.label}
       </Text>
     </Pressable>
+  ) : null;
+
+  const requestCard = request ? (
+    <View style={styles.request} testID="request-card">
+      <View style={styles.requestEyebrow} accessible accessibilityLabel={`Type de publication : ${INTENT_LABELS.seek}`}>
+        <View style={styles.requestDot} />
+        <Text variant="micro" weight="700" color={colors.requestMuted} style={styles.eyebrowText}>
+          DEMANDE D’AIDE
+        </Text>
+      </View>
+      <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
+        <Text variant="body" weight="500" color={colors.requestInk} numberOfLines={expanded ? undefined : 8} style={styles.requestText}>
+          {post.body}
+        </Text>
+        {long && !expanded ? (
+          <Text variant="callout" weight="700" color={colors.requestMuted} style={{ marginTop: 4 }}>
+            … voir plus
+          </Text>
+        ) : null}
+      </Pressable>
+      {ctaButton ? <View style={styles.requestActions}>{ctaButton}</View> : null}
+    </View>
   ) : null;
 
   const bodyText = post.body ? (
@@ -221,6 +245,7 @@ function PostCardInner({
         <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} color={dark.textSecondary} />
       </View>
 
+      {request ? null : (
       <View
         style={styles.eyebrow}
         accessible={intent !== 'share'}
@@ -231,14 +256,17 @@ function PostCardInner({
           {eyebrow.label.toUpperCase()}
         </Text>
       </View>
+      )}
 
       {!hasMedia && voice ? (
         // W1.2 voice publication: the words above (for those who cannot listen), then the voice card.
         <>
-          {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
+          {requestCard ?? (bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null)}
           <VoiceCard uri={voiceUri} durationMs={voice.duration_ms} waveform={voice.waveform} language={voice.language} active={activeOnScreen} />
-          {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
+          {ctaButton && !request ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
         </>
+      ) : !hasMedia && requestCard ? (
+        requestCard
       ) : !hasMedia ? (
         // Lovable text card: deep surface, woven motif, words in the editorial serif.
         <View style={styles.quote}>
@@ -267,7 +295,7 @@ function PostCardInner({
         </View>
       ) : (
         <>
-          {bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null}
+          {requestCard ?? (bodyText ? <View style={styles.bodyAbove}>{bodyText}</View> : null)}
           <PostMedia
             visual={visual}
             voice={voice ? { uri: voiceUri, durationMs: voice.duration_ms, waveform: voice.waveform, language: voice.language, cues: voice.cues } : null}
@@ -283,7 +311,7 @@ function PostCardInner({
               ) : null
             }
           />
-          {ctaButton ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
+          {ctaButton && !request ? <View style={styles.ctaBelow}>{ctaButton}</View> : null}
         </>
       )}
 
@@ -426,6 +454,19 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     gap: spacing.lg,
   },
+  request: {
+    marginHorizontal: spacing.lg,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    borderRadius: radius.card,
+    backgroundColor: colors.requestPaper,
+    gap: spacing.md,
+  },
+  requestEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestClay },
+  requestText: { fontSize: 18, lineHeight: 26 },
+  requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 2 },
+  ctaRequest: { backgroundColor: colors.requestInk },
   quoteText: { fontSize: 22, lineHeight: 30 },
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },

@@ -18,6 +18,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check, ChevronDown, Flame, Globe2, LayoutGrid, MapPin, Megaphone, Navigation, PackageSearch, Search, SlidersHorizontal, UserPlus, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 import { gridItemWidth, ListingCard } from '@/components/ListingCard';
 import { Avatar, Button, colors, dark, DemoBadge, ErrorState, Eyebrow, Motif, radius, Screen, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
@@ -341,6 +342,7 @@ export default function Explore() {
 
   return (
     <Screen background={dark.background}>
+      <PullToRefresh onRefresh={() => products.refetch()} refreshing={products.isRefetching}>
       <FlatList<Row>
         onScroll={onDockScroll}
         scrollEventThrottle={16}
@@ -390,6 +392,7 @@ export default function Explore() {
         refreshControl={<RefreshControl refreshing={products.isRefetching} onRefresh={() => void products.refetch()} tintColor={colors.ink} />}
         contentContainerStyle={[{ paddingBottom: dockSpace, flexGrow: 1 }, desktop && styles.desktopList]}
       />
+      </PullToRefresh>
 
       <Sheet visible={citySheet} onClose={() => setCitySheet(false)} title="Ville" scroll tone="dark">
         <SheetAction
