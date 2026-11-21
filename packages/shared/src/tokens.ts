@@ -25,6 +25,12 @@ export const palette = {
   red: '#DB4A35', // unread, favourites, errors
   live: '#D93A44', // ONLY a real « EN DIRECT »
   disabled: '#3C5C53',
+  // Demande d’aide (owner, 21 Nov 2026): the ONE light surface of the app, kept for « Je cherche… » requests
+  // so that people learn to recognise them at a glance. Premium paper against the dark feed.
+  sand: '#F1E3CD', // warm sand paper
+  sandInk: '#10252C', // deep ink: text and button on the sand
+  sandMuted: '#4A5B5C', // supporting text on the sand (5.6:1)
+  clay: '#B66B50', // muted clay: dot and hairline accents only (3.2:1, never text)
   logoMint: '#A3E4D7', // the « Jëfëli. » logo letters only (unchanged brand asset)
   black: '#000000', // media stages (video, statuses) only
   white: '#FFFFFF', // text and icons over photos and video only
@@ -73,6 +79,11 @@ export const colors = {
   darkText: palette.ink,
   night: palette.canvas,
   logoMint: palette.logoMint,
+  // Demande d’aide card: reserved for requests, nothing else may use it.
+  requestPaper: palette.sand,
+  requestInk: palette.sandInk,
+  requestMuted: palette.sandMuted,
+  requestClay: palette.clay,
   white: palette.white,
   black: palette.black,
   overlay: 'rgba(5, 9, 8, 0.62)',
