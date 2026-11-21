@@ -1,8 +1,8 @@
 /**
  * Social post card, ported from the approved Lovable feed (Atlantic After Dark):
  *   - no white card: posts sit on the canvas, separated by air;
- *   - author row, then a quiet uppercase eyebrow with a coloured dot (« Demande d’aide »,
- *     « Je propose », « Vitrine », « Moment »…);
+ *   - author row, then, only where it says something, a short uppercase eyebrow with a coloured dot
+ *     (« Je cherche », « Je propose », « À vendre »…); ordinary posts carry none;
  *   - text-only posts become a restrained patterned card with the words in the editorial serif;
  *   - media posts are full-bleed at their genuine aspect ratio, a tagged article floats on the
  *     photo as a glass chip;
@@ -37,18 +37,18 @@ import { VoteControl } from './VoteControl';
 
 type Eyebrow = { label: string; dot: string };
 
-function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Eyebrow {
-  if (intent === 'seek') return { label: 'Demande d’aide', dot: dark.wecci };
+/** Wecci wording of a tagged article: the four verbs of the marketplace, as on any classifieds board. */
+const ARTICLE_LABELS: Record<string, string> = { sale: 'À vendre', trade: 'À troquer', sale_or_trade: 'Vente · Troc', give: 'À donner' };
+
+/**
+ * A short label only where it says something (a request, an offer, an article, a question), in the Wecci
+ * vocabulary. Ordinary posts, photos, videos and voice notes carry none, like on X: the content says it.
+ */
+function eyebrowFor(intent: PostIntent, tagged: { listing_mode: string }[]): Eyebrow | null {
   if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.wecci };
-  if (intent === 'opinion') return { label: INTENT_LABELS.opinion, dot: dark.textSecondary };
-  if (tagged) return { label: 'Vitrine', dot: dark.wecci };
-  const voice = post.media.some((m) => m.kind === 'audio');
-  const visual = post.media.filter((m) => m.kind !== 'audio');
-  if (visual[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
-  if (visual.length > 0 && voice) return { label: 'Photos racontées', dot: dark.wecci };
-  if (visual.length > 0) return { label: 'Moment', dot: dark.textSecondary };
-  if (voice) return { label: 'Publication vocale', dot: dark.wecci };
-  return { label: 'Publication', dot: dark.textSecondary };
+  if (intent === 'opinion') return { label: 'Avis', dot: dark.textSecondary };
+  if (tagged[0]) return { label: ARTICLE_LABELS[tagged[0].listing_mode] ?? 'À vendre', dot: dark.wecci };
+  return null;
 }
 
 function PostCardInner({
@@ -93,7 +93,7 @@ function PostCardInner({
   const visual = post.media.filter((m) => m.kind !== 'audio');
   const hasMedia = visual.length > 0;
   const long = post.body.length > (hasMedia ? 180 : 260);
-  const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
+  const eyebrow = eyebrowFor(intent, tagged);
   // Demande d’aide: plain text on the canvas like any post, recognised by its sand label (no card).
   const request = intent === 'seek' && !!post.body;
   const mediaWidth = width ?? Math.min(screenWidth, 640);
@@ -187,7 +187,7 @@ function PostCardInner({
       <View style={styles.requestEyebrow} accessible accessibilityLabel={`Type de publication : ${INTENT_LABELS.seek}`}>
         <View style={styles.requestDot} />
         <Text variant="micro" weight="700" color={colors.requestLabel} style={styles.eyebrowText}>
-          DEMANDE D’AIDE
+          {INTENT_LABELS.seek.toUpperCase()}
         </Text>
       </View>
       <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
@@ -245,11 +245,11 @@ function PostCardInner({
         <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} color={dark.textSecondary} />
       </View>
 
-      {request ? null : (
+      {request || !eyebrow ? null : (
       <View
         style={styles.eyebrow}
-        accessible={intent !== 'share'}
-        accessibilityLabel={intent !== 'share' ? `Type de publication : ${INTENT_LABELS[intent]}` : undefined}
+        accessible
+        accessibilityLabel={`Type de publication : ${intent !== 'share' ? INTENT_LABELS[intent] : eyebrow.label}`}
       >
         <View style={[styles.eyebrowDot, { backgroundColor: eyebrow.dot }]} />
         <Text variant="micro" weight="700" tone="fogSecondary" style={styles.eyebrowText}>
