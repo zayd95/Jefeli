@@ -212,3 +212,17 @@ export function describeMemberLevel(l: MemberLevel): string {
   const n = l.deals + l.swaps;
   return n === 0 ? MEMBER_LEVEL_LABELS[l.key] : `${MEMBER_LEVEL_LABELS[l.key]} · ${n} échange${n > 1 ? 's' : ''} conclu${n > 1 ? 's' : ''}`;
 }
+
+/** « Apprécié » on a profile (supabase/migrations/20261121000100_post_ratings_views.sql): distinct genuine members, 90 days. */
+export type MemberAppreciation = { tier: number; key: 'none' | 'apprecie' | 'tres_apprecie' | 'incontournable' };
+export const APPRECIATION_LABELS: Record<Exclude<MemberAppreciation['key'], 'none'>, string> = {
+  apprecie: 'Apprécié',
+  tres_apprecie: 'Très apprécié',
+  incontournable: 'Incontournable',
+};
+export const APPRECIATION_HINT =
+  'Des membres actifs ont noté ou aimé ses publications ces 90 derniers jours. Cela ne remplace pas la confiance (les avis après un échange conclu).';
+/** 4.2 → « 4,2 ». */
+export function formatRatingAvg(avg: number): string {
+  return avg.toFixed(1).replace('.', ',');
+}

@@ -5,6 +5,8 @@ Before and after screenshots at three phone sizes are in `docs/evidence/feed-pas
 
 ## What changed
 
+> **21 nov. 2026 :** l’interface n’a plus de ▲/▼ : **🖤** (le ▲) et **⭐ Noter** (1–5) les remplacent ; voir `docs/RATING_SYSTEM.md` § 8. Le texte ci-dessous décrit toujours la mécanique serveur du vote.
+
 ### 1. Community votes (they replace the heart on publications)
 - Each publication has a **▲ pour / ▼ contre** control. Each member gets one vote per publication and
   can change it: tap ▲ to vote for, tap it again to withdraw, or tap ▼ to switch.

@@ -10,7 +10,7 @@
  * Statuses, highlights, reviews, boutique details, privacy, friends, report and block stay
  * reachable (avatar ring, « Plus d'infos » and sheets, the ⋯ menu), on the same native APIs.
  */
-import { describeMemberLevel, formatMemberSince, MEMBER_LEVEL_HINT, plural, timeAgo, toFrenchError, INTENT_LABELS, isPostIntent } from '@jefeli/shared';
+import { APPRECIATION_HINT, APPRECIATION_LABELS, describeMemberLevel, formatMemberSince, MEMBER_LEVEL_HINT, plural, timeAgo, toFrenchError, INTENT_LABELS, isPostIntent } from '@jefeli/shared';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -49,6 +49,7 @@ import { fetchPinnedPosts, fetchUserPosts } from '@/lib/api/posts';
 import { fetchBoutique, fetchCategories, fetchSellerProducts } from '@/lib/api/products';
 import {
   cancelFriendRequest,
+  fetchMemberAppreciation,
   fetchMemberLevel,
   follow,
   getRelationship,
@@ -146,6 +147,7 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
   const boutiqueCategory = profile.boutique_category_slug ? interestLabel(profile.boutique_category_slug) : null;
   const avgRating = profile.rating_count > 0 ? profile.rating_sum / profile.rating_count : null;
   // Pilot cut (g): « Jëf lite » public level (read-only; no balance).
+  const appreciation = useQuery({ queryKey: ['member-appreciation', profile.id], queryFn: () => fetchMemberAppreciation(profile.id), staleTime: 60_000 });
   const level = useQuery({ queryKey: ['member-level', profile.id], queryFn: () => fetchMemberLevel(profile.id), staleTime: 60_000 });
   const coverUri = avatarUrl(profile.cover_path);
   const coverHeight = Math.max(136, insets.top + 96);
@@ -394,6 +396,15 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
             <Award size={14} color={dark.textSecondary} strokeWidth={2.2} />
             <Text variant="caption" weight="700" tone="fogSecondary" style={{ fontSize: 12.5 }}>
               {describeMemberLevel(level.data)}
+            </Text>
+          </View>
+        ) : null}
+        {appreciation.data && appreciation.data.tier > 0 && !locked ? (
+          // « Apprécié »: distinct genuine members who rated or hearted these publications (90 days). Not the commerce « Confiance ».
+          <View testID="member-appreciation" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }} accessible accessibilityLabel={`${APPRECIATION_LABELS[appreciation.data.key as keyof typeof APPRECIATION_LABELS]}. ${APPRECIATION_HINT}`}>
+            <Star size={14} color={dark.gold} fill={dark.gold} strokeWidth={2.2} />
+            <Text variant="caption" weight="700" tone="fogSecondary" style={{ fontSize: 12.5 }}>
+              {APPRECIATION_LABELS[appreciation.data.key as keyof typeof APPRECIATION_LABELS]}
             </Text>
           </View>
         ) : null}

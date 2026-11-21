@@ -1,4 +1,4 @@
-import type { MemberLevel } from '@jefeli/shared';
+import type { MemberAppreciation, MemberLevel } from '@jefeli/shared';
 
 import { supabase, unwrap } from '../supabase';
 import type { ProfileLite, ProfileRow } from '../types';
@@ -193,6 +193,10 @@ export async function updateSettings(
 }
 
 /** Pilot cut (g): the member's public « Jëf lite » level (null when their profile is not visible). */
+export async function fetchMemberAppreciation(userId: string): Promise<MemberAppreciation | null> {
+  return unwrap(await supabase.rpc('member_appreciation', { p_user: userId })) as unknown as MemberAppreciation | null;
+}
+
 export async function fetchMemberLevel(userId: string): Promise<MemberLevel | null> {
   return unwrap(await supabase.rpc('member_level', { p_user: userId })) as unknown as MemberLevel | null;
 }

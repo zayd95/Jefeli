@@ -57,6 +57,7 @@ const DB_ERRORS: Record<string, string> = {
   provider_not_configured: 'Le direct n’est pas encore activé sur Jëfëli.',
   invalid_vote: 'Vote invalide.',
   own_post_vote: 'Vous ne pouvez pas voter pour votre propre publication.',
+  own_post_rating: 'Vous ne pouvez pas noter votre propre publication.',
   invalid_intent: 'Choisissez le type de publication.',
   empty_request: 'Décrivez en quelques mots ce que vous cherchez ou votre question.',
   price_required: 'Indiquez un prix, ou choisissez « Prix sur demande » ou « À discuter ».',

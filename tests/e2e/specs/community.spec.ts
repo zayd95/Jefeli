@@ -1,8 +1,8 @@
 /**
  * Feed engagement pass, through the real UI with two fresh accounts on a phone-sized viewport:
- * B asks the community (« Je cherche »), A votes (up, switch to down, persistence), answers in
- * private and in public, B sees the comment preview on its feed card, and a failed vote rolls
- * back. Downvotes never show up for the author.
+ * B asks the community (« Je cherche »), A hearts it and rates it ⭐ (persistence), answers in
+ * private and in public, B sees the comment preview on its feed card, and a failed heart rolls
+ * back. Ratings stay private: the author sees no individual note.
  */
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
 
@@ -24,10 +24,10 @@ let postUrl = '';
 
 // Screens lower in the navigation stack stay mounted (hidden): only target what the member sees.
 const visible = (l: Locator) => l.filter({ visible: true }).first();
-const upButton = (p: Page) => visible(p.getByRole('button', { name: /^(Voter pour|Retirer mon vote pour)/ }));
-const downButton = (p: Page) => visible(p.getByRole('button', { name: /^(Voter contre|Retirer mon vote contre)/ }));
+const heartButton = (p: Page) => visible(p.getByRole('button', { name: /^(Aimer|Retirer mon j’aime)/ }));
+const rateButton = (p: Page) => visible(p.getByTestId('act-rate'));
 
-test.describe.serial('Community: intents, votes, comments', () => {
+test.describe.serial('Community: intents, hearts, ratings, comments', () => {
   test.beforeAll(async ({ browser }) => {
     ({ ctx: ctxA, page: a } = await newDevice(browser));
     ({ ctx: ctxB, page: b } = await newDevice(browser));
@@ -51,47 +51,46 @@ test.describe.serial('Community: intents, votes, comments', () => {
     await expect(b).toHaveURL(/\/post\/[0-9a-f-]{36}/, { timeout: 30_000 });
     postUrl = new URL(b.url()).pathname;
     await expect(visible(b.getByLabel('Type de publication : Je cherche'))).toBeVisible();
-    // Authors see their positive count but cannot vote on their own publication.
-    await expect(visible(b.getByLabel('0 vote pour', { exact: true }))).toBeVisible();
-    await expect(b.getByRole('button', { name: /^Voter pour/ }).filter({ visible: true })).toHaveCount(0);
+    // Authors see their count but can neither heart nor rate their own publication.
+    await expect(visible(b.getByLabel('0 j’aime', { exact: true }))).toBeVisible();
+    await expect(b.getByRole('button', { name: /^Aimer/ }).filter({ visible: true })).toHaveCount(0);
+    await expect(b.getByTestId('act-rate').filter({ visible: true })).toHaveCount(0);
+    await expect(visible(b.getByTestId('act-views'))).toBeVisible(); // 👁 is the author's own
     await shot(b, DIR, 'B-request-published');
   });
 
-  test('A votes for it, switches to a private downvote, and both persist', async () => {
+  test('A hearts it and rates it ⭐ privately, and both persist', async () => {
     await a.goto(postUrl);
     await expect(visible(a.getByText(REQUEST, { exact: true }))).toBeVisible();
-    await upButton(a).click();
-    await expect(upButton(a)).toHaveAccessibleName(/^Retirer mon vote pour\. 1 vote pour/);
+    await heartButton(a).click();
+    await expect(heartButton(a)).toHaveAccessibleName(/^Retirer mon j’aime\. 1 j’aime/);
     await a.reload();
-    await expect(upButton(a)).toHaveAccessibleName(/^Retirer mon vote pour\. 1 vote pour/, { timeout: 20_000 });
-    await shot(a, DIR, 'A-upvoted');
+    await expect(heartButton(a)).toHaveAccessibleName(/^Retirer mon j’aime\. 1 j’aime/, { timeout: 20_000 });
+    await shot(a, DIR, 'A-hearted');
 
-    await downButton(a).click();
-    await expect(downButton(a)).toHaveAccessibleName('Retirer mon vote contre');
-    await expect(upButton(a)).toHaveAccessibleName(/^Voter pour\. 0 vote pour/);
+    await rateButton(a).click();
+    await visible(a.getByTestId('rate-4')).click();
+    await expect(rateButton(a)).toHaveAccessibleName(/^Votre note : 4 sur 5/);
     await a.reload();
-    await expect(downButton(a)).toHaveAccessibleName('Retirer mon vote contre', { timeout: 20_000 });
-    await shot(a, DIR, 'A-downvoted-private');
+    await expect(rateButton(a)).toHaveAccessibleName(/^Votre note : 4 sur 5/, { timeout: 20_000 });
+    await shot(a, DIR, 'A-rated-private');
 
-    // The author never sees negative feedback: the public count simply stays at 0.
+    // The author sees the heart in the public count but never an individual rating.
     await b.reload();
-    await expect(visible(b.getByLabel('0 vote pour', { exact: true }))).toBeVisible({ timeout: 20_000 });
-
-    // Back to a positive vote for the rest of the journey.
-    await upButton(a).click();
-    await expect(upButton(a)).toHaveAccessibleName(/^Retirer mon vote pour\. 1 vote pour/);
+    await expect(visible(b.getByLabel('1 j’aime', { exact: true }))).toBeVisible({ timeout: 20_000 });
+    await expect(visible(b.getByLabel(/^Pas encore noté|^1 note/))).toBeVisible();
   });
 
-  test('a failed vote is shown immediately, then rolled back with a French error', async () => {
+  test('a failed heart is shown immediately, then rolled back with a French error', async () => {
     await a.route('**/rest/v1/rpc/vote_post', async (route) => {
       await new Promise((r) => setTimeout(r, 1200));
       await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'boom', code: 'XX000' }) });
     });
-    await upButton(a).click(); // removes the vote optimistically
-    await expect(upButton(a)).toHaveAccessibleName(/^Voter pour\. 0 vote pour/);
+    await heartButton(a).click(); // removes the heart optimistically
+    await expect(heartButton(a)).toHaveAccessibleName(/^Aimer\. 0 j’aime/);
     await expect(visible(a.getByText('Une erreur est survenue. Réessayez.'))).toBeVisible({ timeout: 10_000 });
-    await expect(upButton(a)).toHaveAccessibleName(/^Retirer mon vote pour\. 1 vote pour/);
-    await shot(a, DIR, 'A-vote-rolled-back');
+    await expect(heartButton(a)).toHaveAccessibleName(/^Retirer mon j’aime\. 1 j’aime/);
+    await shot(a, DIR, 'A-heart-rolled-back');
     await a.unroute('**/rest/v1/rpc/vote_post');
   });
 
@@ -115,7 +114,7 @@ test.describe.serial('Community: intents, votes, comments', () => {
     await expect(card).toBeVisible({ timeout: 30_000 });
     await card.scrollIntoViewIfNeeded();
     await expect(visible(b.getByText(ANSWER))).toBeVisible();
-    await expect(visible(b.getByLabel('1 vote pour', { exact: true }))).toBeVisible();
+    await expect(visible(b.getByLabel('1 j’aime', { exact: true }))).toBeVisible();
     await shot(b, DIR, 'B-feed-card-with-preview');
   });
 });
