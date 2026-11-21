@@ -12,7 +12,7 @@ Demande du propriétaire : les publications « Je cherche… » se distinguent d
 - Contrastes WCAG vérifiés (`contrast.test.ts`) : encre/sable 12,6:1, atténuée/sable 5,6:1, sable/encre (bouton) 12,6:1, argile/sable 3,2:1 (point
   et filet seulement, jamais du texte : l’argile pur ferait 3,2:1, insuffisant pour du texte).
 - Réservé aux demandes (`intent = seek`) : c’est la seule surface claire de l’application ; la règle est inscrite dans `docs/DESIGN_SYSTEM.md` et `CLAUDE.md`.
-- Pas de motif, d’illustration ni d’ombre. Le bouton n’est pas doré : le budget d’or (un seul aplat par écran) est inchangé.
+- Pas de motif, d’illustration ni d’ombre. Le bouton « Je peux aider » : fond encre profonde, **contour doré** de 2 px (un filet, pas un aplat : le budget d’or est inchangé).
 - Une demande avec photos ou voix garde la carte sable au-dessus du média ; la ligne auteur, les votes et les commentaires restent sur le fond sombre.
 
 Évidence : `docs/evidence/p5/demande-d-aide-feed.png` (390 px, staging, compte famille).

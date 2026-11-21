@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestClay },
   requestText: { fontSize: 18, lineHeight: 26 },
   requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 2 },
-  ctaRequest: { backgroundColor: colors.requestInk },
+  ctaRequest: { backgroundColor: colors.requestInk, borderWidth: 2, borderColor: dark.gold },
   quoteText: { fontSize: 22, lineHeight: 30 },
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
