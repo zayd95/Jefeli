@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Bookmark, Clapperboard, Heart, MessageCircle, MoreHorizontal, Share2, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View, type ListViewToken } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View, type ListViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { VideoPlayerInline } from '@/components/Media';
@@ -56,6 +56,7 @@ export default function Reels() {
         <FlatList<PostCardData>
           data={items}
           keyExtractor={(p) => p.id}
+          refreshControl={<RefreshControl refreshing={q.isRefetching && !q.isFetchingNextPage} onRefresh={() => void q.refetch()} tintColor={colors.white} />}
           pagingEnabled
           snapToInterval={height}
           decelerationRate="fast"

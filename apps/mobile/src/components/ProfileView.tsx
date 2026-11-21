@@ -37,7 +37,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Button, colors, dark, DemoBadge, EmptyState, ErrorState, IconButton, Motif, radius, RoundAction, Sheet, SheetAction, Skeleton, spacing, Text, useToast, VerifiedBadge } from '@/design';
@@ -503,9 +503,21 @@ export function ProfileView({ profile, isOwnTab }: { profile: ProfileRow; isOwnT
     </View>
   );
 
+  // Pull to refresh: everything the profile shows is fetched again.
+  const [pulling, setPulling] = useState(false);
+  async function onPull() {
+    setPulling(true);
+    try {
+      await Promise.allSettled([products.refetch(), posts.refetch(), pinnedPosts.refetch(), stories.refetch(), highlights.refetch(), rel.refetch(), level.refetch()]);
+    } finally {
+      setPulling(false);
+    }
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: dark.background }} onLayout={(e) => setContentW(e.nativeEvent.layout.width)}>
       <FlatList<Item>
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={() => void onPull()} tintColor={dark.text} />}
         onScroll={onDockScroll}
         scrollEventThrottle={16}
         data={data}
