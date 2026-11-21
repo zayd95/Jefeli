@@ -1,24 +1,39 @@
-# P5 — La Demande d’aide en papier sable (21 nov. 2026)
+# P5 — La Demande d’aide, sans carte (21 nov. 2026)
 
-Demande du propriétaire : les publications « Je cherche… » se distinguent des publications ordinaires par une carte **sable chaud**,
-« comme du papier de qualité », ni jaune vif ni un autre vert. Branche `feature/p5-demande-d-aide`.
+Première version : une carte sable (`#F1E3CD`). **Refusée par le propriétaire** (« pourquoi ne pas se fondre comme sur X, pas besoin de cartes pour contenir
+le texte »). Version retenue : le texte d’une demande se pose directement sur le fond, comme toute publication.
 
 ```
- ● DEMANDE D’AIDE                        (puce argile, texte encre atténuée)
- Je cherche des pots en verre de 100 à 250 ml…   (encre profonde, Nunito 18)
- [ Je peux aider ]                       (pilule encre profonde, texte sable)
+ ● DEMANDE D’AIDE                         (puce argile #B66B50, libellé sable #F1E3CD)
+ Je cherche des pots en verre de 100 à 250 ml…    (texte normal, sur le fond)
+ ▲ 0   💬 0   🔖   Écrire                 (ligne habituelle ; « Écrire » seulement si l’auteur le permet)
 ```
-- Couleurs (tokens uniquement) : sable `#F1E3CD`, encre `#10252C`, argile `#B66B50`, plus l’encre atténuée `#4A5B5C` pour le texte secondaire.
-- Contrastes WCAG vérifiés (`contrast.test.ts`) : encre/sable 12,6:1, atténuée/sable 5,6:1, sable/encre (bouton) 12,6:1, argile/sable 3,2:1 (point
-  et filet seulement, jamais du texte : l’argile pur ferait 3,2:1, insuffisant pour du texte).
-- Réservé aux demandes (`intent = seek`) : c’est la seule surface claire de l’application ; la règle est inscrite dans `docs/DESIGN_SYSTEM.md` et `CLAUDE.md`.
-- Pas de motif, d’illustration ni d’ombre. Le bouton n’est pas doré : le budget d’or (un seul aplat par écran) est inchangé.
-- Une demande avec photos ou voix garde la carte sable au-dessus du média ; la ligne auteur, les votes et les commentaires restent sur le fond sombre.
-
-Évidence : `docs/evidence/p5/demande-d-aide-feed.png` (390 px, staging, compte famille).
+- Aucune carte, aucun fond clair : le thème reste entièrement sombre. La demande se reconnaît à son libellé sable et à sa puce argile.
+- Couleurs en tokens (`colors.requestLabel`, `requestDot`) ; contrastes dans `contrast.test.ts` : sable/fond 12:1, argile/fond ≥ 3:1 (puce, jamais du texte).
+- **Pas de bouton « Je peux aider »** (retiré à la demande du propriétaire, 21 nov.) : on répond **dans les commentaires**, ou en privé avec l’action discrète « Écrire »
+  de la ligne de votes, **si l’auteur l’autorise** (réglage « Qui peut m’écrire » : le serveur refuse avec « Ce membre n’accepte pas les messages de tout le monde » sinon).
+  Piste : masquer « Écrire » d’avance quand l’auteur n’accepte pas (demande une petite fonction serveur `can_message`).
 
 ## Tirer pour actualiser sur le web (appli ajoutée à l’écran d’accueil)
 `RefreshControl` n’existe pas sur le web et une appli installée n’a pas le geste du navigateur. `components/PullToRefresh.tsx` écoute le toucher
-(depuis le haut de la liste, relâcher au-delà de 72 px) et recharge : fil (Pour toi, Abonnements), Explorer, Messages, Notifications, Profil.
-Sur les applis natives le composant ne fait rien (le `RefreshControl` natif reste). Vérifié avec un toucher émulé à 390 px : un petit tirage ne
-recharge pas, un tirage long relance les requêtes (`docs/evidence/p5/pull-to-refresh-*.png`). Les Reels (pagination plein écran) n’ont pas ce geste sur le web.
+(depuis le haut de la liste, relâcher au-delà de 72 px) et recharge : fil, Explorer, Messages, Notifications, Profil. Sur natif il ne fait rien
+(le `RefreshControl` natif reste). Vérifié avec un toucher émulé à 390 px (`docs/evidence/p5/pull-to-refresh-*.png`). Pas de geste sur les Reels web.
+
+## Libellés du fil : plus courts, dans le vocabulaire de la marque (21 nov.)
+Retour du propriétaire : les libellés peuvent être plus courts et faire partie de la marque. Règle : **un libellé seulement quand il dit quelque chose**
+(comme X, où une publication ordinaire n’en porte pas), et avec les quatre verbes de Wecci.
+
+| Avant | Après |
+|---|---|
+| DEMANDE D’AIDE | **JE CHERCHE** (sable, puce argile) |
+| JE PROPOSE | **JE PROPOSE** |
+| VITRINE (article lié) | **À VENDRE** · **À TROQUER** · **VENTE · TROC** · **À DONNER** (selon le mode de l’article, puce menthe) |
+| VOTRE AVIS ? | **AVIS** |
+| MOMENT, VIDÉO, PHOTOS RACONTÉES, PUBLICATION VOCALE, PUBLICATION | *(aucun : le contenu le dit)* |
+
+Le texte lu par les lecteurs d’écran reste « Type de publication : Je cherche » (test `community.spec.ts` inchangé).
+
+### Pistes wolof ⚑ (à valider avec les vendeurs pilotes, règle de `IDENTITY.md`)
+Recherche dans des glossaires publics (Boston University, Afrifolk, Cambridge, Munro & Gaye) : **wut** = chercher, **jox** = donner et **dimbali** (« dimbali ma » = aide-moi)
+sont attestés ; « xalaat » (avis), « xibaar » (nouvelles) et « seetlu » n’ont pas pu être confirmés. Rien de wolof n’est donc affiché pour l’instant : candidats
+**WUT** (Je cherche), **JOX** (À donner), bouton **Dimbali** (Je peux aider), à faire valider par des locuteurs avant tout usage.

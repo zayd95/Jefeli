@@ -1,8 +1,8 @@
 /**
  * Social post card, ported from the approved Lovable feed (Atlantic After Dark):
  *   - no white card: posts sit on the canvas, separated by air;
- *   - author row, then a quiet uppercase eyebrow with a coloured dot (« Demande d’aide »,
- *     « Je propose », « Vitrine », « Moment »…);
+ *   - author row, then, only where it says something, a short uppercase eyebrow with a coloured dot
+ *     (« Je cherche », « Je propose », « À vendre »…); ordinary posts carry none;
  *   - text-only posts become a restrained patterned card with the words in the editorial serif;
  *   - media posts are full-bleed at their genuine aspect ratio, a tagged article floats on the
  *     photo as a glass chip;
@@ -37,18 +37,18 @@ import { VoteControl } from './VoteControl';
 
 type Eyebrow = { label: string; dot: string };
 
-function eyebrowFor(intent: PostIntent, post: PostCardData, tagged: boolean): Eyebrow {
-  if (intent === 'seek') return { label: 'Demande d’aide', dot: dark.wecci };
+/** Wecci wording of a tagged article: the four verbs of the marketplace, as on any classifieds board. */
+const ARTICLE_LABELS: Record<string, string> = { sale: 'À vendre', trade: 'À troquer', sale_or_trade: 'Vente · Troc', give: 'À donner' };
+
+/**
+ * A short label only where it says something (a request, an offer, an article, a question), in the Wecci
+ * vocabulary. Ordinary posts, photos, videos and voice notes carry none, like on X: the content says it.
+ */
+function eyebrowFor(intent: PostIntent, tagged: { listing_mode: string }[]): Eyebrow | null {
   if (intent === 'offer') return { label: INTENT_LABELS.offer, dot: dark.wecci };
-  if (intent === 'opinion') return { label: INTENT_LABELS.opinion, dot: dark.textSecondary };
-  if (tagged) return { label: 'Vitrine', dot: dark.wecci };
-  const voice = post.media.some((m) => m.kind === 'audio');
-  const visual = post.media.filter((m) => m.kind !== 'audio');
-  if (visual[0]?.kind === 'video') return { label: 'Vidéo', dot: dark.textSecondary };
-  if (visual.length > 0 && voice) return { label: 'Photos racontées', dot: dark.wecci };
-  if (visual.length > 0) return { label: 'Moment', dot: dark.textSecondary };
-  if (voice) return { label: 'Publication vocale', dot: dark.wecci };
-  return { label: 'Publication', dot: dark.textSecondary };
+  if (intent === 'opinion') return { label: 'Avis', dot: dark.textSecondary };
+  if (tagged[0]) return { label: ARTICLE_LABELS[tagged[0].listing_mode] ?? 'À vendre', dot: dark.wecci };
+  return null;
 }
 
 function PostCardInner({
@@ -93,8 +93,8 @@ function PostCardInner({
   const visual = post.media.filter((m) => m.kind !== 'audio');
   const hasMedia = visual.length > 0;
   const long = post.body.length > (hasMedia ? 180 : 260);
-  const eyebrow = eyebrowFor(intent, post, tagged.length > 0);
-  // Demande d’aide: the one light card of the feed (warm sand), so requests are recognised at a glance.
+  const eyebrow = eyebrowFor(intent, tagged);
+  // Demande d’aide: plain text on the canvas like any post, recognised by its sand label (no card).
   const request = intent === 'seek' && !!post.body;
   const mediaWidth = width ?? Math.min(screenWidth, 640);
   const openPost = (focusComment = false) =>
@@ -156,27 +156,26 @@ function PostCardInner({
   const visibilityLabel = post.visibility === 'friends' ? 'Amis' : post.visibility === 'followers' ? 'Abonnés' : null;
   // The first tagged article still available from someone else: « Demander » opens a product conversation.
   const askable = !isOwn && intent === 'share' ? tagged.find((p) => p.seller_id !== userId && p.status !== 'sold') : undefined;
-  // A contextual next step for requests and offers (Lovable « Je peux aider » in gold for requests).
+  // A contextual button only for offers and questions. A request (« Je cherche ») has none: people answer in the
+  // comments, or write privately with the quiet « Écrire » below (the author's message setting is enforced server-side).
   const cta =
-    isOwn || intent === 'share'
+    isOwn || intent === 'share' || intent === 'seek'
       ? null
       : intent === 'opinion'
         ? { label: 'Donner mon avis', hint: undefined, tone: 'outline' as const, onPress: () => (onOpenComments ? onOpenComments() : openPost(true)) }
-        : intent === 'seek'
-          ? { label: 'Je peux aider', hint: `Écrire à ${firstName} en privé`, tone: 'gold' as const, onPress: contactAuthor }
-          : { label: `Écrire à ${firstName}`, hint: undefined, tone: 'mint' as const, onPress: contactAuthor };
-  // One quiet mint text action on the vote row (Lovable « Écrire » / « Demander »), for ordinary shares.
-  const rowAction = isOwn || intent !== 'share' ? null : askable ? { label: 'Demander', onPress: () => contactAboutProduct(askable.id), a11y: `Écrire au vendeur à propos de ${askable.title}` } : { label: 'Écrire', onPress: contactAuthor, a11y: `Écrire à ${firstName} en privé` };
+        : { label: `Écrire à ${firstName}`, hint: undefined, tone: 'mint' as const, onPress: contactAuthor };
+  // One quiet mint text action on the vote row (« Écrire » / « Demander »), for ordinary shares and requests.
+  const rowAction = isOwn || (intent !== 'share' && intent !== 'seek') ? null : askable ? { label: 'Demander', onPress: () => contactAboutProduct(askable.id), a11y: `Écrire au vendeur à propos de ${askable.title}` } : { label: 'Écrire', onPress: contactAuthor, a11y: `Écrire à ${firstName} en privé` };
 
   const ctaButton = cta ? (
     <Pressable
       onPress={cta.onPress}
       disabled={contacting}
-      style={({ pressed }) => [styles.cta, request ? styles.ctaRequest : cta.tone === 'gold' ? styles.ctaGold : cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
+      style={({ pressed }) => [styles.cta, cta.tone === 'mint' ? styles.ctaMint : styles.ctaOutline, pressed && { transform: [{ scale: 0.97 }] }, contacting && { opacity: 0.6 }]}
       accessibilityRole="button"
       accessibilityLabel={cta.hint ? `${cta.label}. ${cta.hint}` : cta.label}
     >
-      <Text variant="callout" weight="700" color={request ? colors.requestPaper : dark.text}>
+      <Text variant="callout" weight="700" color={dark.text}>
         {cta.label}
       </Text>
     </Pressable>
@@ -186,16 +185,16 @@ function PostCardInner({
     <View style={styles.request} testID="request-card">
       <View style={styles.requestEyebrow} accessible accessibilityLabel={`Type de publication : ${INTENT_LABELS.seek}`}>
         <View style={styles.requestDot} />
-        <Text variant="micro" weight="700" color={colors.requestMuted} style={styles.eyebrowText}>
-          DEMANDE D’AIDE
+        <Text variant="micro" weight="700" color={colors.requestLabel} style={styles.eyebrowText}>
+          {INTENT_LABELS.seek.toUpperCase()}
         </Text>
       </View>
       <Pressable onPress={() => (long && !expanded ? setExpanded(true) : openPost())} accessibilityHint="Ouvrir la publication">
-        <Text variant="body" weight="500" color={colors.requestInk} numberOfLines={expanded ? undefined : 8} style={styles.requestText}>
+        <Text variant="body" color={dark.textStrong} numberOfLines={expanded ? undefined : 8} style={styles.requestText}>
           {post.body}
         </Text>
         {long && !expanded ? (
-          <Text variant="callout" weight="700" color={colors.requestMuted} style={{ marginTop: 4 }}>
+          <Text variant="callout" tone="fogSecondary" weight="600" style={{ marginTop: 4 }}>
             … voir plus
           </Text>
         ) : null}
@@ -245,11 +244,11 @@ function PostCardInner({
         <IconButton icon={MoreHorizontal} label="Plus d’options" onPress={() => setMenu(true)} color={dark.textSecondary} />
       </View>
 
-      {request ? null : (
+      {request || !eyebrow ? null : (
       <View
         style={styles.eyebrow}
-        accessible={intent !== 'share'}
-        accessibilityLabel={intent !== 'share' ? `Type de publication : ${INTENT_LABELS[intent]}` : undefined}
+        accessible
+        accessibilityLabel={`Type de publication : ${intent !== 'share' ? INTENT_LABELS[intent] : eyebrow.label}`}
       >
         <View style={[styles.eyebrowDot, { backgroundColor: eyebrow.dot }]} />
         <Text variant="micro" weight="700" tone="fogSecondary" style={styles.eyebrowText}>
@@ -454,24 +453,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     gap: spacing.lg,
   },
-  request: {
-    marginHorizontal: spacing.lg,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderRadius: radius.card,
-    backgroundColor: colors.requestPaper,
-    gap: spacing.md,
-  },
+  request: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   requestEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestClay },
-  requestText: { fontSize: 18, lineHeight: 26 },
-  requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 2 },
-  ctaRequest: { backgroundColor: colors.requestInk },
+  requestDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.requestDot },
+  requestText: { fontSize: 17, lineHeight: 24 },
+  requestActions: { flexDirection: 'row', alignItems: 'center', paddingTop: 4 },
   quoteText: { fontSize: 22, lineHeight: 30 },
   quoteActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   bodyAbove: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   cta: { alignSelf: 'flex-start', borderRadius: radius.pill, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
-  ctaGold: { borderWidth: 1, borderColor: dark.gold },
   ctaMint: { borderWidth: 1, borderColor: dark.gold },
   ctaOutline: { borderWidth: 1, borderColor: dark.borderStrong },
   ctaBelow: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
