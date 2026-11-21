@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { BellOff, ChevronRight, MessageCircle, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from 'react-native';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 import { ProfileName } from '@/components/ProfileName';
 import { Avatar, colors, dark, EmptyState, ErrorState, fieldFontSize, fonts, Screen, Skeleton, spacing, Text, WEB_NO_OUTLINE } from '@/design';
@@ -44,6 +45,7 @@ export function ConversationList({ activeId = null, pane = false }: { activeId?:
           Messages
         </Text>
       </View>
+      <PullToRefresh onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
       <FlatList
         onScroll={onDockScroll}
         scrollEventThrottle={16}
@@ -103,6 +105,7 @@ export function ConversationList({ activeId = null, pane = false }: { activeId?:
           )
         }
       />
+      </PullToRefresh>
     </Screen>
   );
 }

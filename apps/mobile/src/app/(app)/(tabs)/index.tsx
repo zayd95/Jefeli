@@ -13,6 +13,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Bell, Compass, LogIn, MapPin, Radio, Repeat2, Search, Sparkles, Tag, Users, type LucideIcon } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View, type ListViewToken } from 'react-native';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 import { DiscoveryRail } from '@/components/desktop/DiscoveryRail';
 import { ActivePostContext, pauseAllVideos } from '@/components/Media';
@@ -277,6 +278,7 @@ export default function Home() {
     <>
       {top}
       {tab === 'live' ? (
+        <PullToRefresh onRefresh={onRefresh} refreshing={live.isRefetching}>
         <FlatList
           onScroll={onDockScroll}
           scrollEventThrottle={16}
@@ -288,8 +290,10 @@ export default function Home() {
           renderItem={({ item }) => <LiveRow live={item} />}
           refreshControl={<RefreshControl refreshing={live.isRefetching} onRefresh={onRefresh} tintColor={dark.text} />}
         />
+        </PullToRefresh>
       ) : (
         <ActivePostContext.Provider value={focused ? activePostId : null}>
+        <PullToRefresh onRefresh={onRefresh} refreshing={posts.isRefetching && !posts.isFetchingNextPage}>
         <FlatList<FeedRow>
           onScroll={onDockScroll}
           scrollEventThrottle={16}
@@ -309,6 +313,7 @@ export default function Home() {
           windowSize={7}
           indicatorStyle="white"
         />
+        </PullToRefresh>
         </ActivePostContext.Provider>
       )}
     </>

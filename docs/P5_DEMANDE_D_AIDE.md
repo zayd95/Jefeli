@@ -16,3 +16,9 @@ Demande du propriétaire : les publications « Je cherche… » se distinguent d
 - Une demande avec photos ou voix garde la carte sable au-dessus du média ; la ligne auteur, les votes et les commentaires restent sur le fond sombre.
 
 Évidence : `docs/evidence/p5/demande-d-aide-feed.png` (390 px, staging, compte famille).
+
+## Tirer pour actualiser sur le web (appli ajoutée à l’écran d’accueil)
+`RefreshControl` n’existe pas sur le web et une appli installée n’a pas le geste du navigateur. `components/PullToRefresh.tsx` écoute le toucher
+(depuis le haut de la liste, relâcher au-delà de 72 px) et recharge : fil (Pour toi, Abonnements), Explorer, Messages, Notifications, Profil.
+Sur les applis natives le composant ne fait rien (le `RefreshControl` natif reste). Vérifié avec un toucher émulé à 390 px : un petit tirage ne
+recharge pas, un tirage long relance les requêtes (`docs/evidence/p5/pull-to-refresh-*.png`). Les Reels (pagination plein écran) n’ont pas ce geste sur le web.
